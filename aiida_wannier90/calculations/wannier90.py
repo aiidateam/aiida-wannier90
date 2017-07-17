@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
-import copy, os
+import os
+import copy
+
 import numpy as np
+
 from aiida.common.utils import classproperty
 from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
 from aiida.common.datastructures import CalcInfo, CodeInfo, code_run_modes
 from aiida.orm import JobCalculation, DataFactory
 from aiida.orm.calculation.job.quantumespresso import (
-    _lowercase_dict, _uppercase_dict, get_input_data_text)
+     _uppercase_dict, get_input_data_text)
 from aiida.orm.calculation.job.quantumespresso.pw import PwCalculation
 from aiida.orm.code import Code
 from aiida.orm.data.array.kpoints import KpointsData
@@ -34,7 +37,7 @@ def _wann_site_format(structure_sites):
             return list_item
         else:
             return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
-    
+
     calc_positions = []
     calc_kind_names = []
     for i in range(len(structure_sites)):
@@ -48,7 +51,7 @@ class Wannier90Calculation(JobCalculation):
     Plugin for Wannier90, a code for producing maximally localized Wannier
     functions. See http://www.wannier.org/ for more details
     """
-    
+
     def _init_internal_params(self):
         super(Wannier90Calculation, self)._init_internal_params()
 
@@ -164,7 +167,7 @@ class Wannier90Calculation(JobCalculation):
             # Test to see if parent PwCalculation is nscf
             par_type = calc.inp.parameters.dict.CONTROL['calculation'].lower()
             if par_type != 'nscf':
-                raise ValueError("Pw calculation must be nscf") 
+                raise ValueError("Pw calculation must be nscf")
         try:
             remote_folder = calc.get_outputs_dict()['remote_folder']
         except KeyError:
@@ -172,7 +175,7 @@ class Wannier90Calculation(JobCalculation):
                                  "parent calculation set")
         self.use_parent_folder(remote_folder)
 
-    def _prepare_for_submission(self,tempfolder, inputdict):        
+    def _prepare_for_submission(self,tempfolder, inputdict):
         """
         Routine, which creates the input and prepares for submission
 
@@ -516,7 +519,7 @@ class Wannier90Calculation(JobCalculation):
             if gw_preproc_code is not None:
                 copy_list.append((parent_uuid, os.path.join(
                                    parent_path,'aiida.nnkp'),'.'))
-            
+
         else:
             copy_list.append((parent_uuid,os.path.join(parent_path,
                                   pw_out),PwCalculation._OUTPUT_SUBFOLDER))
@@ -604,9 +607,9 @@ class Wannier90Calculation(JobCalculation):
 
     def _gen_wannier_orbitals(cls, position_cart=None, structure=None,
                              kind_name=None, radial=1,
-                             ang_mtm_name=None, ang_mtm_l=None, 
-                             ang_mtm_mr=None, spin=None, 
-                             zona=None, zaxis=None, 
+                             ang_mtm_name=None, ang_mtm_l=None,
+                             ang_mtm_mr=None, spin=None,
+                             zona=None, zaxis=None,
                              xaxis=None, spin_axis=None):
         """
         Use this method to emulate the input style of wannier90,
@@ -638,18 +641,18 @@ class Wannier90Calculation(JobCalculation):
         """
         def convert_to_list(item):
             """
-            internal method, checks if the item is already a list or tuple. 
-            if not returns a tuple containing only item, otherwise returns 
+            internal method, checks if the item is already a list or tuple.
+            if not returns a tuple containing only item, otherwise returns
             tuple(item)
             """
             if isinstance(item,(list,tuple)):
                 return tuple(item)
             else:
                 return tuple([item])
-        
+
         def combine_dictlists(dict_list1, dict_list2):
             """
-            Creates a list of every dict in dict_list1 updated with every 
+            Creates a list of every dict in dict_list1 updated with every
             dict in dict_list2
             """
             out_list =  [ ]
@@ -662,7 +665,7 @@ class Wannier90Calculation(JobCalculation):
                 return dict_list2
             if dict_list2_empty:
                 return dict_list2
-                    
+
             for dict_1 in dict_list1:
                 for dict_2 in dict_list2:
                     temp_1 = dict_1.copy()
@@ -670,7 +673,7 @@ class Wannier90Calculation(JobCalculation):
                     temp_1.update(temp_2)
                     out_list.append(temp_1)
             return out_list
-    
+
         RealhydrogenOrbital = OrbitalFactory('realhydrogen')
 
         #########################################################################
@@ -681,7 +684,7 @@ class Wannier90Calculation(JobCalculation):
         if position_cart != None and kind_name != None:
             raise InputValidationError('Must supply position or kind_name'
                                        ' not both')
-        
+
         structure_class = DataFactory('structure')
         if kind_name != None:
             if not isinstance(structure, structure_class):
@@ -689,16 +692,16 @@ class Wannier90Calculation(JobCalculation):
                                             'structure if using kind_name')
             if not isinstance(kind_name, basestring):
                 raise InputValidationError('kind_name must be a string')
-            
+
         if ang_mtm_name == None and ang_mtm_l == None:
             raise InputValidationError("Must supply ang_mtm_name or ang_mtm_l")
-        if ang_mtm_name != None and (ang_mtm_l != None or ang_mtm_mr != None): 
+        if ang_mtm_name != None and (ang_mtm_l != None or ang_mtm_mr != None):
             raise InputValidationError("Cannot supply ang_mtm_l or ang_mtm_mr"
                                        " but not both")
         if ang_mtm_l == None and ang_mtm_mr != None:
-            raise InputValidationError("Cannot supply ang_mtm_mr without " 
+            raise InputValidationError("Cannot supply ang_mtm_mr without "
                                        "ang_mtm_l")
-                                    
+
         ####################################################################
         #Setting up initial basic parameters
         ####################################################################
@@ -715,11 +718,11 @@ class Wannier90Calculation(JobCalculation):
             projection_dict['spin_orientation'] = spin_axis
         if zona:
             projection_dict['diffusivity'] = zona
-    
+
         projection_dicts = [projection_dict]
-    
+
         #####################################################################
-        # Setting up Positions                                              # 
+        # Setting up Positions                                              #
         #####################################################################
         # finds all the positions to append the orbitals to (if applicable)
         position_list = []
@@ -730,16 +733,16 @@ class Wannier90Calculation(JobCalculation):
             if len(position_list) == 0:
                 raise InputValidationError("No valid positions found in structure "
                                         "using {}".format(kind_name))
-        # otherwise turns position into position_list 
+        # otherwise turns position into position_list
         else:
             position_list = [convert_to_list(position_cart)]
         position_dicts = [{"position":v} for v in position_list]
         projection_dicts = combine_dictlists(projection_dicts, position_dicts)
-         
+
         #######################################################################
         # Setting up angular momentum                                         #
         #######################################################################
-        # if ang_mtm_l, ang_mtm_mr provided, setup dicts 
+        # if ang_mtm_l, ang_mtm_mr provided, setup dicts
         if ang_mtm_l is not None:
             ang_mtm_l = convert_to_list(ang_mtm_l)
             ang_mtm_dicts = []
@@ -765,8 +768,8 @@ class Wannier90Calculation(JobCalculation):
             ang_mtm_dicts = []
             for name in ang_mtm_names:
                 ang_mtm_dicts += RealhydrogenOrbital.get_quantum_numbers_from_name(name)
-        projection_dicts = combine_dictlists(projection_dicts, ang_mtm_dicts)          
-    
+        projection_dicts = combine_dictlists(projection_dicts, ang_mtm_dicts)
+
         #####################################################################
         # Setting up the spin                                               #
         #####################################################################
@@ -778,7 +781,7 @@ class Wannier90Calculation(JobCalculation):
                 spin = [spin_dict[spin]]
             spin_dicts = [{'spin':v} for v in spin]
             projection_dicts = combine_dictlists(projection_dicts, spin_dicts)
-    
+
         # generating and returning a list of all corresponding orbitals
         orbital_out = []
         for projection_dict in projection_dicts:
@@ -856,18 +859,18 @@ class Wannier90Calculation(JobCalculation):
 def _print_wann_line_from_orbital(orbital):
     """
     Prints an appropriate wannier line from input orbitaldata,
-    will raise an exception if the orbital does not contain enough 
+    will raise an exception if the orbital does not contain enough
     information, or the information is badly formated
-    """ 
+    """
     from aiida.common.orbital import OrbitalFactory
     realh = OrbitalFactory("realhydrogen")
-    
+
     if not isinstance(orbital, realh):
         raise InputValidationError("Only realhydrogen oribtals supported"
                                    " for wannier input currently")
     import copy
     orb_dict = copy.deepcopy(orbital.get_orbital_dict())
-    
+
     # setup position
     try:
         position = orb_dict["position"]
@@ -877,7 +880,7 @@ def _print_wann_line_from_orbital(orbital):
         raise InputValidationError("orbital must have position!")
     wann_string = "c="+",".join([str(x) for x in position])
 
-    
+
     # setup angular and magnetic number
     # angular_momentum
     try:
@@ -887,7 +890,7 @@ def _print_wann_line_from_orbital(orbital):
     except KeyError:
         raise InputValidationError("orbital must have angular momentum, l")
     wann_string += ":l={}".format(str(angular_momentum))
-    # magnetic_number 
+    # magnetic_number
     try:
         magnetic_number = orb_dict["magnetic_number"]
         if angular_momentum is None:
@@ -895,8 +898,8 @@ def _print_wann_line_from_orbital(orbital):
     except KeyError:
         raise InputValidationError("orbital must have magnetic number, m")
     wann_string += ",mr={}".format(str(magnetic_number+1))
-    
-    # orientations, optional 
+
+    # orientations, optional
     # xaxis
     xaxis = orb_dict.pop("x_orientation",None)
     if xaxis:
@@ -905,22 +908,22 @@ def _print_wann_line_from_orbital(orbital):
     zaxis = orb_dict.pop("z_orientation",None)
     if zaxis:
         wann_string += ":z="+",".join([str(x) for x in zaxis])
-    
+
     # radial, optional
     radial = orb_dict.pop("radial_nodes", None)
     if radial:
         wann_string += ":{}".format(str(radial+1))
-    
+
     # zona, optional
     zona = orb_dict.pop("diffusivity", None)
     if zona:
         wann_string += ":{}".format(str(zona))
-    
+
     # spin, optional
     # Careful with spin, it is insufficient to set the spin the projection
     # line alone. You must, in addition, apply the appropriate settings:
     # either set spinors=.true. or use spinor_projections, see user guide
-    
+
     spin = orb_dict.pop("spin", None)
     if spin:
         spin_dict = {-1:"d",1:"u"}
@@ -928,6 +931,5 @@ def _print_wann_line_from_orbital(orbital):
     spin_orient = orb_dict.pop("spin_orientation",None)
     if spin_orient:
         wann_string += "["+",".join([str(x) for x in spin_orient])+"]"
-    
-    return wann_string                                  
 
+    return wann_string
