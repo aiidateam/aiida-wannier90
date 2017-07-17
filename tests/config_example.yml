@@ -1,0 +1,14 @@
+computers:
+  - name: localhost
+    hostname: localhost
+    description: localhost
+    transport: local
+    scheduler: direct
+    work_directory: /tmp/test_aiida_tbextraction_run
+
+codes:
+  - label: wannier90
+    description: Wannier90
+    default_plugin: wannier90.wannier
+    remote_computer: localhost
+    remote_abspath: /home/greschd/software/wannier90-latest/wannier90.x
