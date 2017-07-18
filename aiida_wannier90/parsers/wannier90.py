@@ -11,16 +11,15 @@ from aiida.orm.data.array.kpoints import KpointsData
 __authors__ = "The AiiDA team."
 __copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
 __license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
-__version__ = "0.7.0"
 
 class Wannier90Parser(Parser):
     """
     Wannier90 output parser. Will parse global gauge invarient spread as well as
     the centers, spreads and, if possible the Imaginary/Real ratio of the
     wannier functions. Will also check to see if the output converged.
-    """    
+    """
     _outarray_name = 'output_data'
-    
+
     def __init__(self,calculation):
         """
         Initialize the instance of Wannier90Parser
@@ -30,7 +29,7 @@ class Wannier90Parser(Parser):
             raise OutputParsingError("Input must calc must be a "
                                      "Wannier90Calculation")
         super(Wannier90Parser, self).__init__(calculation)
-            
+
     def parse_with_retrieved(self, retrieved):
         """
         Parses the datafolder, stores results.
@@ -40,7 +39,7 @@ class Wannier90Parser(Parser):
         successful = True
         new_nodes_list = []
         # select the folder object
-        # Check that the retrieved folder is there 
+        # Check that the retrieved folder is there
         try:
             out_folder = retrieved[self._calc._get_linkname_retrieved()]
         except KeyError:
@@ -61,7 +60,7 @@ class Wannier90Parser(Parser):
             with open(filpath, 'r') as fil:
                     out_file = fil.readlines()
         except OSError:
-            try: 
+            try:
                 filpath = out_folder.get_abs_path(
                     self._calc._DEFAULT_OUTPUT_FILE_GW )
                 with open(filpath, 'r') as fil:
@@ -88,7 +87,7 @@ class Wannier90Parser(Parser):
                                            special_points, structure)
             new_nodes_list += [('interpolated_bands',output_bandsdata)]
         except OSError:
-            try: 
+            try:
                 band_dat_path = out_folder.get_abs_path(
                     '{}_band.dat'.format(self._calc._PREFIX_GW))
                 with open(band_dat_path, 'r') as fil:
@@ -108,7 +107,7 @@ class Wannier90Parser(Parser):
         output_data = ParameterData(dict=wout_dictionary)
         linkname = 'output_parameters'
         new_nodes_list += [(linkname,output_data)]
-        
+
         return successful,new_nodes_list
 
 
@@ -304,6 +303,3 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     bands.set_bands(out_dat, units='eV')
     bands.labels = labels
     return bands
-
-
-

@@ -26,7 +26,6 @@ except ImportError:
 __authors__ = "Daniel Marchand, Antimo Marrazzo, Dominik Gresch & The AiiDA team."
 __copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
 __license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
-__version__ = "0.7.0"
 
 def _wann_site_format(structure_sites):
     '''
@@ -205,7 +204,7 @@ class Wannier90Calculation(JobCalculation):
     #                                   "RemoteData")
         local_input_folder = inputdict.pop(self.get_linkname("local_input_folder",None))
         remote_input_folder = inputdict.pop(self.get_linkname("remote_input_folder", None))
-        if not isinstance(local_input_folder, RemoteData):
+        if not isinstance(local_input_folder, FolderData):
             raise InputValidationError("local_input_folder is not of type "
                                        "FolderData")
         if not isinstance(remote_input_folder, RemoteData):
