@@ -141,14 +141,6 @@ class Wannier90Calculation(JobCalculation):
         Set the parent calculation,
         from which it will inherit the output subfolder as remote_input_folder.
         """
-    #    if not isinstance(calc, (PwCalculation, Wannier90Calculation)):
-    #        raise ValueError("Parent calculation must be a Pw or Wannier90 "
-    #                         "Calculation")
-    #    if isinstance(calc, PwCalculation):
-    #        # Test to see if parent PwCalculation is nscf
-    #        par_type = calc.inp.parameters.dict.CONTROL['calculation'].lower()
-    #        if par_type != 'nscf':
-    #            raise ValueError("Pw calculation must be nscf")
         try:
             remote_folder = calc.get_outputs_dict()['remote_folder']
         except KeyError:
@@ -165,42 +157,19 @@ class Wannier90Calculation(JobCalculation):
         :param inputdict: a dictionary with the input nodes, as they would
                 be returned by get_inputdata_dict (without the Code!)
         """
-        ##################################################################
-        # Input validation
-        ##################################################################
-        try:
-            local_input_folder = inputdict.pop(
-                self.get_linkname("local_input_folder")
-            )
-            if not isinstance(local_input_folder, FolderData):
-                raise InputValidationError(
-                    "local_input_folder is not of type FolderData"
-                )
-        except KeyError:
-            local_input_folder = None
-        try:
+        input_validator = self._get_input_validator(inputdict=inputdict)
+        local_input_folder = input_validator(
+            name='local_input_folder', valid_types=FolderData, required=False
+        )
+        remote_input_folder = input_validator(
+            name='remote_input_folder', valid_types=RemoteData, required=False
+        )
+        if local_input_folder is None and remote_input_folder is None:
+            raise InputValidationError('Either local_input_folder or remote_input_folder must be set.')
 
-            remote_input_folder = inputdict.pop(
-                self.get_linkname("remote_input_folder")
-            )
-            if not isinstance(remote_input_folder, RemoteData):
-                raise InputValidationError(
-                    "remote_input_folder is not of type RemoteData"
-                )
-        except KeyError:
-            remote_input_folder = None
-
-        # Tries to get the input parameters
-        try:
-            parameters = inputdict.pop(self.get_linkname('parameters'))
-        except KeyError:
-            raise InputValidationError(
-                "No parameters specified for this calculation"
-            )
-        if not isinstance(parameters, ParameterData):
-            raise InputValidationError(
-                "parameters is not of type ParameterData"
-            )
+        parameters = input_validator(
+            name='parameters', valid_types=ParameterData
+        )
 
         def blocked_keyword_finder(input_params, blocked_keywords):
             """
@@ -243,73 +212,32 @@ class Wannier90Calculation(JobCalculation):
         param_dict = blocked_keyword_finder(param_dict, self._blocked_keywords)
         check_capitals(param_dict)
 
-        # Tries to get the precode input paramters
-    #    try:
-    #        precode_parameters = inputdict.pop(self.get_linkname
-    #                                           ('precode_parameters'))
-    #    except KeyError:
-    #        precode_parameters = ParameterData(dict={})
-    #    if not isinstance(precode_parameters,ParameterData):
-    #        raise InputValidationError('precode_parameters is not '
-    #                                   'of type ParameterData')
-    #    precode_param_dict = precode_parameters.get_dict()
-    #    precode_param_dict = blocked_keyword_finder(precode_param_dict,
-    #                                        self._blocked_precode_keywords)
-    #    check_capitals(precode_param_dict)
-        # Tries to get the input projections
-        try:
-            projections = inputdict.pop(self.get_linkname('projections'))
-        except KeyError:
-            raise InputValidationError("No projections specified for "
-                                       "this calculation")
-        if not isinstance(projections, OrbitalData):
-            raise InputValidationError("projections is not of type "
-                                       "OrbitalData")
+        projections = input_validator(
+            name='projections', valid_types=OrbitalData
+        )
+        kpoints = input_validator(
+            name='kpoints', valid_types=KpointsData
+        )
+        kpoints_path = input_validator(
+            name='kpoints_path', valid_types=KpointsData, required=False
+        )
+        structure = input_validator(
+            name='structure', valid_types=StructureData
+        )
 
-        # Tries to get the input k-points
-        try:
-            kpoints = inputdict.pop(self.get_linkname('kpoints'))
-        except KeyError:
-            raise InputValidationError("No kpoints specified for this"
-                                       " calculation")
-        if not isinstance(kpoints, KpointsData):
-            raise InputValidationError("kpoints is not of type KpointsData")
-
-        # Tries to get the input k-points path, but is not actually mandatory and will
-        #  default to None if not found
-        kpoints_path = inputdict.pop(self.get_linkname('kpoints_path'), None)
-        if not isinstance(kpoints, KpointsData) and kpoints_path is not None:
-            raise InputValidationError("kpoints_path is not of type "
-                                       "KpointsData")
-
-        # Tries to get the input structure
-        try:
-            structure = inputdict.pop(self.get_linkname('structure'))
-        except KeyError:
-            raise InputValidationError("No structure specified for this "
-                                       "calculation")
-        if not isinstance(structure, StructureData):
-            raise InputValidationError("structure is not of type "
-                                       "StructureData")
-
-        # Settings can be undefined, and defaults to an empty dictionary
-        settings = inputdict.pop(self.get_linkname('settings'), None)
+        settings = input_validator(
+            name='settings', valid_types=ParameterData, required=False
+        )
         if settings is None:
             settings_dict = {}
         else:
-            if not isinstance(settings,  ParameterData):
-                raise InputValidationError("settings, if specified, must be "
-                                           "of type ParameterData")
-            # Settings converted to uppercase
-            settings_dict = _uppercase_dict(settings.get_dict(),
-                                            dict_name='settings')
+            settings_dict = _uppercase_dict(
+                settings.get_dict(), dict_name='settings'
+            )
 
-        try:
-            code = inputdict.pop(self.get_linkname('code'))
-        except KeyError:
-            raise InputValidationError(
-                'No code specified for this calculation.')
-
+        code = input_validator(
+            name='code', valid_types=Code
+        )
 
         ############################################################
         # End basic check on inputs
@@ -491,6 +419,29 @@ class Wannier90Calculation(JobCalculation):
             raise InputValidationError("Some keys in settings unrecognized")
 
         return calcinfo
+
+    @staticmethod
+    def _get_input_validator(inputdict):
+        def _validate_input(name, valid_types, required=True, default=None):
+            try:
+                value = inputdict.pop(name)
+            except KeyError:
+                if required:
+                    raise InputValidationError("Missing required input parameter '{}'".format(name))
+                else:
+                    value = default
+
+            if not isinstance(valid_types, (list, tuple)):
+                valid_types = [valid_types]
+            if not required:
+                valid_types = list(valid_types) + [type(default)]
+            valid_types = tuple(valid_types)
+
+            if not isinstance(value, valid_types):
+                raise InputValidationError("Input parameter '{}' is of type '{}', but should be of type(s) '{}'".format(name, type(value), valid_types))
+            return value
+
+        return _validate_input
 
     def generate_projections(self, list_of_projection_dicts):
         return _generate_projections(
