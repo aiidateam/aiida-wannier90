@@ -23,7 +23,7 @@ try:
 except ImportError:
     from aiida.execmanager import get_authinfo
 
-from ..orbitals import generate_projections as _generate_projections 
+from ..orbitals import generate_projections as _generate_projections
 
 __authors__ = "Daniel Marchand, Antimo Marrazzo, Dominik Gresch & The AiiDA team."
 __copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
@@ -63,26 +63,16 @@ class Wannier90Calculation(JobCalculation):
 
         self._DEFAULT_INPUT_FILE = 'aiida.win'
         self._DEFAULT_INPUT_FILE_GW = 'aiida'
-    #    self._DEFAULT_INPUT_FILE_GW_WIN = 'aiida.gw.win'
         self._DEFAULT_OUTPUT_FILE = 'aiida.wout'
-    #    self._DEFAULT_OUTPUT_FILE_GW = 'aiida.gw.wout'
         self._ERROR_FILE_NAME = 'aiida.werr'
-    #    self._INPUT_PRECODE_FILE_NAME = 'aiida.in'
-    #    self._OUTPUT_PRECODE_FILE_NAME = 'aiida.out'
-    #    self._OUTPUT_GW_PRECODE_FILE_NAME = 'aiida_GW.out'
-    #    self._PREFIX = 'aiida'
-    #    self._PREFIX_GW = 'aiida.gw'
         self._SEEDNAME = 'aiida'
         self._default_parser = 'wannier90.wannier90'
-        #self._INPUT_SUBFOLDER = "./out/"
         self._ALWAYS_SYM_FILES = ['UNK*', '*.mmn']
         self._RESTART_SYM_FILES = ['*.amn','*.eig']
         self._CHK_FILE = '*.chk'
-        self._DEFAULT_INIT_ONLY = False
         self._DEFAULT_WRITE_UNK = False
         self._blocked_keywords =[['length_unit','ang']]
         self._blocked_precode_keywords = []
-
 
     @classproperty
     def _use_methods(cls):
@@ -110,13 +100,6 @@ class Wannier90Calculation(JobCalculation):
                'docstring': ("Use a node that specifies the input parameters "
                              "for the wannier code"),
                },
-    #        "precode_parameters": {
-    #           'valid_types': ParameterData,
-    #           'additional_parameter': None,
-    #           'linkname': 'precode_parameters',
-    #           'docstring': ("Use a node that specifies the input parameters "
-    #                         "for the wannier precode"),
-    #           },
             "projections": {
                'valid_types': OrbitalData,
                'additional_parameter': None,
@@ -136,20 +119,6 @@ class Wannier90Calculation(JobCalculation):
                 'linkname': 'remote_input_folder',
                 'docstring': ("Use a remote folder as parent folder"),
             },
-    #        "preprocessing_code": {
-    #            'valid_types': Code,
-    #            'additional_parameter': None,
-    #            'linkname': 'preprocessing_code',
-    #            'docstring': ("Use a preprocessing code for "
-    #                     "starting wannier90"),
-    #            },
-    #        "gw_preprocessing_code": {
-    #            'valid_types': Code,
-    #            'additional_parameter': None,
-    #            'linkname': 'gw_preprocessing_code',
-    #            'docstring': ("Use a gw pre-processing code for "
-    #                     "starting wannier90"),
-    #           },
             "kpoints":{
                 'valid_types': KpointsData,
                 'additional_parameter': None,
@@ -195,15 +164,10 @@ class Wannier90Calculation(JobCalculation):
         :param inputdict: a dictionary with the input nodes, as they would
                 be returned by get_inputdata_dict (without the Code!)
         """
+        super(Wannier90Calculation, self)._prepare_for_submission(tempfolder, inputdict)
         ##################################################################
         # Input validation
         ##################################################################
-
-        # Grabs parent calc information
-    #    parent_folder = inputdict.pop(self.get_linkname('parent_folder'),None)
-    #    if not isinstance(parent_folder, RemoteData):
-    #        raise InputValidationError("parent_folder is not of type "
-    #                                   "RemoteData")
         local_input_folder = inputdict.pop(self.get_linkname("local_input_folder",None))
         remote_input_folder = inputdict.pop(self.get_linkname("remote_input_folder", None))
         if not isinstance(local_input_folder, FolderData):
@@ -219,6 +183,7 @@ class Wannier90Calculation(JobCalculation):
         except KeyError:
             raise InputValidationError("No parameters specified for "
                                        "this calculation")
+        print('aargghh!!', parameters)
         if not isinstance(parameters, ParameterData):
             raise InputValidationError("parameters is not of "
                                        "type ParameterData")
@@ -325,10 +290,10 @@ class Wannier90Calculation(JobCalculation):
             settings_dict = _uppercase_dict(settings.get_dict(),
                                             dict_name='settings')
 
-        # This section handles the multicode support
-        main_code = inputdict.pop(self.get_linkname('code'),None)
-        if main_code is None:
-            raise InputValidationError("No input code found!")
+        try:
+            code = inputdict.pop(self.get_linkname('code'))
+        except KeyError:
+            raise InputValidationError('No code specified for this calculation.')
 
 
     #    preproc_code =  inputdict.pop(self.get_linkname('preprocessing_code')
@@ -361,9 +326,6 @@ class Wannier90Calculation(JobCalculation):
                 parent_settings = parent_settings.get_inputs_dict()
             except AttributeError:
                 pass
-            parent_init_only = parent_settings.pop('INIT_ONLY',
-                                                   self._DEFAULT_INIT_ONLY)
-            parent_info_dict.update({'parent_init_only':parent_init_only})
     #        parent_precode = parent_inputs.pop(
     #                            self.get_linkname('preprocessing_code'),None)
     #        parent_info_dict.update({'parent_precode':bool(parent_precode)})
@@ -375,13 +337,6 @@ class Wannier90Calculation(JobCalculation):
     #                                       " preprocess code")
 
 
-        # Here info from this calculation, for file copy settings is found
-        init_only = settings_dict.pop('INIT_ONLY', self._DEFAULT_INIT_ONLY)
-    #    if init_only:
-    #        if preproc_code is None:
-    #            raise InputValidationError ('You cannot have init_only '
-    #                                        'mode set, without providing a '
-    #                                        'preprocessing code')
 
         # prepare the main input text
         input_file_lines = []
@@ -607,11 +562,11 @@ class Wannier90Calculation(JobCalculation):
         c_pp = CodeInfo()
         c_pp.withmpi = False # No mpi with wannier
         c_pp.cmdline_params = ["-pp",self._DEFAULT_INPUT_FILE]
-        c_pp.code_uuid = main_code.uuid
+        c_pp.code_uuid = code.uuid
         c_run = CodeInfo()
         c_run.withmpi = False # No mpi with wannier
         c_run.cmdline_params = [self._DEFAULT_INPUT_FILE]
-        c_pp.code_uuid = main_code.uuid
+        c_pp.code_uuid = code.uuid
         # if preproc_code is not None:
         #     c1 = CodeInfo()
         #     c1.withmpi = False #  No mpi with wannier
@@ -646,14 +601,7 @@ class Wannier90Calculation(JobCalculation):
         # except NameError:
         #     codes_info = [c3]
 
-        # If init_only is set to true, then the last stage of the
-        # calculation will be skipped
-        if init_only:
-            codes_info = [c_pp]
-        else:
-            codes_info = [c_run]
-
-        calcinfo.codes_info = codes_info
+        calcinfo.codes_info = [c_run]
         calcinfo.codes_run_mode = code_run_modes.SERIAL
 
         # Retrieve files
