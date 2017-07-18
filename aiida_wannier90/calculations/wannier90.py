@@ -168,27 +168,39 @@ class Wannier90Calculation(JobCalculation):
         ##################################################################
         # Input validation
         ##################################################################
-        local_input_folder = inputdict.pop(
-            self.get_linkname("local_input_folder", None))
-        remote_input_folder = inputdict.pop(
-            self.get_linkname("remote_input_folder", None))
-        if not isinstance(local_input_folder, FolderData):
-            raise InputValidationError("local_input_folder is not of type "
-                                       "FolderData")
-        if not isinstance(remote_input_folder, RemoteData):
-            raise InputValidationError("remote_input_folder is not of type "
-                                       "RemoteData")
+        try:
+            local_input_folder = inputdict.pop(
+                self.get_linkname("local_input_folder")
+            )
+            if not isinstance(local_input_folder, FolderData):
+                raise InputValidationError(
+                    "local_input_folder is not of type FolderData"
+                )
+        except KeyError:
+            local_input_folder = None
+        try:
+
+            remote_input_folder = inputdict.pop(
+                self.get_linkname("remote_input_folder")
+            )
+            if not isinstance(remote_input_folder, RemoteData):
+                raise InputValidationError(
+                    "remote_input_folder is not of type RemoteData"
+                )
+        except KeyError:
+            remote_input_folder = None
 
         # Tries to get the input parameters
         try:
             parameters = inputdict.pop(self.get_linkname('parameters'))
         except KeyError:
-            raise InputValidationError("No parameters specified for "
-                                       "this calculation")
-        print('aargghh!!', parameters)
+            raise InputValidationError(
+                "No parameters specified for this calculation"
+            )
         if not isinstance(parameters, ParameterData):
-            raise InputValidationError("parameters is not of "
-                                       "type ParameterData")
+            raise InputValidationError(
+                "parameters is not of type ParameterData"
+            )
 
         def blocked_keyword_finder(input_params, blocked_keywords):
             """
@@ -298,45 +310,10 @@ class Wannier90Calculation(JobCalculation):
             raise InputValidationError(
                 'No code specified for this calculation.')
 
-    #    preproc_code =  inputdict.pop(self.get_linkname('preprocessing_code')
-     #                                 ,None)
-     #   if preproc_code is not None:
-     #       if not isinstance(preproc_code, Code):
-     #           raise InputValidationError("preprocessing_code, if specified,"
-     #                                      "must be of type Code")
-     #   gw_preproc_code =  inputdict.pop(self.get_linkname('gw_preprocessing_code')
-     #                                 ,None)
-     #   if gw_preproc_code is not None:
-     #       if not isinstance(gw_preproc_code, Code):
-     #           raise InputValidationError("GW preprocessing_code, if specified,"
-     #                                      "must be of type Code")
 
         ############################################################
         # End basic check on inputs
         ############################################################
-
-        # Here info from the parent, for file copy settings is found
-        parent_info_dict = {}
-        parent_calc = remote_input_folder.get_inputs_dict()['remote_folder']
-        parent_inputs = parent_calc.get_inputs_dict()
-        wannier_parent = isinstance(parent_calc, Wannier90Calculation)
-        parent_info_dict.update({'wannier_parent': wannier_parent})
-        if parent_info_dict['wannier_parent']:
-            # If wannier parent, check if it was INIT_ONY and if precode used
-            parent_settings = parent_inputs.pop('settings', {})
-            try:
-                parent_settings = parent_settings.get_inputs_dict()
-            except AttributeError:
-                pass
-    #        parent_precode = parent_inputs.pop(
-    #                            self.get_linkname('preprocessing_code'),None)
-    #        parent_info_dict.update({'parent_precode':bool(parent_precode)})
-        else:
-            pass
-    #        if preproc_code is None:
-    #            raise InputValidationError("You cannot continue from a non"
-    #                                       " wannier calculation without a"
-    #                                       " preprocess code")
 
         # prepare the main input text
         input_file_lines = []
@@ -412,59 +389,10 @@ class Wannier90Calculation(JobCalculation):
                                     .format(*vector))
         input_file_lines.append('End kpoints')
 
-        # Prints to file the main input
-    #    if gw_preproc_code is not None:
-    #        input_filename = tempfolder.get_abs_path(self._DEFAULT_INPUT_FILE_GW_WIN)
-    #    else:
         input_filename = tempfolder.get_abs_path(self._DEFAULT_INPUT_FILE)
         with open(input_filename, 'w') as file:
             file.write("\n".join(input_file_lines))
             file.write("\n")
-
-        # Prints the precode input file
-    #    if preproc_code is not None:
-    #        namelist_dict = {'outdir':PwCalculation._OUTPUT_SUBFOLDER,
-    #                         'prefix':PwCalculation._PREFIX,
-    #                         'seedname':self._SEEDNAME,
-    #                         }
-    #        for precode_param in precode_param_dict:
-    #            namelist_dict.update({precode_param:
-    #                                      precode_param_dict[precode_param]})
-            # Manually makes sure that .EIG, .MMN are not rewritten
-    #        if  parent_info_dict['wannier_parent']:
-    #            user_mmn_setting = namelist_dict.pop('write_mmn',None)
-    #            if user_mmn_setting:
-    #                raise InputValidationError("You attempt to write_mmn for a "
-    #                                           " calculation which inherited"
-    #                                           " from a wannier90 calc. This"
-    #                                           " is not allowed. Either set"
-     #                                          " write_mmn to false, or use a"
-     #                                          " non-wannier calc as parent.")
-    #            namelist_dict.update({'write_mmn':False})
-            # Add write_eig = .false. once this is available
-            # namelist_dict.update({})
-            # checks and adds UNK file
-            # writing UNK as a setting is obsolete
-            # write_unk = settings_dict.pop('WRITE_UNK',None)
-            # if write_unk:
-            #     namelist_dict.update({'write_unk':True})
-    #        p2w_input_dict = {'INPUTPP':namelist_dict}
-
-    #        input_precode_filename = tempfolder.get_abs_path(
-    #            self._INPUT_PRECODE_FILE_NAME)
-    #        with open(input_precode_filename,'w') as infile:
-    #            for namelist_name in p2w_input_dict.keys():
-    #                infile.write("&{0}\n".format(namelist_name))
-    #                # namelist content; set to {} if not present,
-    #                #  so that we leave an empty namelist
-    #                namelist = p2w_input_dict.pop(namelist_name,{})
-    #                for k, v in sorted(namelist.iteritems()):
-    #                    infile.write(get_input_data_text(k,v))
-    #                infile.write("/\n")
-
-        ############################################################
-        #  end of writing text input
-        ############################################################
 
         # set symlinks and copies
         # ensures that the parent /out/ folder is copied correctly
@@ -477,10 +405,8 @@ class Wannier90Calculation(JobCalculation):
         #parent_path = parent_folder.get_remote_path()
         remote_input_folder_uuid = remote_input_folder.get_computer().uuid
         remote_input_folder_path = remote_input_folder.get_remote_path()
-        local_input_folder_uuid = remote_input_folder.get_computer().uuid
+        local_input_folder_uuid = local_input_folder.get_computer().uuid
         local_input_folder_path = local_input_folder.get_remote_path()
-
-        pw_out = PwCalculation._OUTPUT_SUBFOLDER
 
         required_files = [self._SEEDNAME +
                           suffix for suffix in ['.mmn', '.amn']]
@@ -523,25 +449,6 @@ class Wannier90Calculation(JobCalculation):
         [copy_list.append((local_input_folder_uuid,
                            os.path.join(local_input_folder_path, f), '.'))
          for f in found_in_local]
-        # #if parent_info_dict['wannier_parent']:
-        #     sym_list.append((parent_uuid,os.path.join(parent_path,
-        #                           pw_out),self._INPUT_SUBFOLDER))
-        #     for f in self._ALWAYS_SYM_FILES:
-        #         sym_list.append((parent_uuid, os.path.join(
-        #                              parent_path,f),'.'))
-        #     if preproc_code is None:
-        #         for f in self._RESTART_SYM_FILES:
-        #             sym_list.append((parent_uuid, os.path.join(
-        #                                  parent_path,f),'.'))
-        #         copy_list.append((parent_uuid, os.path.join(
-        #                            parent_path,self._CHK_FILE),'.'))
-        #     if gw_preproc_code is not None:
-        #         copy_list.append((parent_uuid, os.path.join(
-        #                            parent_path,'aiida.nnkp'),'.'))
-
-        # else:
-        #    copy_list.append((parent_uuid,os.path.join(parent_path,
-        #                          pw_out),PwCalculation._OUTPUT_SUBFOLDER))
 
         if copy_list:
             remote_copy_list += copy_list
@@ -560,49 +467,11 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.remote_copy_list = remote_copy_list
         calcinfo.remote_symlink_list = remote_symlink_list
 
-        c_pp = CodeInfo()
-        c_pp.withmpi = False  # No mpi with wannier
-        c_pp.cmdline_params = ["-pp", self._DEFAULT_INPUT_FILE]
-        c_pp.code_uuid = code.uuid
-        c_run = CodeInfo()
-        c_run.withmpi = False  # No mpi with wannier
-        c_run.cmdline_params = [self._DEFAULT_INPUT_FILE]
-        c_pp.code_uuid = code.uuid
-        # if preproc_code is not None:
-        #     c1 = CodeInfo()
-        #     c1.withmpi = False #  No mpi with wannier
-        #     c1.cmdline_params = ["-pp",self._DEFAULT_INPUT_FILE]
-        #     c1.code_uuid = main_code.uuid
-        #     c2 = CodeInfo()
-        #     c2.withmpi = True # pw2wannier90 should run in parallel (anyway needed on some slum clusters)
-        #     c2.code_uuid = preproc_code.uuid
-        #     c2.stdin_name = self._INPUT_PRECODE_FILE_NAME
-        #     c2.stdout_name = self._OUTPUT_PRECODE_FILE_NAME
-        # if gw_preproc_code is not None:
-        #     c_gw = CodeInfo()
-        #     c_gw.withmpi = False
-        #     c_gw.cmdline_params = [self._DEFAULT_INPUT_FILE_GW]
-        #     c_gw.code_uuid = gw_preproc_code.uuid
-        #     c_gw.stdout_name = self._OUTPUT_GW_PRECODE_FILE_NAME
-        #     c3 = CodeInfo()
-        #     c3.withmpi = False # No mpi with wannier
-        #     c3.cmdline_params = [self._DEFAULT_INPUT_FILE_GW_WIN]
-        #     c3.code_uuid = main_code.uuid
-        # else:
-        #     c3 = CodeInfo()
-        #     c3.withmpi = False # No mpi with wannier
-        #     c3.cmdline_params = [self._DEFAULT_INPUT_FILE]
-        #     c3.code_uuid = main_code.uuid
-        #
-        # try:
-        #     if gw_preproc_code is not None:
-        #         codes_info = [c_gw, c3]
-        #     else:
-        #         codes_info = [c1, c2, c3]
-        # except NameError:
-        #     codes_info = [c3]
+        codeinfo = CodeInfo()
+        codeinfo.withmpi = False  # No mpi with wannier
+        codeinfo.cmdline_params = [self._DEFAULT_INPUT_FILE]
 
-        calcinfo.codes_info = [c_run]
+        calcinfo.codes_info = [codeinfo]
         calcinfo.codes_run_mode = code_run_modes.SERIAL
 
         # Retrieve files
@@ -610,10 +479,6 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.retrieve_list.append(self._DEFAULT_OUTPUT_FILE)
         calcinfo.retrieve_list.append(self._OUTPUT_PRECODE_FILE_NAME)
         calcinfo.retrieve_list.append(self._ERROR_FILE_NAME)
-    #    if gw_preproc_code is not None:
-    #        calcinfo.retrieve_list.append(self._DEFAULT_OUTPUT_FILE_GW)
-    #        calcinfo.retrieve_list += ['{}_band.dat'.format(self._PREFIX_GW),
-    #                               '{}_band.kpt'.format(self._PREFIX_GW)]
         calcinfo.retrieve_list += ['{}_band.dat'.format(self._PREFIX),
                                    '{}_band.kpt'.format(self._PREFIX)]
 

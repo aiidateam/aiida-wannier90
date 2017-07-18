@@ -45,7 +45,7 @@ def create_gaas_calc(get_process_inputs, sample, configure):
         KpointsData = DataFactory('array.kpoints')
         kpoints = KpointsData()
         kpoints.set_kpoints_mesh([2, 2, 2])
-        inputs.kpoints = KpointsData()
+        inputs.kpoints = kpoints
 
         kpoints_path = KpointsData()
         kpoints_path.set_cell_from_structure(structure)
@@ -61,13 +61,15 @@ def create_gaas_calc(get_process_inputs, sample, configure):
     return inner
 
 def test_local_input(create_gaas_calc, configure_with_daemon):
+    from aiida.work.run import run
     process, inputs = create_gaas_calc()
-    process.run(**inputs)
+    output = run(process, **inputs)
+    print(output)
 
 def test_no_parameters(create_gaas_calc):
     from aiida.common.exceptions import InputValidationError
+    from aiida.work.run import run
     process, inputs = create_gaas_calc()
     inputs.parameters = None
-    print(inputs)
     with pytest.raises(InputValidationError):
-        process.run(**inputs)
+        run(process, **inputs)
