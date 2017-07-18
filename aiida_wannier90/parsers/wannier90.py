@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-from aiida.orm.calculation.job.wannier90 import Wannier90Calculation
-from aiida.parsers.parser import Parser
-#from aiida.common.datastructures import calc_states
-from aiida.parsers.exceptions import OutputParsingError
+
 import json
+
+from aiida.parsers.parser import Parser
+from aiida.parsers.exceptions import OutputParsingError
 from aiida.orm.data.parameter import ParameterData
 from aiida.orm.data.array.bands import BandsData
 from aiida.orm.data.array.kpoints import KpointsData
+
+from ..calculations.wannier90 import Wannier90Calculation
 
 __authors__ = "The AiiDA team."
 __copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
@@ -21,9 +23,6 @@ class Wannier90Parser(Parser):
     _outarray_name = 'output_data'
 
     def __init__(self,calculation):
-        """
-        Initialize the instance of Wannier90Parser
-        """
         # check for valid input
         if not isinstance(calculation,Wannier90Calculation):
             raise OutputParsingError("Input must calc must be a "

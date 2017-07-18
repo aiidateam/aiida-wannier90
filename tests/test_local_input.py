@@ -4,7 +4,7 @@
 import os
 import pymatgen
 
-def test_local_input(sample, configure, get_process_inputs):
+def test_local_input(sample, configure_with_daemon, get_process_inputs):
     from aiida.orm import DataFactory, CalculationFactory
     from aiida_wannier90.orbitals import generate_projections
 
