@@ -14,6 +14,7 @@ __authors__ = "The AiiDA team."
 __copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
 __license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
 
+
 class Wannier90Parser(Parser):
     """
     Wannier90 output parser. Will parse global gauge invarient spread as well as
@@ -22,9 +23,9 @@ class Wannier90Parser(Parser):
     """
     _outarray_name = 'output_data'
 
-    def __init__(self,calculation):
+    def __init__(self, calculation):
         # check for valid input
-        if not isinstance(calculation,Wannier90Calculation):
+        if not isinstance(calculation, Wannier90Calculation):
             raise OutputParsingError("Input must calc must be a "
                                      "Wannier90Calculation")
         super(Wannier90Parser, self).__init__(calculation)
@@ -55,13 +56,13 @@ class Wannier90Parser(Parser):
 
         try:
             filpath = out_folder.get_abs_path(
-                self._calc._DEFAULT_OUTPUT_FILE )
+                self._calc._DEFAULT_OUTPUT_FILE)
             with open(filpath, 'r') as fil:
-                    out_file = fil.readlines()
+                out_file = fil.readlines()
         except OSError:
             try:
                 filpath = out_folder.get_abs_path(
-                    self._calc._DEFAULT_OUTPUT_FILE_GW )
+                    self._calc._DEFAULT_OUTPUT_FILE_GW)
                 with open(filpath, 'r') as fil:
                     out_file = fil.readlines()
             except OSError:
@@ -76,38 +77,38 @@ class Wannier90Parser(Parser):
             band_dat_path = out_folder.get_abs_path(
                 '{}_band.dat'.format(self._calc._PREFIX))
             with open(band_dat_path, 'r') as fil:
-                    band_dat_file = fil.readlines()
+                band_dat_file = fil.readlines()
             band_kpt_path = out_folder.get_abs_path(
                 '{}_band.kpt'.format(self._calc._PREFIX))
             with open(band_kpt_path, 'r') as fil:
-                    band_kpt_file = fil.readlines()
+                band_kpt_file = fil.readlines()
             structure = self._calc.get_inputs_dict()['structure']
             output_bandsdata = band_parser(band_dat_file, band_kpt_file,
                                            special_points, structure)
-            new_nodes_list += [('interpolated_bands',output_bandsdata)]
+            new_nodes_list += [('interpolated_bands', output_bandsdata)]
         except OSError:
             try:
                 band_dat_path = out_folder.get_abs_path(
                     '{}_band.dat'.format(self._calc._PREFIX_GW))
                 with open(band_dat_path, 'r') as fil:
-                        band_dat_file = fil.readlines()
+                    band_dat_file = fil.readlines()
                 band_kpt_path = out_folder.get_abs_path(
                     '{}_band.kpt'.format(self._calc._PREFIX_GW))
                 with open(band_kpt_path, 'r') as fil:
-                        band_kpt_file = fil.readlines()
+                    band_kpt_file = fil.readlines()
                 structure = self._calc.get_inputs_dict()['structure']
                 output_bandsdata = band_parser(band_dat_file, band_kpt_file,
                                                special_points, structure)
-                new_nodes_list += [('interpolated_bands',output_bandsdata)]
+                new_nodes_list += [('interpolated_bands', output_bandsdata)]
             except OSError:
                 pass
         # save the arrays
         wout_dictionary = raw_wout_parser(out_file)
         output_data = ParameterData(dict=wout_dictionary)
         linkname = 'output_parameters'
-        new_nodes_list += [(linkname,output_data)]
+        new_nodes_list += [(linkname, output_data)]
 
-        return successful,new_nodes_list
+        return successful, new_nodes_list
 
 
 def raw_wout_parser(wann_out_file):
@@ -121,7 +122,7 @@ def raw_wout_parser(wann_out_file):
     :return out: a dictionary of parameters that can be stored as parameter data
     '''
     out = {}
-    out.update({'warnings':[]})
+    out.update({'warnings': []})
     for i in range(len(wann_out_file)):
         line = wann_out_file[i]
         # checks for any warnings
@@ -145,19 +146,19 @@ def raw_wout_parser(wann_out_file):
                 line = wann_out_file[i]
                 if 'Number of Wannier Functions' in line:
                     out.update({'number_wannier_functions':
-                        int(line.split()[-2])})
+                                int(line.split()[-2])})
                 if 'Length Unit' in line:
-                    out.update({'length_units':line.split()[-2]})
+                    out.update({'length_units': line.split()[-2]})
                     if (out['length_units'] != 'Ang'):
                         out['warnings'] += ['Units not Ang, '
-                        'be sure this is OK!']
+                                            'be sure this is OK!']
                 if 'Output verbosity (1=low, 5=high)' in line:
-                    out.update({'output_verbosity':int(line.split()[-2])})
+                    out.update({'output_verbosity': int(line.split()[-2])})
                     if out['output_verbosity'] != 1:
                         out['warnings'] += ['Parsing is only supported '
-                        'directly supported if output verbosity is set to 1']
+                                            'directly supported if output verbosity is set to 1']
                 if 'Post-processing' in line:
-                    out.update({'preprocess_only':line.split()[-2]})
+                    out.update({'preprocess_only': line.split()[-2]})
                 i += 1
 
         # Parses some of the WANNIERISE parameters
@@ -173,13 +174,13 @@ def raw_wout_parser(wann_out_file):
                     out.update({'r2_nm_writeout': line.split()[-2]})
                     if out['r2_nm_writeout'] != 'F':
                         out['warnings'] += ['The r^2_nm file has been selected '
-                        'to be written, but this is not yet supported!']
+                                            'to be written, but this is not yet supported!']
                 if 'Write xyz WF centres to file' in line:
                     out.update({'xyz_wf_center_writeout': line.split()[-2]})
                     if out['xyz_wf_center_writeout'] != 'F':
                         out['warnings'] += ['The xyz_WF_center file has '
-                        'been selected to be written, but this is not '
-                        'yet supported!']
+                                            'been selected to be written, but this is not '
+                                            'yet supported!']
                 i += 1
 
         # Reading the final WF, also checks to see if they converged or not
@@ -196,12 +197,14 @@ def raw_wout_parser(wann_out_file):
             #         'specified tolerance!']
             num_wf = out['number_wannier_functions']
             wf_out = []
-            end_wf_loop = i+num_wf+1
-            for i in range(i+1,end_wf_loop):
+            end_wf_loop = i + num_wf + 1
+            for i in range(i + 1, end_wf_loop):
                 line = wann_out_file[i]
-                wf_out_i = {'wannier_function':'','coordinates':'','spread':''}
+                wf_out_i = {'wannier_function': '',
+                            'coordinates': '', 'spread': ''}
                 #wf_out_i['wannier_function'] = int(line.split()[-7])
-                wf_out_i['wannier_function'] = int(line.split('(')[0].split()[-1])
+                wf_out_i['wannier_function'] = int(
+                    line.split('(')[0].split()[-1])
                 wf_out_i['spread'] = float(line.split('(')[1].split()[-1])
                 #wf_out_i['spread'] = float(line.split()[-1])
                 #x = float(line.split()[-5].strip(','))
@@ -210,28 +213,29 @@ def raw_wout_parser(wann_out_file):
                 x = float(line.split('(')[1].split()[0].strip(','))
                 y = float(line.split('(')[1].split()[1].strip(','))
                 z = float(line.split('(')[1].split()[2].strip(','))
-                coord = (x,y,z)
+                coord = (x, y, z)
                 wf_out_i['coordinates'] = coord
                 wf_out.append(wf_out_i)
-            out.update({'wannier_functions_output':wf_out})
-            for i in range(i+2,i+6):
+            out.update({'wannier_functions_output': wf_out})
+            for i in range(i + 2, i + 6):
                 line = wann_out_file[i]
                 if 'Omega I' in line:
-                    out.update({'Omega_I':float(line.split()[-1])})
+                    out.update({'Omega_I': float(line.split()[-1])})
                 if 'Omega D' in line:
-                    out.update({'Omega_D':float(line.split()[-1])})
+                    out.update({'Omega_D': float(line.split()[-1])})
                 if 'Omega OD' in line:
-                    out.update({'Omega_OD':float(line.split()[-1])})
+                    out.update({'Omega_OD': float(line.split()[-1])})
                 if 'Omega Total' in line:
-                    out.update({'Omega_total':float(line.split()[-1])})
+                    out.update({'Omega_total': float(line.split()[-1])})
 
         if ' Maximum Im/Re Ratio' in line:
             wann_functions = out['wannier_functions_output']
             wann_id = int(line.split()[3])
-            wann_function = wann_functions[wann_id-1]
+            wann_function = wann_functions[wann_id - 1]
             wann_function.update({'im_re_ratio': float(line.split()[-1])})
 
     return out
+
 
 def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     """
@@ -247,23 +251,23 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     """
     import numpy as np
     # imports the data
-    out_kpt = np.genfromtxt(band_kpt_path,skip_header=1,usecols=(0,1,2))
+    out_kpt = np.genfromtxt(band_kpt_path, skip_header=1, usecols=(0, 1, 2))
     out_dat = np.genfromtxt(band_dat_path, usecols=1)
 
     # reshaps the output bands
-    out_dat = out_dat.reshape(len(out_kpt),(len(out_dat)/len(out_kpt)),order="F")
+    out_dat = out_dat.reshape(
+        len(out_kpt), (len(out_dat) / len(out_kpt)), order="F")
 
     # finds expected points of discontinuity
     kpath = special_points[1]
-    cont_break = [(i,(kpath[i-1][1],kpath[i][0])) for i in
-              range(1, len(kpath)) if kpath[i-1][1] != kpath[i][0]]
-
+    cont_break = [(i, (kpath[i - 1][1], kpath[i][0])) for i in
+                  range(1, len(kpath)) if kpath[i - 1][1] != kpath[i][0]]
 
     # finds the special points
     special_points_dict = special_points[0]
     labels = [(i, k) for k in special_points_dict for i in
               range(len(out_kpt)) if all(
-              np.isclose(special_points_dict[k] ,out_kpt[i]))]
+              np.isclose(special_points_dict[k], out_kpt[i]))]
     labels.sort()
 
     # Checks and appends labels if discontinuity
@@ -273,27 +277,27 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
         # if the break is before
         if labels[x[0]][1] != x[1][0]:
             # checks to see if the discontinuity was already there
-            if labels[x[0]-1] == x[1][0]:
+            if labels[x[0] - 1] == x[1][0]:
                 continue
             else:
                 insert_point = x[0]
                 new_label = x[1][0]
-                kpoint = labels[x[0]][0]-1
-                appends += [[insert_point,new_label,kpoint]]
+                kpoint = labels[x[0]][0] - 1
+                appends += [[insert_point, new_label, kpoint]]
         # if the break is after
         if labels[x[0]][1] != x[1][1]:
             # checks to see if the discontinuity was already there
-            if labels[x[0]+1] == x[1][1]:
+            if labels[x[0] + 1] == x[1][1]:
                 continue
             else:
-                insert_point = x[0]+1
+                insert_point = x[0] + 1
                 new_label = x[1][1]
-                kpoint = labels[x[0]][0]+1
-                appends += [[insert_point,new_label,kpoint]]
+                kpoint = labels[x[0]][0] + 1
+                appends += [[insert_point, new_label, kpoint]]
     appends.sort()
     for i in range(len(appends)):
         append = appends[i]
-        labels.insert(append[0]+i,(append[2],unicode(append[1])))
+        labels.insert(append[0] + i, (append[2], unicode(append[1])))
     bands = BandsData()
     k = KpointsData()
     k.set_cell_from_structure(structure)

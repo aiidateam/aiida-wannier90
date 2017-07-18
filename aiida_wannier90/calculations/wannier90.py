@@ -9,7 +9,7 @@ from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
 from aiida.common.datastructures import CalcInfo, CodeInfo, code_run_modes
 from aiida.orm import JobCalculation, DataFactory
 from aiida.orm.calculation.job.quantumespresso import (
-     _uppercase_dict, get_input_data_text)
+    _uppercase_dict, get_input_data_text)
 from aiida.orm.calculation.job.quantumespresso.pw import PwCalculation
 from aiida.orm.code import Code
 from aiida.orm.data.array.kpoints import KpointsData
@@ -29,6 +29,7 @@ __authors__ = "Daniel Marchand, Antimo Marrazzo, Dominik Gresch & The AiiDA team
 __copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
 __license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
 
+
 def _wann_site_format(structure_sites):
     '''
     Generates site locations and cell dimensions
@@ -39,7 +40,7 @@ def _wann_site_format(structure_sites):
         Converts an input list item into a str
         '''
         list_item = copy.deepcopy(list_item)
-        if isinstance(list_item, (str,unicode) ):
+        if isinstance(list_item, (str, unicode)):
             return list_item
         else:
             return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
@@ -68,10 +69,10 @@ class Wannier90Calculation(JobCalculation):
         self._SEEDNAME = 'aiida'
         self._default_parser = 'wannier90.wannier90'
         self._ALWAYS_SYM_FILES = ['UNK*', '*.mmn']
-        self._RESTART_SYM_FILES = ['*.amn','*.eig']
+        self._RESTART_SYM_FILES = ['*.amn', '*.eig']
         self._CHK_FILE = '*.chk'
         self._DEFAULT_WRITE_UNK = False
-        self._blocked_keywords =[['length_unit','ang']]
+        self._blocked_keywords = [['length_unit', 'ang']]
         self._blocked_precode_keywords = []
 
     @classproperty
@@ -88,49 +89,49 @@ class Wannier90Calculation(JobCalculation):
                 'docstring': "Choose the input structure to use",
             },
             "settings": {
-               'valid_types': ParameterData,
-               'additional_parameter': None,
-               'linkname': 'settings',
-               'docstring': "Use an additional node for special settings",
-               },
+                'valid_types': ParameterData,
+                'additional_parameter': None,
+                'linkname': 'settings',
+                'docstring': "Use an additional node for special settings",
+            },
             "parameters": {
-               'valid_types': ParameterData,
-               'additional_parameter': None,
-               'linkname': 'parameters',
-               'docstring': ("Use a node that specifies the input parameters "
-                             "for the wannier code"),
-               },
+                'valid_types': ParameterData,
+                'additional_parameter': None,
+                'linkname': 'parameters',
+                'docstring': ("Use a node that specifies the input parameters "
+                              "for the wannier code"),
+            },
             "projections": {
-               'valid_types': OrbitalData,
-               'additional_parameter': None,
-               'linkname': 'projections',
-               'docstring': ("Starting projections of class OrbitalData"),
-               },
+                'valid_types': OrbitalData,
+                'additional_parameter': None,
+                'linkname': 'projections',
+                'docstring': ("Starting projections of class OrbitalData"),
+            },
             "local_input_folder": {
-               'valid_types': FolderData,
-               'additional_parameter': None,
-               'linkname': 'local_input_folder',
-               'docstring': ("Use a local folder as parent folder (for "
-                             "restarts and similar"),
-               },
+                'valid_types': FolderData,
+                'additional_parameter': None,
+                'linkname': 'local_input_folder',
+                'docstring': ("Use a local folder as parent folder (for "
+                              "restarts and similar"),
+            },
             "remote_input_folder": {
                 'valid_types': RemoteData,
                 'additional_parameter': None,
                 'linkname': 'remote_input_folder',
                 'docstring': ("Use a remote folder as parent folder"),
             },
-            "kpoints":{
+            "kpoints": {
                 'valid_types': KpointsData,
                 'additional_parameter': None,
                 'linkname': 'kpoints',
                 'docstring': "Use the node defining the kpoint sampling to use",
-                },
-            "kpoints_path":{
+            },
+            "kpoints_path": {
                 'valid_types': KpointsData,
                 'additional_parameter': None,
                 'linkname': 'kpoints_path',
                 'docstring': "Use the node defining the k-points path to use for bands interpolation",
-                },
+            },
         })
 
         return retdict
@@ -155,7 +156,7 @@ class Wannier90Calculation(JobCalculation):
                                  "parent calculation set")
         self.use_remote_input_folder(remote_folder)
 
-    def _prepare_for_submission(self,tempfolder, inputdict):
+    def _prepare_for_submission(self, tempfolder, inputdict):
         """
         Routine, which creates the input and prepares for submission
 
@@ -164,12 +165,13 @@ class Wannier90Calculation(JobCalculation):
         :param inputdict: a dictionary with the input nodes, as they would
                 be returned by get_inputdata_dict (without the Code!)
         """
-        super(Wannier90Calculation, self)._prepare_for_submission(tempfolder, inputdict)
         ##################################################################
         # Input validation
         ##################################################################
-        local_input_folder = inputdict.pop(self.get_linkname("local_input_folder",None))
-        remote_input_folder = inputdict.pop(self.get_linkname("remote_input_folder", None))
+        local_input_folder = inputdict.pop(
+            self.get_linkname("local_input_folder", None))
+        remote_input_folder = inputdict.pop(
+            self.get_linkname("remote_input_folder", None))
         if not isinstance(local_input_folder, FolderData):
             raise InputValidationError("local_input_folder is not of type "
                                        "FolderData")
@@ -279,7 +281,7 @@ class Wannier90Calculation(JobCalculation):
                                        "StructureData")
 
         # Settings can be undefined, and defaults to an empty dictionary
-        settings = inputdict.pop(self.get_linkname('settings'),None)
+        settings = inputdict.pop(self.get_linkname('settings'), None)
         if settings is None:
             settings_dict = {}
         else:
@@ -293,8 +295,8 @@ class Wannier90Calculation(JobCalculation):
         try:
             code = inputdict.pop(self.get_linkname('code'))
         except KeyError:
-            raise InputValidationError('No code specified for this calculation.')
-
+            raise InputValidationError(
+                'No code specified for this calculation.')
 
     #    preproc_code =  inputdict.pop(self.get_linkname('preprocessing_code')
      #                                 ,None)
@@ -318,10 +320,10 @@ class Wannier90Calculation(JobCalculation):
         parent_calc = remote_input_folder.get_inputs_dict()['remote_folder']
         parent_inputs = parent_calc.get_inputs_dict()
         wannier_parent = isinstance(parent_calc, Wannier90Calculation)
-        parent_info_dict.update({'wannier_parent':wannier_parent})
+        parent_info_dict.update({'wannier_parent': wannier_parent})
         if parent_info_dict['wannier_parent']:
             # If wannier parent, check if it was INIT_ONY and if precode used
-            parent_settings = parent_inputs.pop('settings',{})
+            parent_settings = parent_inputs.pop('settings', {})
             try:
                 parent_settings = parent_settings.get_inputs_dict()
             except AttributeError:
@@ -336,20 +338,18 @@ class Wannier90Calculation(JobCalculation):
     #                                       " wannier calculation without a"
     #                                       " preprocess code")
 
-
-
         # prepare the main input text
         input_file_lines = []
         from aiida.common.utils import conv_to_fortran_withlists
         for param in param_dict:
-            input_file_lines.append(param+' = '+conv_to_fortran_withlists(
+            input_file_lines.append(param + ' = ' + conv_to_fortran_withlists(
                 param_dict[param]))
 
         # take projections dict and write to file
         # checks if spins are used, and modifies the opening line
         projection_list = projections.get_orbitals()
         spin_use = any([bool(projection.get_orbital_dict()['spin'])
-                       for projection in projection_list])
+                        for projection in projection_list])
         if spin_use:
             raise InputValidationError("Spinors are implemented but not tested"
                                        "disable this error if you know what "
@@ -374,9 +374,9 @@ class Wannier90Calculation(JobCalculation):
         input_file_lines.append('Begin atoms_cart')
         input_file_lines.append('ang')
         wann_positions, wann_kind_names = _wann_site_format(structure.sites)
-        atoms_cart = zip(wann_kind_names,wann_positions)
+        atoms_cart = zip(wann_kind_names, wann_positions)
         for atom in atoms_cart:
-            input_file_lines.append('{}  {}'.format(atom[0],atom[1]))
+            input_file_lines.append('{}  {}'.format(atom[0], atom[1]))
         input_file_lines.append('End atoms_cart')
 
         # convert the kpoints_path
@@ -386,13 +386,12 @@ class Wannier90Calculation(JobCalculation):
             raise InputValidationError('kpoints_path must be kpoints with '
                                        'a special kpoint path already set!')
 
-
         input_file_lines.append('Begin Kpoint_Path')
         for (point1, point2) in special_points[1]:
             coord1 = special_points[0][point1]
             coord2 = special_points[0][point2]
-            path_line = '{} {} {} {} '.format(point1,*coord1)
-            path_line += ' {} {} {} {}'.format(point2,*coord2)
+            path_line = '{} {} {} {} '.format(point1, *coord1)
+            path_line += ' {} {} {} {}'.format(point2, *coord2)
             input_file_lines.append(path_line)
         input_file_lines.append('End Kpoint_Path')
 
@@ -419,8 +418,8 @@ class Wannier90Calculation(JobCalculation):
     #    else:
         input_filename = tempfolder.get_abs_path(self._DEFAULT_INPUT_FILE)
         with open(input_filename, 'w') as file:
-            file.write( "\n".join(input_file_lines) )
-            file.write( "\n" )
+            file.write("\n".join(input_file_lines))
+            file.write("\n")
 
         # Prints the precode input file
     #    if preproc_code is not None:
@@ -442,8 +441,8 @@ class Wannier90Calculation(JobCalculation):
      #                                          " write_mmn to false, or use a"
      #                                          " non-wannier calc as parent.")
     #            namelist_dict.update({'write_mmn':False})
-                # Add write_eig = .false. once this is available
-                # namelist_dict.update({})
+            # Add write_eig = .false. once this is available
+            # namelist_dict.update({})
             # checks and adds UNK file
             # writing UNK as a setting is obsolete
             # write_unk = settings_dict.pop('WRITE_UNK',None)
@@ -483,16 +482,19 @@ class Wannier90Calculation(JobCalculation):
 
         pw_out = PwCalculation._OUTPUT_SUBFOLDER
 
-        required_files = [self._SEEDNAME + suffix for suffix in ['.mmn','.amn']]
-        optional_files = [self._SEEDNAME + suffix for suffix in ['.eig', '.chk', '.spn']]
+        required_files = [self._SEEDNAME +
+                          suffix for suffix in ['.mmn', '.amn']]
+        optional_files = [self._SEEDNAME +
+                          suffix for suffix in ['.eig', '.chk', '.spn']]
         input_files = required_files + optional_files
         wavefunctions_files = ['UNK*']
         local_folder_content = local_input_folder.get_folder_list()
 
         t_dest = get_authinfo(computer=remote_input_folder.get_computer(),
-                          aiidauser=remote_input_folder.get_user()).get_transport()
+                              aiidauser=remote_input_folder.get_user()).get_transport()
         with t_dest:
-            remote_folder_content = t_dest.listdir(path=remote_input_folder_path)
+            remote_folder_content = t_dest.listdir(
+                path=remote_input_folder_path)
 
         def files_finder(file_list, exact_patterns, glob_patterns):
             result = [f for f in exact_patterns if (f in file_list)]
@@ -501,24 +503,26 @@ class Wannier90Calculation(JobCalculation):
                 result += fnmatch.filter(file_list, glob_patterns)
             return result
 
-        found_in_local = files_finder(local_folder_content, input_files, wavefunctions_files)
-        found_in_remote = files_finder(remote_folder_content, input_files, wavefunctions_files)
-        found_in_remote = [f for f in found_in_remote if f not in found_in_local]
+        found_in_local = files_finder(
+            local_folder_content, input_files, wavefunctions_files)
+        found_in_remote = files_finder(
+            remote_folder_content, input_files, wavefunctions_files)
+        found_in_remote = [
+            f for f in found_in_remote if f not in found_in_local]
         not_found = [
             f for f in required_files
             if f not in found_in_remote + found_in_local
         ]
-        if not len(not_found)!=0:
+        if not len(not_found) != 0:
             raise InputValidationError("{} necessary input files were not found: {} "
-                                       .format(len(not_found),''.join(str(nf) for nf in not_found)))
-
+                                       .format(len(not_found), ''.join(str(nf) for nf in not_found)))
 
         [sym_list.append((remote_input_folder_uuid,
-                          os.path.join(remote_input_folder_path,f),'.'))
-                         for f in found_in_remote]
+                          os.path.join(remote_input_folder_path, f), '.'))
+         for f in found_in_remote]
         [copy_list.append((local_input_folder_uuid,
-                          os.path.join(local_input_folder_path, f), '.'))
-                         for f in found_in_local]
+                           os.path.join(local_input_folder_path, f), '.'))
+         for f in found_in_local]
         # #if parent_info_dict['wannier_parent']:
         #     sym_list.append((parent_uuid,os.path.join(parent_path,
         #                           pw_out),self._INPUT_SUBFOLDER))
@@ -535,20 +539,18 @@ class Wannier90Calculation(JobCalculation):
         #         copy_list.append((parent_uuid, os.path.join(
         #                            parent_path,'aiida.nnkp'),'.'))
 
-        #else:
+        # else:
         #    copy_list.append((parent_uuid,os.path.join(parent_path,
         #                          pw_out),PwCalculation._OUTPUT_SUBFOLDER))
 
-
-
-        if  copy_list:
-            remote_copy_list +=  copy_list
-        if  sym_list:
+        if copy_list:
+            remote_copy_list += copy_list
+        if sym_list:
             remote_symlink_list += sym_list
 
         # Add any custom copy/sym links
-        remote_symlink_list += settings_dict.pop("ADDITIONAL_SYMLINK_LIST",[])
-        remote_copy_list += settings_dict.pop("ADDITIONAL_COPY_LIST",[])
+        remote_symlink_list += settings_dict.pop("ADDITIONAL_SYMLINK_LIST", [])
+        remote_copy_list += settings_dict.pop("ADDITIONAL_COPY_LIST", [])
         #######################################################################
 
         # Calcinfo
@@ -558,13 +560,12 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.remote_copy_list = remote_copy_list
         calcinfo.remote_symlink_list = remote_symlink_list
 
-
         c_pp = CodeInfo()
-        c_pp.withmpi = False # No mpi with wannier
-        c_pp.cmdline_params = ["-pp",self._DEFAULT_INPUT_FILE]
+        c_pp.withmpi = False  # No mpi with wannier
+        c_pp.cmdline_params = ["-pp", self._DEFAULT_INPUT_FILE]
         c_pp.code_uuid = code.uuid
         c_run = CodeInfo()
-        c_run.withmpi = False # No mpi with wannier
+        c_run.withmpi = False  # No mpi with wannier
         c_run.cmdline_params = [self._DEFAULT_INPUT_FILE]
         c_pp.code_uuid = code.uuid
         # if preproc_code is not None:
@@ -618,8 +619,8 @@ class Wannier90Calculation(JobCalculation):
 
         # Retrieves bands automatically, if they are calculated
 
-        calcinfo.retrieve_list += settings_dict.pop("ADDITIONAL_RETRIEVE_LIST"
-                                                    ,[])
+        calcinfo.retrieve_list += settings_dict.pop(
+            "ADDITIONAL_RETRIEVE_LIST", [])
 
         if settings_dict:
             raise InputValidationError("Some keys in settings unrecognized")
@@ -631,6 +632,7 @@ class Wannier90Calculation(JobCalculation):
             list_of_projection_dicts,
             self.get_inputs_dict()['structure']
         )
+
 
 def _print_wann_line_from_orbital(orbital):
     """
@@ -654,8 +656,7 @@ def _print_wann_line_from_orbital(orbital):
             raise KeyError
     except KeyError:
         raise InputValidationError("orbital must have position!")
-    wann_string = "c="+",".join([str(x) for x in position])
-
+    wann_string = "c=" + ",".join([str(x) for x in position])
 
     # setup angular and magnetic number
     # angular_momentum
@@ -673,22 +674,22 @@ def _print_wann_line_from_orbital(orbital):
             raise KeyError
     except KeyError:
         raise InputValidationError("orbital must have magnetic number, m")
-    wann_string += ",mr={}".format(str(magnetic_number+1))
+    wann_string += ",mr={}".format(str(magnetic_number + 1))
 
     # orientations, optional
     # xaxis
-    xaxis = orb_dict.pop("x_orientation",None)
+    xaxis = orb_dict.pop("x_orientation", None)
     if xaxis:
-        wann_string += ":x="+",".join([str(x) for x in xaxis])
+        wann_string += ":x=" + ",".join([str(x) for x in xaxis])
     # zaxis
-    zaxis = orb_dict.pop("z_orientation",None)
+    zaxis = orb_dict.pop("z_orientation", None)
     if zaxis:
-        wann_string += ":z="+",".join([str(x) for x in zaxis])
+        wann_string += ":z=" + ",".join([str(x) for x in zaxis])
 
     # radial, optional
     radial = orb_dict.pop("radial_nodes", None)
     if radial:
-        wann_string += ":{}".format(str(radial+1))
+        wann_string += ":{}".format(str(radial + 1))
 
     # zona, optional
     zona = orb_dict.pop("diffusivity", None)
@@ -702,10 +703,10 @@ def _print_wann_line_from_orbital(orbital):
 
     spin = orb_dict.pop("spin", None)
     if spin:
-        spin_dict = {-1:"d",1:"u"}
+        spin_dict = {-1: "d", 1: "u"}
         wann_string += "({})".format(spin_dict[spin])
-    spin_orient = orb_dict.pop("spin_orientation",None)
+    spin_orient = orb_dict.pop("spin_orientation", None)
     if spin_orient:
-        wann_string += "["+",".join([str(x) for x in spin_orient])+"]"
+        wann_string += "[" + ",".join([str(x) for x in spin_orient]) + "]"
 
     return wann_string
