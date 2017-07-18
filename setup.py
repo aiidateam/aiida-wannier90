@@ -40,11 +40,12 @@ if __name__ == '__main__':
         },
         entry_points={
             'aiida.calculations': [
-                'wannier90.wannier = aiida_tbmodels.calculations.wannier:WannierCalculation',
+                'wannier90.wannier90 = aiida_wannier90.calculations.wannier90:Wannier90Calculation',
             ],
             'aiida.data': [
             ],
             'aiida.parsers': [
+                'wannier90.wannier90 = aiida_wannier90.parsers.wannier90:Wannier90Parser'
             ],
         },
     )
