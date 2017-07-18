@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 
+import re
+
 from setuptools import setup, find_packages
+
+with open('./aiida_wannier90/_version.py', 'r') as f:
+    match_expr = "__version__[^'" + '"]+([' + "'" + r'"])([^\1]+)\1'
+    version = re.search(match_expr, f.read()).group(2).strip()
 
 if __name__ == '__main__':
     setup(
         name='aiida-wannier90',
-        version='0.0.0a1',
+        version=version,
         description='AiiDA Plugin for Wannier90',
         author='The AiiDA Team',
         author_email='developers@aiida.net',
@@ -34,11 +40,12 @@ if __name__ == '__main__':
         },
         entry_points={
             'aiida.calculations': [
-                'wannier90.wannier = aiida_tbmodels.calculations.wannier:WannierCalculation',
+                'wannier90.wannier90 = aiida_wannier90.calculations.wannier90:Wannier90Calculation',
             ],
             'aiida.data': [
             ],
             'aiida.parsers': [
+                'wannier90.wannier90 = aiida_wannier90.parsers.wannier90:Wannier90Parser'
             ],
         },
     )
