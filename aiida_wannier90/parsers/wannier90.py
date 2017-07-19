@@ -68,11 +68,11 @@ class Wannier90Parser(Parser):
         special_points = kpoints.get_special_points()
         try:
             band_dat_path = out_folder.get_abs_path(
-                '{}_band.dat'.format(self._calc._PREFIX))
+                '{}_band.dat'.format(self._calc._SEEDNAME))
             with open(band_dat_path, 'r') as fil:
                 band_dat_file = fil.readlines()
             band_kpt_path = out_folder.get_abs_path(
-                '{}_band.kpt'.format(self._calc._PREFIX))
+                '{}_band.kpt'.format(self._calc._SEEDNAME))
             with open(band_kpt_path, 'r') as fil:
                 band_kpt_file = fil.readlines()
             structure = self._calc.get_inputs_dict()['structure']
@@ -80,21 +80,7 @@ class Wannier90Parser(Parser):
                                            special_points, structure)
             new_nodes_list += [('interpolated_bands', output_bandsdata)]
         except OSError:
-            try:
-                band_dat_path = out_folder.get_abs_path(
-                    '{}_band.dat'.format(self._calc._PREFIX_GW))
-                with open(band_dat_path, 'r') as fil:
-                    band_dat_file = fil.readlines()
-                band_kpt_path = out_folder.get_abs_path(
-                    '{}_band.kpt'.format(self._calc._PREFIX_GW))
-                with open(band_kpt_path, 'r') as fil:
-                    band_kpt_file = fil.readlines()
-                structure = self._calc.get_inputs_dict()['structure']
-                output_bandsdata = band_parser(band_dat_file, band_kpt_file,
-                                               special_points, structure)
-                new_nodes_list += [('interpolated_bands', output_bandsdata)]
-            except OSError:
-                pass
+            pass
         # save the arrays
         wout_dictionary = raw_wout_parser(out_file)
         output_data = ParameterData(dict=wout_dictionary)

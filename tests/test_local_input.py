@@ -64,12 +64,4 @@ def test_local_input(create_gaas_calc, configure_with_daemon):
     from aiida.work.run import run
     process, inputs = create_gaas_calc()
     output = run(process, **inputs)
-    print(output)
-
-def test_no_parameters(create_gaas_calc):
-    from aiida.common.exceptions import InputValidationError
-    from aiida.work.run import run
-    process, inputs = create_gaas_calc()
-    inputs.parameters = None
-    with pytest.raises(InputValidationError):
-        run(process, **inputs)
+    assert all(key in output for key in ['retrieved', 'output_parameters'])
