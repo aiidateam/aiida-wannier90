@@ -657,12 +657,10 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.retrieve_list.append(self._DEFAULT_OUTPUT_FILE)
         calcinfo.retrieve_list.append(self._OUTPUT_PRECODE_FILE_NAME)
         calcinfo.retrieve_list.append(self._ERROR_FILE_NAME)
-    #    if gw_preproc_code is not None:
-    #        calcinfo.retrieve_list.append(self._DEFAULT_OUTPUT_FILE_GW)
-    #        calcinfo.retrieve_list += ['{}_band.dat'.format(self._PREFIX_GW),
-    #                               '{}_band.kpt'.format(self._PREFIX_GW)]
+
         calcinfo.retrieve_list += ['{}_band.dat'.format(self._PREFIX),
-                                   '{}_band.kpt'.format(self._PREFIX)]
+                                   '{}_band.kpt'.format(self._PREFIX),
+                                   '{}_wsvec.dat'.format(self._PREFIX)]
 
         # Retrieves bands automatically, if they are calculated
 
