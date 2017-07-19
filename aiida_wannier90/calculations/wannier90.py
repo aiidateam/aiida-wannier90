@@ -61,7 +61,7 @@ class Wannier90Calculation(JobCalculation):
         super(Wannier90Calculation, self)._init_internal_params()
 
         self._DEFAULT_INPUT_FILE = 'aiida.win'
-        self._DEFAULT_INPUT_FILE_GW = 'aiida'
+    #    self._DEFAULT_INPUT_FILE_GW = 'aiida'
     #    self._DEFAULT_INPUT_FILE_GW_WIN = 'aiida.gw.win'
         self._DEFAULT_OUTPUT_FILE = 'aiida.wout'
     #    self._DEFAULT_OUTPUT_FILE_GW = 'aiida.gw.wout'
