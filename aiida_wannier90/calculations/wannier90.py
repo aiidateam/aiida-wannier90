@@ -7,9 +7,7 @@ import numpy as np
 from aiida.common.utils import classproperty
 from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
 from aiida.common.datastructures import CalcInfo, CodeInfo, code_run_modes
-from aiida.orm import JobCalculation, DataFactory
-from aiida.orm.calculation.job.quantumespresso import (
-    _uppercase_dict, get_input_data_text)
+from aiida.orm import JobCalculation
 from aiida.orm.calculation.job.quantumespresso.pw import PwCalculation
 from aiida.orm.code import Code
 from aiida.orm.data.array.kpoints import KpointsData
@@ -225,7 +223,6 @@ class Wannier90Calculation(JobCalculation):
         if settings is None:
             settings_dict = {}
         else:
-        #    # removed _uppercase_dict
             settings_dict_raw = settings.get_dict()
             settings_dict = {key.lower(): val for key, val in settings_dict_raw.items()}
             if len(settings_dict_raw) != len(settings_dict):
