@@ -62,15 +62,12 @@ class Wannier90Calculation(JobCalculation):
     def _init_internal_params(self):
         super(Wannier90Calculation, self)._init_internal_params()
 
-        self._DEFAULT_INPUT_FILE = 'aiida.win'
-        self._DEFAULT_OUTPUT_FILE = 'aiida.wout'
-        self._ERROR_FILE_NAME = 'aiida.werr'
         self._SEEDNAME = 'aiida'
+        self._DEFAULT_INPUT_FILE = self._SEEDNAME + '.win'
+        self._DEFAULT_OUTPUT_FILE = self._SEEDNAME + '.wout'
+        self._ERROR_FILE_NAME = self._SEEDNAME + '.werr'
         self._default_parser = 'wannier90.wannier90'
-        self._ALWAYS_SYM_FILES = ['UNK*', '*.mmn']
-        self._RESTART_SYM_FILES = ['*.amn', '*.eig']
-        self._CHK_FILE = '*.chk'
-        self._DEFAULT_WRITE_UNK = False
+        self._CHK_FILE = self._SEEDNAME + '.chk'
         self._blocked_keywords = [['length_unit', 'ang']]
         self._blocked_precode_keywords = []
 
@@ -230,9 +227,11 @@ class Wannier90Calculation(JobCalculation):
         if settings is None:
             settings_dict = {}
         else:
-            settings_dict = _uppercase_dict(
-                settings.get_dict(), dict_name='settings'
-            )
+        #    # removed _uppercase_dict
+            settings_dict_raw = settings.get_dict()
+            settings_dict = {key.lower(): val for key, val in settings_dict_raw.items()}
+            if len(settings_dict_raw) != len(settings_dict):
+                raise InputValidationError('Input settings contain duplicate keys.')
 
         code = input_validator(
             name='code', valid_types=Code
@@ -323,11 +322,7 @@ class Wannier90Calculation(JobCalculation):
 
         # set symlinks and copies
         # ensures that the parent /out/ folder is copied correctly
-        remote_copy_list = []
-        remote_symlink_list = []
 
-        copy_list = []
-        sym_list = []
         #parent_uuid = parent_folder.get_computer().uuid
         #parent_path = parent_folder.get_remote_path()
         remote_input_folder_uuid = remote_input_folder.get_computer().uuid
@@ -370,27 +365,42 @@ class Wannier90Calculation(JobCalculation):
             raise InputValidationError("{} necessary input files were not found: {} "
                                        .format(len(not_found), ''.join(str(nf) for nf in not_found)))
 
-        [sym_list.append((remote_input_folder_uuid,
-                          os.path.join(remote_input_folder_path, f), '.'))
-         for f in found_in_remote]
-        [copy_list.append((local_input_folder_uuid,
-                           os.path.join(local_input_folder_path, f), '.'))
-         for f in found_in_local]
+        remote_copy_list = []
+        remote_symlink_list = []
+        local_copy_list = []
 
-        if copy_list:
-            remote_copy_list += copy_list
-        if sym_list:
-            remote_symlink_list += sym_list
+        ALWAYS_COPY_FILES = [self._CHK_FILE]
+        for f in found_in_remote:
+            file_info = (
+                remote_input_folder_uuid,
+                os.path.join(remote_input_folder_path, f),
+                '.'
+            )
+            if f in ALWAYS_COPY_FILES:
+                remote_copy_list.append(file_info)
+            else:
+                sym_list.append(file_info)
+        for f in found_in_local:
+            local_copy_list.append(
+                (local_input_folder_uuid, os.path.join(local_input_folder_path, f), '.')
+            )
+
+        #if copy_list:
+        #    local_copy_list += copy_list
+        #if sym_list:
+        #    remote_symlink_list += sym_list
 
         # Add any custom copy/sym links
-        remote_symlink_list += settings_dict.pop("ADDITIONAL_SYMLINK_LIST", [])
-        remote_copy_list += settings_dict.pop("ADDITIONAL_COPY_LIST", [])
+        remote_symlink_list += settings_dict.pop("additional_remote_symlink_list", [])
+        remote_copy_list += settings_dict.pop("additional_remote_copy_list", [])
+        local_copy_list += settings_dict.pop("additional_local_copy_list", [])
+
         #######################################################################
 
         # Calcinfo
         calcinfo = CalcInfo()
         calcinfo.uuid = self.uuid
-        calcinfo.local_copy_list = []
+        calcinfo.local_copy_list = local_copy_list
         calcinfo.remote_copy_list = remote_copy_list
         calcinfo.remote_symlink_list = remote_symlink_list
 
@@ -404,17 +414,20 @@ class Wannier90Calculation(JobCalculation):
         # Retrieve files
         calcinfo.retrieve_list = []
         calcinfo.retrieve_list.append(self._DEFAULT_OUTPUT_FILE)
-        calcinfo.retrieve_list.append(self._OUTPUT_PRECODE_FILE_NAME)
+        #calcinfo.retrieve_list.append(self._OUTPUT_PRECODE_FILE_NAME)
         calcinfo.retrieve_list.append(self._ERROR_FILE_NAME)
 
         calcinfo.retrieve_list += ['{}_band.dat'.format(self._PREFIX),
-                                   '{}_band.kpt'.format(self._PREFIX),
-                                   '{}_wsvec.dat'.format(self._PREFIX)]
+                                   '{}_band.kpt'.format(self._PREFIX)]
+
+        if settings.pop('retrieve_hoppings',False):
+            calcinfo.retrieve_list += ['{}_wsvec.dat'.format(self._PREFIX),
+                                       '{}_hr.dat'.format(self._PREFIX)]
 
         # Retrieves bands automatically, if they are calculated
 
         calcinfo.retrieve_list += settings_dict.pop(
-            "ADDITIONAL_RETRIEVE_LIST", [])
+            "additional_retrieve_list", [])
 
         if settings_dict:
             raise InputValidationError("Some keys in settings unrecognized")
