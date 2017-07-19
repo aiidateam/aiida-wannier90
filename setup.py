@@ -4,18 +4,21 @@ import re
 
 from setuptools import setup, find_packages
 
-with open('./aiida_wannier90/_version.py', 'r') as f:
-    match_expr = "__version__[^'" + '"]+([' + "'" + r'"])([^\1]+)\1'
-    version = re.search(match_expr, f.read()).group(2).strip()
+with open('./aiida_wannier90/__init__.py', 'r') as f:
+    init_file = f.read()
+version_match_expr = "__version__[^'\"]+['\"]([^'\"]+)"
+version = re.search(version_match_expr, init_file).group(1).strip()
+author_match_expr = "__authors__[^'\"]+['\"]([^'\"]+)"
+authors = re.search(author_match_expr, init_file).group(1).strip()
 
 if __name__ == '__main__':
     setup(
         name='aiida-wannier90',
         version=version,
         description='AiiDA Plugin for Wannier90',
-        author='The AiiDA Team',
+        author=authors,
         author_email='developers@aiida.net',
-        license='GPL',
+        license='MIT',
         classifiers=[
             'Development Status :: 3 - Alpha',
             'Environment :: Plugins',

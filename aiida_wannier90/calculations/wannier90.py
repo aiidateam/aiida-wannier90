@@ -8,7 +8,6 @@ from aiida.common.utils import classproperty
 from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
 from aiida.common.datastructures import CalcInfo, CodeInfo, code_run_modes
 from aiida.orm import JobCalculation
-from aiida.orm.calculation.job.quantumespresso.pw import PwCalculation
 from aiida.orm.code import Code
 from aiida.orm.data.array.kpoints import KpointsData
 from aiida.orm.data.orbital import OrbitalData, OrbitalFactory
@@ -22,10 +21,6 @@ except ImportError:
     from aiida.execmanager import get_authinfo
 
 from ..orbitals import generate_projections as _generate_projections
-
-__authors__ = "Daniel Marchand, Antimo Marrazzo, Dominik Gresch & The AiiDA team."
-__copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
-__license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
 
 
 def _wann_site_format(structure_sites):

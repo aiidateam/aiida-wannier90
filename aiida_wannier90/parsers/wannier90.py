@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
-
 from aiida.parsers.parser import Parser
 from aiida.parsers.exceptions import OutputParsingError
 from aiida.orm.data.parameter import ParameterData
@@ -9,11 +7,6 @@ from aiida.orm.data.array.bands import BandsData
 from aiida.orm.data.array.kpoints import KpointsData
 
 from ..calculations.wannier90 import Wannier90Calculation
-
-__authors__ = "The AiiDA team."
-__copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
-__license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
-
 
 class Wannier90Parser(Parser):
     """
