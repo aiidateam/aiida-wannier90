@@ -69,7 +69,6 @@ class Wannier90Calculation(JobCalculation):
         self._default_parser = 'wannier90.wannier90'
         self._CHK_FILE = self._SEEDNAME + '.chk'
         self._blocked_keywords = [['length_unit', 'ang']]
-        self._blocked_precode_keywords = []
 
     @classproperty
     def _use_methods(cls):
@@ -134,8 +133,7 @@ class Wannier90Calculation(JobCalculation):
 
     def use_parent_calculation(self, calc):
         """
-        Set the parent calculation,
-        from which it will inherit the output subfolder as remote_input_folder.
+        Set the parent calculation, from which it will inherit the output subfolder as remote_input_folder.
         """
         try:
             remote_folder = calc.get_outputs_dict()['remote_folder']
@@ -320,15 +318,20 @@ class Wannier90Calculation(JobCalculation):
             file.write("\n".join(input_file_lines))
             file.write("\n")
 
-        # set symlinks and copies
-        # ensures that the parent /out/ folder is copied correctly
+        if remote_input_folder is not None:
+            remote_input_folder_uuid = remote_input_folder.get_computer().uuid
+            remote_input_folder_path = remote_input_folder.get_remote_path()
 
-        #parent_uuid = parent_folder.get_computer().uuid
-        #parent_path = parent_folder.get_remote_path()
-        remote_input_folder_uuid = remote_input_folder.get_computer().uuid
-        remote_input_folder_path = remote_input_folder.get_remote_path()
-        local_input_folder_uuid = local_input_folder.get_computer().uuid
-        local_input_folder_path = local_input_folder.get_remote_path()
+            t_dest = get_authinfo(
+                computer=remote_input_folder.get_computer(),
+                aiidauser=remote_input_folder.get_user()
+            ).get_transport()
+            with t_dest:
+                remote_folder_content = t_dest.listdir(
+                    path=remote_input_folder_path)
+
+        if local_input_folder is not None:
+            local_folder_content = local_input_folder.get_folder_list()
 
         required_files = [self._SEEDNAME +
                           suffix for suffix in ['.mmn', '.amn']]
@@ -336,32 +339,32 @@ class Wannier90Calculation(JobCalculation):
                           suffix for suffix in ['.eig', '.chk', '.spn']]
         input_files = required_files + optional_files
         wavefunctions_files = ['UNK*']
-        local_folder_content = local_input_folder.get_folder_list()
-
-        t_dest = get_authinfo(computer=remote_input_folder.get_computer(),
-                              aiidauser=remote_input_folder.get_user()).get_transport()
-        with t_dest:
-            remote_folder_content = t_dest.listdir(
-                path=remote_input_folder_path)
 
         def files_finder(file_list, exact_patterns, glob_patterns):
             result = [f for f in exact_patterns if (f in file_list)]
             import fnmatch
             for glob_p in glob_patterns:
-                result += fnmatch.filter(file_list, glob_patterns)
+                result += fnmatch.filter(file_list, glob_p)
             return result
 
-        found_in_local = files_finder(
-            local_folder_content, input_files, wavefunctions_files)
-        found_in_remote = files_finder(
-            remote_folder_content, input_files, wavefunctions_files)
-        found_in_remote = [
-            f for f in found_in_remote if f not in found_in_local]
+        if local_input_folder is not None:
+            found_in_local = files_finder(
+                local_folder_content, input_files, wavefunctions_files)
+        else:
+            found_in_local = []
+        if remote_input_folder is not None:
+            found_in_remote = files_finder(
+                remote_folder_content, input_files, wavefunctions_files)
+            found_in_remote = [
+                f for f in found_in_remote if f not in found_in_local]
+        else:
+            found_in_remote = []
+
         not_found = [
             f for f in required_files
             if f not in found_in_remote + found_in_local
         ]
-        if not len(not_found) != 0:
+        if len(not_found) != 0:
             raise InputValidationError("{} necessary input files were not found: {} "
                                        .format(len(not_found), ''.join(str(nf) for nf in not_found)))
 
@@ -382,13 +385,8 @@ class Wannier90Calculation(JobCalculation):
                 sym_list.append(file_info)
         for f in found_in_local:
             local_copy_list.append(
-                (local_input_folder_uuid, os.path.join(local_input_folder_path, f), '.')
+                (local_input_folder.get_abs_path(f), '.')
             )
-
-        #if copy_list:
-        #    local_copy_list += copy_list
-        #if sym_list:
-        #    remote_symlink_list += sym_list
 
         # Add any custom copy/sym links
         remote_symlink_list += settings_dict.pop("additional_remote_symlink_list", [])
@@ -397,7 +395,6 @@ class Wannier90Calculation(JobCalculation):
 
         #######################################################################
 
-        # Calcinfo
         calcinfo = CalcInfo()
         calcinfo.uuid = self.uuid
         calcinfo.local_copy_list = local_copy_list
@@ -405,6 +402,7 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.remote_symlink_list = remote_symlink_list
 
         codeinfo = CodeInfo()
+        codeinfo.code_uuid = code.uuid
         codeinfo.withmpi = False  # No mpi with wannier
         codeinfo.cmdline_params = [self._DEFAULT_INPUT_FILE]
 
@@ -414,15 +412,14 @@ class Wannier90Calculation(JobCalculation):
         # Retrieve files
         calcinfo.retrieve_list = []
         calcinfo.retrieve_list.append(self._DEFAULT_OUTPUT_FILE)
-        #calcinfo.retrieve_list.append(self._OUTPUT_PRECODE_FILE_NAME)
         calcinfo.retrieve_list.append(self._ERROR_FILE_NAME)
 
-        calcinfo.retrieve_list += ['{}_band.dat'.format(self._PREFIX),
-                                   '{}_band.kpt'.format(self._PREFIX)]
+        calcinfo.retrieve_list += ['{}_band.dat'.format(self._SEEDNAME),
+                                   '{}_band.kpt'.format(self._SEEDNAME)]
 
-        if settings.pop('retrieve_hoppings',False):
-            calcinfo.retrieve_list += ['{}_wsvec.dat'.format(self._PREFIX),
-                                       '{}_hr.dat'.format(self._PREFIX)]
+        if settings_dict.pop('retrieve_hoppings', False):
+            calcinfo.retrieve_list += ['{}_wsvec.dat'.format(self._SEEDNAME),
+                                       '{}_hr.dat'.format(self._SEEDNAME)]
 
         # Retrieves bands automatically, if they are calculated
 
