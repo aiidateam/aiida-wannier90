@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import copy
 
 import numpy as np
 
@@ -206,7 +205,16 @@ class Wannier90Calculation(JobCalculation):
         ############################################################
         # End basic check on inputs
         ############################################################
-        write_win(self._DEFAULT_OUTPUT_FILE)
+        write_win(
+            filename=tempfolder.get_abs_path(
+                self._DEFAULT_INPUT_FILE
+            ),
+            parameters=param_dict,
+            structure=structure,
+            kpoints=kpoints,
+            kpoints_path=kpoints_path,
+            projections=projections,
+        )
 
         if remote_input_folder is not None:
             remote_input_folder_uuid = remote_input_folder.get_computer().uuid
@@ -343,80 +351,3 @@ class Wannier90Calculation(JobCalculation):
             return value
 
         return _validate_input
-
-def _print_wann_line_from_orbital(orbital):
-    """
-    Prints an appropriate wannier line from input orbitaldata,
-    will raise an exception if the orbital does not contain enough
-    information, or the information is badly formated
-    """
-    from aiida.common.orbital import OrbitalFactory
-    realh = OrbitalFactory("realhydrogen")
-
-    if not isinstance(orbital, realh):
-        raise InputValidationError("Only realhydrogen oribtals supported"
-                                   " for wannier input currently")
-    import copy
-    orb_dict = copy.deepcopy(orbital.get_orbital_dict())
-
-    # setup position
-    try:
-        position = orb_dict["position"]
-        if position is None:
-            raise KeyError
-    except KeyError:
-        raise InputValidationError("orbital must have position!")
-    wann_string = "c=" + ",".join([str(x) for x in position])
-
-    # setup angular and magnetic number
-    # angular_momentum
-    try:
-        angular_momentum = orb_dict["angular_momentum"]
-        if angular_momentum is None:
-            raise KeyError
-    except KeyError:
-        raise InputValidationError("orbital must have angular momentum, l")
-    wann_string += ":l={}".format(str(angular_momentum))
-    # magnetic_number
-    try:
-        magnetic_number = orb_dict["magnetic_number"]
-        if angular_momentum is None:
-            raise KeyError
-    except KeyError:
-        raise InputValidationError("orbital must have magnetic number, m")
-    wann_string += ",mr={}".format(str(magnetic_number + 1))
-
-    # orientations, optional
-    # xaxis
-    xaxis = orb_dict.pop("x_orientation", None)
-    if xaxis:
-        wann_string += ":x=" + ",".join([str(x) for x in xaxis])
-    # zaxis
-    zaxis = orb_dict.pop("z_orientation", None)
-    if zaxis:
-        wann_string += ":z=" + ",".join([str(x) for x in zaxis])
-
-    # radial, optional
-    radial = orb_dict.pop("radial_nodes", None)
-    if radial:
-        wann_string += ":{}".format(str(radial + 1))
-
-    # zona, optional
-    zona = orb_dict.pop("diffusivity", None)
-    if zona:
-        wann_string += ":{}".format(str(zona))
-
-    # spin, optional
-    # Careful with spin, it is insufficient to set the spin the projection
-    # line alone. You must, in addition, apply the appropriate settings:
-    # either set spinors=.true. or use spinor_projections, see user guide
-
-    spin = orb_dict.pop("spin", None)
-    if spin:
-        spin_dict = {-1: "d", 1: "u"}
-        wann_string += "({})".format(spin_dict[spin])
-    spin_orient = orb_dict.pop("spin_orientation", None)
-    if spin_orient:
-        wann_string += "[" + ",".join([str(x) for x in spin_orient]) + "]"
-
-    return wann_string

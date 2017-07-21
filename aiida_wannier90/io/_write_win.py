@@ -1,13 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-def write_win(filename, ):
+import copy
+
+def write_win(
+        filename,
+        parameters,
+        structure,
+        kpoints,
+        kpoints_path,
+        projections,
+    ):
     # prepare the main input text
     input_file_lines = []
     from aiida.common.utils import conv_to_fortran_withlists
-    for param in param_dict:
-        input_file_lines.append(param + ' = ' + conv_to_fortran_withlists(
-            param_dict[param]))
+    for key, value in parameters.items():
+        input_file_lines.append(key + ' = ' + conv_to_fortran_withlists(
+            value))
 
     # take projections dict and write to file
     # checks if spins are used, and modifies the opening line
@@ -76,8 +85,7 @@ def write_win(filename, ):
                                 .format(*vector))
     input_file_lines.append('End kpoints')
 
-    input_filename = tempfolder.get_abs_path(self._DEFAULT_INPUT_FILE)
-    with open(input_filename, 'w') as file:
+    with open(filename, 'w') as file:
         file.write("\n".join(input_file_lines))
         file.write("\n")
 
@@ -102,3 +110,81 @@ def _wann_site_format(structure_sites):
         calc_positions.append(list2str(structure_sites[i].position))
         calc_kind_names.append(structure_sites[i].kind_name)
     return calc_positions, calc_kind_names
+
+
+def _print_wann_line_from_orbital(orbital):
+    """
+    Prints an appropriate wannier line from input orbitaldata,
+    will raise an exception if the orbital does not contain enough
+    information, or the information is badly formated
+    """
+    from aiida.common.orbital import OrbitalFactory
+    realh = OrbitalFactory("realhydrogen")
+
+    if not isinstance(orbital, realh):
+        raise InputValidationError("Only realhydrogen oribtals supported"
+                                   " for wannier input currently")
+    import copy
+    orb_dict = copy.deepcopy(orbital.get_orbital_dict())
+
+    # setup position
+    try:
+        position = orb_dict["position"]
+        if position is None:
+            raise KeyError
+    except KeyError:
+        raise InputValidationError("orbital must have position!")
+    wann_string = "c=" + ",".join([str(x) for x in position])
+
+    # setup angular and magnetic number
+    # angular_momentum
+    try:
+        angular_momentum = orb_dict["angular_momentum"]
+        if angular_momentum is None:
+            raise KeyError
+    except KeyError:
+        raise InputValidationError("orbital must have angular momentum, l")
+    wann_string += ":l={}".format(str(angular_momentum))
+    # magnetic_number
+    try:
+        magnetic_number = orb_dict["magnetic_number"]
+        if angular_momentum is None:
+            raise KeyError
+    except KeyError:
+        raise InputValidationError("orbital must have magnetic number, m")
+    wann_string += ",mr={}".format(str(magnetic_number + 1))
+
+    # orientations, optional
+    # xaxis
+    xaxis = orb_dict.pop("x_orientation", None)
+    if xaxis:
+        wann_string += ":x=" + ",".join([str(x) for x in xaxis])
+    # zaxis
+    zaxis = orb_dict.pop("z_orientation", None)
+    if zaxis:
+        wann_string += ":z=" + ",".join([str(x) for x in zaxis])
+
+    # radial, optional
+    radial = orb_dict.pop("radial_nodes", None)
+    if radial:
+        wann_string += ":{}".format(str(radial + 1))
+
+    # zona, optional
+    zona = orb_dict.pop("diffusivity", None)
+    if zona:
+        wann_string += ":{}".format(str(zona))
+
+    # spin, optional
+    # Careful with spin, it is insufficient to set the spin the projection
+    # line alone. You must, in addition, apply the appropriate settings:
+    # either set spinors=.true. or use spinor_projections, see user guide
+
+    spin = orb_dict.pop("spin", None)
+    if spin:
+        spin_dict = {-1: "d", 1: "u"}
+        wann_string += "({})".format(spin_dict[spin])
+    spin_orient = orb_dict.pop("spin_orientation", None)
+    if spin_orient:
+        wann_string += "[" + ",".join([str(x) for x in spin_orient]) + "]"
+
+    return wann_string
