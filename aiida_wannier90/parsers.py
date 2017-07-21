@@ -6,7 +6,7 @@ from aiida.orm.data.parameter import ParameterData
 from aiida.orm.data.array.bands import BandsData
 from aiida.orm.data.array.kpoints import KpointsData
 
-from ..calculations.wannier90 import Wannier90Calculation
+from .calculations import Wannier90Calculation
 
 class Wannier90Parser(Parser):
     """

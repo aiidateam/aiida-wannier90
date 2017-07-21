@@ -20,7 +20,7 @@ try:
 except ImportError:
     from aiida.execmanager import get_authinfo
 
-from ..orbitals import generate_projections as _generate_projections
+from .orbitals import generate_projections as _generate_projections
 
 
 def _wann_site_format(structure_sites):
