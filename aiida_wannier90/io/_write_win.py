@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import copy
 
+from aiida.orm import DataFactory
 from aiida.common.orbital import OrbitalFactory
 from aiida.common.utils import conv_to_fortran_withlists
 
@@ -39,6 +40,8 @@ def _create_win_string(
 ):
     # prepare the main input text
     input_file_lines = []
+    if isinstance(parameters, DataFactory('parameter')):
+        parameters = parameters.get_dict()
     input_file_lines += _format_parameters(parameters)
 
     block_inputs = {}
@@ -111,12 +114,12 @@ def _format_parameters(parameters_dict):
     Join key / value pairs of the parameters dictionary into formatted strings, returning a list of lines for the .win file.
     """
     lines = []
-    for key, value in sorted(_format_values(parameters_dict).items()):
+    for key, value in sorted(_format_parameter_values(parameters_dict).items()):
         lines.append(key + ' = ' + value)
     return lines
 
 
-def _format_values(parameters_dict):
+def _format_parameter_values(parameters_dict):
     """
     Turn the values of the parameters dictionary into the appropriate string.
     """
@@ -172,7 +175,7 @@ def _create_wann_line_from_orbital(orbital):
             raise InputValidationError("Orbital is missing attribute '{}'.".format(name))
         return res
 
-    def _format_values(name, value):
+    def _format_projection_values(name, value):
         if value is None:
             return ''
         if not isinstance(value, (tuple, list)):
@@ -184,9 +187,9 @@ def _create_wann_line_from_orbital(orbital):
     angular_momentum = _get_attribute("angular_momentum")
     magnetic_number = _get_attribute("magnetic_number")
     wann_string = (
-        _format_values('c', position) + ':' +
-        _format_values('l', angular_momentum) + ',' +
-        _format_values('mr', magnetic_number + 1)
+        _format_projection_values('c', position) + ':' +
+        _format_projection_values('l', angular_momentum) + ',' +
+        _format_projection_values('mr', magnetic_number + 1)
     )
 
     # optional, colon-separated arguments
@@ -195,9 +198,9 @@ def _create_wann_line_from_orbital(orbital):
     radial = _get_attribute("radial_nodes", required=False)
     zona = _get_attribute("diffusivity", required=False)
     if any(arg is not None for arg in [zaxis, xaxis, radial, zona]):
-        zaxis_string = _format_values('z', zaxis)
-        xaxis_string = _format_values('x', xaxis)
-        radial_string = _format_values('r', radial + 1)
+        zaxis_string = _format_projection_values('z', zaxis)
+        xaxis_string = _format_projection_values('x', xaxis)
+        radial_string = _format_projection_values('r', radial + 1)
         zona_string = str(zona) if zona is not None else ''
         wann_string += ':{}:{}:{}:{}'.format(
             zaxis_string, xaxis_string, radial_string, zona_string
