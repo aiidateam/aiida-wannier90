@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import copy
 
+from aiida.common.orbital import OrbitalFactory
 from aiida.common.utils import conv_to_fortran_withlists
 
 from ._group_list import list_to_grouped_string
@@ -24,6 +25,7 @@ def write_win(
     input_file_lines = []
     input_file_lines += _format_parameters(parameters)
 
+    block_inputs = {}
     # take projections dict and write to file
     # checks if spins are used, and modifies the opening line
     projection_list = projections.get_orbitals()
@@ -149,7 +151,6 @@ def _create_wann_line_from_orbital(orbital):
     will raise an exception if the orbital does not contain enough
     information, or the information is badly formated
     """
-    from aiida.common.orbital import OrbitalFactory
     RealhydrogenOrbital = OrbitalFactory("realhydrogen")
 
     if not isinstance(orbital, RealhydrogenOrbital):
@@ -157,64 +158,47 @@ def _create_wann_line_from_orbital(orbital):
             "Only realhydrogen orbitals are currently supported for Wannier90 input.")
     orb_dict = copy.deepcopy(orbital.get_orbital_dict())
 
-    # setup position
-    try:
-        position = orb_dict["position"]
-        if position is None:
-            raise KeyError
-    except KeyError:
-        raise InputValidationError("orbital must have position!")
+    def _get_attribute(name, required=True):
+        res = orb_dict.get(name, None)
+        if res is None and required:
+            raise InputValidationError("Orbital is missing attribute '{}'.".format(name))
+        return res
+
+    position = _get_attribute("position")
     wann_string = "c=" + ",".join([str(x) for x in position])
 
-    # setup angular and magnetic number
-    # angular_momentum
-    try:
-        angular_momentum = orb_dict["angular_momentum"]
-        if angular_momentum is None:
-            raise KeyError
-    except KeyError:
-        raise InputValidationError("orbital must have angular momentum, l")
+    angular_momentum = _get_attribute("angular_momentum")
     wann_string += ":l={}".format(str(angular_momentum))
-    # magnetic_number
-    try:
-        magnetic_number = orb_dict["magnetic_number"]
-        if angular_momentum is None:
-            raise KeyError
-    except KeyError:
-        raise InputValidationError("orbital must have magnetic number, m")
+
+    magnetic_number = _get_attribute("magnetic_number")
     wann_string += ",mr={}".format(str(magnetic_number + 1))
 
     # orientations, optional
-    # xaxis
-    xaxis = orb_dict.pop("x_orientation", None)
-    if xaxis:
-        wann_string += ":x=" + ",".join([str(x) for x in xaxis])
-    # zaxis
-    zaxis = orb_dict.pop("z_orientation", None)
-    if zaxis:
+    zaxis = _get_attribute("z_orientation", required=False)
+    if zaxis is not None:
         wann_string += ":z=" + ",".join([str(x) for x in zaxis])
+    xaxis = _get_attribute("x_orientation", required=False)
+    if xaxis is not None:
+        wann_string += ":x=" + ",".join([str(x) for x in xaxis])
 
-    # radial, optional
-    radial = orb_dict.pop("radial_nodes", None)
-    if radial:
-        wann_string += ":{}".format(str(radial + 1))
+    radial = _get_attribute("radial_nodes", required=False)
+    if radial is not None:
+        wann_string += ":r={}".format(str(radial + 1))
 
-    # zona, optional
-    zona = orb_dict.pop("diffusivity", None)
-    if zona:
+    zona = _get_attribute("diffusivity", required=False)
+    if zona is not None:
         wann_string += ":{}".format(str(zona))
 
     # spin, optional
     # Careful with spin, it is insufficient to set the spin the projection
     # line alone. You must, in addition, apply the appropriate settings:
     # either set spinors=.true. or use spinor_projections, see user guide
-
-    spin = orb_dict.pop("spin", None)
-    if spin:
+    spin = _get_attribute("spin", required=False)
+    if spin is not None:
         spin_dict = {-1: "d", 1: "u"}
         wann_string += "({})".format(spin_dict[spin])
-    spin_orient = orb_dict.pop("spin_orientation", None)
-    if spin_orient:
+    spin_orient = _get_attribute("spin_orientation", required=False)
+    if spin_orient is not None:
         wann_string += "[" + ",".join([str(x) for x in spin_orient]) + "]"
 
     return wann_string
