@@ -31,6 +31,7 @@ def write_win(
             projections=projections
         ))
 
+
 def _create_win_string(
     parameters,
     structure,
@@ -64,6 +65,7 @@ def _create_win_string(
 
     return '\n'.join(input_file_lines) + '\n'
 
+
 def _format_parameters(parameters_dict):
     """
     Join key / value pairs of the parameters dictionary into formatted strings, returning a list of lines for the .win file.
@@ -87,6 +89,7 @@ def _format_parameter_values(parameters_dict):
             result_dict[key] = conv_to_fortran_withlists(value)
     return result_dict
 
+
 def _format_all_projections(projections):
     projection_list = projections.get_orbitals()
     # TODO: Check if spinor_projections actually needs to be used.
@@ -94,6 +97,7 @@ def _format_all_projections(projections):
     #                 for projection in projection_list])
     # projector_type = "spinor_projections" if spin_use else "projections"
     return [_format_single_projection(projection) for projection in projection_list]
+
 
 def _format_single_projection(orbital):
     """
@@ -111,7 +115,8 @@ def _format_single_projection(orbital):
     def _get_attribute(name, required=True):
         res = orb_dict.get(name, None)
         if res is None and required:
-            raise InputValidationError("Orbital is missing attribute '{}'.".format(name))
+            raise InputValidationError(
+                "Orbital is missing attribute '{}'.".format(name))
         return res
 
     def _format_projection_values(name, value):
@@ -166,6 +171,7 @@ def _format_unit_cell(structure):
         for vector in structure.cell
     ]
 
+
 def _format_atoms_cart(structure):
     """
     Generates site locations and cell dimensions
@@ -186,14 +192,15 @@ def _format_atoms_cart(structure):
         for site in structure.sites
     ]
 
+
 def _format_kpoints(kpoints):
     return [
         "{0:18.10f} {1:18.10f} {2:18.10f}".format(*vector)
         for vector in kpoints.get_kpoints_mesh(print_list=True)
     ]
 
+
 def _format_kpoint_path(kpoint_path):
-    # convert the kpoint_path
     try:
         special_point_coords, special_point_path = kpoint_path.get_special_points()
     except ModificationNotAllowed:
@@ -208,6 +215,7 @@ def _format_kpoint_path(kpoint_path):
         path_line += ' {} {} {} {}'.format(point2, *coord2)
         res.append(path_line)
     return res
+
 
 def _format_block_inputs(block_inputs):
     res = []
