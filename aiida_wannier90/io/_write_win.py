@@ -11,14 +11,15 @@ from ._group_list import list_to_grouped_string
 
 __all__ = ['write_win']
 
+
 def write_win(
-        filename,
-        parameters,
-        structure,
-        kpoints,
-        kpoints_path,
-        projections,
-    ):
+    filename,
+    parameters,
+    structure,
+    kpoints,
+    kpoints_path,
+    projections,
+):
     # prepare the main input text
     input_file_lines = []
     input_file_lines += _format_parameters(parameters)
@@ -37,7 +38,7 @@ def write_win(
         projector_type = "projections"
     input_file_lines.append('Begin {}'.format(projector_type))
     for projection in projection_list:
-        orbit_line = _print_wann_line_from_orbital(projection)
+        orbit_line = _create_wann_line_from_orbital(projection)
         input_file_lines.append(orbit_line)
     input_file_lines.append('End {}'.format(projector_type))
 
@@ -94,6 +95,7 @@ def write_win(
         file.write("\n".join(input_file_lines))
         file.write("\n")
 
+
 def _format_parameters(parameters_dict):
     """
     Join key / value pairs of the parameters dictionary into formatted strings, returning a list of lines for the .win file.
@@ -102,6 +104,7 @@ def _format_parameters(parameters_dict):
     for key, value in sorted(_format_values(parameters_dict).items()):
         lines.append(key + ' = ' + value)
     return lines
+
 
 def _format_values(parameters_dict):
     """
@@ -116,11 +119,12 @@ def _format_values(parameters_dict):
             result_dict[key] = conv_to_fortran_withlists(value)
     return result_dict
 
+
 def _wann_site_format(structure_sites):
-    '''
+    """
     Generates site locations and cell dimensions
     in a manner that can be used by the wannier90 input script
-    '''
+    """
     def list2str(list_item):
         '''
         Converts an input list item into a str
@@ -139,9 +143,9 @@ def _wann_site_format(structure_sites):
     return calc_positions, calc_kind_names
 
 
-def _print_wann_line_from_orbital(orbital):
+def _create_wann_line_from_orbital(orbital):
     """
-    Prints an appropriate wannier line from input orbitaldata,
+    Creates an appropriate wannier line from input orbitaldata,
     will raise an exception if the orbital does not contain enough
     information, or the information is badly formated
     """
@@ -149,7 +153,8 @@ def _print_wann_line_from_orbital(orbital):
     RealhydrogenOrbital = OrbitalFactory("realhydrogen")
 
     if not isinstance(orbital, RealhydrogenOrbital):
-        raise InputValidationError("Only realhydrogen oribtals are currently supported for Wannier90 input.")
+        raise InputValidationError(
+            "Only realhydrogen orbitals are currently supported for Wannier90 input.")
     orb_dict = copy.deepcopy(orbital.get_orbital_dict())
 
     # setup position

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 def group_list(values):
     values = sorted(values)
     groups = []
@@ -20,8 +21,10 @@ def group_list(values):
         groups.append(sorted(set([current_start, v2])))
     return groups
 
+
 def groups_to_string(value_groups):
     return ','.join('-'.join([str(g) for g in group]) for group in value_groups)
+
 
 def list_to_grouped_string(values):
     return groups_to_string(group_list(values))
