@@ -21,23 +21,34 @@ def write_win(
     kpoints_path,
     projections,
 ):
+    with open(filename, 'w') as file:
+        file.write(_create_win_string(
+            parameters=parameters,
+            structure=structure,
+            kpoints=kpoints,
+            kpoints_path=kpoints_path,
+            projections=projections
+        ))
+
+def _create_win_string(
+    parameters,
+    structure,
+    kpoints,
+    kpoints_path,
+    projections,
+):
     # prepare the main input text
     input_file_lines = []
     input_file_lines += _format_parameters(parameters)
 
     block_inputs = {}
+
     # take projections dict and write to file
     # checks if spins are used, and modifies the opening line
     projection_list = projections.get_orbitals()
     spin_use = any([bool(projection.get_orbital_dict()['spin'])
                     for projection in projection_list])
-    if spin_use:
-        raise InputValidationError("Spinors are implemented but not tested"
-                                   "disable this error if you know what "
-                                   "you are doing!")
-        projector_type = "spinor_projections"
-    else:
-        projector_type = "projections"
+    projector_type = "spinor_projections" if spin_use else "projections"
     input_file_lines.append('Begin {}'.format(projector_type))
     for projection in projection_list:
         orbit_line = _create_wann_line_from_orbital(projection)
@@ -93,10 +104,7 @@ def write_win(
                                 .format(*vector))
     input_file_lines.append('End kpoints')
 
-    with open(filename, 'w') as file:
-        file.write("\n".join(input_file_lines))
-        file.write("\n")
-
+    return '\n'.join(input_file_lines) + '\n'
 
 def _format_parameters(parameters_dict):
     """
@@ -164,30 +172,36 @@ def _create_wann_line_from_orbital(orbital):
             raise InputValidationError("Orbital is missing attribute '{}'.".format(name))
         return res
 
+    def _format_values(name, value):
+        if value is None:
+            return ''
+        if not isinstance(value, (tuple, list)):
+            value = [value]
+        return '{}={}'.format(name, ','.join(str(x) for x in value))
+
+    # required arguments
     position = _get_attribute("position")
-    wann_string = "c=" + ",".join([str(x) for x in position])
-
     angular_momentum = _get_attribute("angular_momentum")
-    wann_string += ":l={}".format(str(angular_momentum))
-
     magnetic_number = _get_attribute("magnetic_number")
-    wann_string += ",mr={}".format(str(magnetic_number + 1))
+    wann_string = (
+        _format_values('c', position) + ':' +
+        _format_values('l', angular_momentum) + ',' +
+        _format_values('mr', magnetic_number + 1)
+    )
 
-    # orientations, optional
+    # optional, colon-separated arguments
     zaxis = _get_attribute("z_orientation", required=False)
-    if zaxis is not None:
-        wann_string += ":z=" + ",".join([str(x) for x in zaxis])
     xaxis = _get_attribute("x_orientation", required=False)
-    if xaxis is not None:
-        wann_string += ":x=" + ",".join([str(x) for x in xaxis])
-
     radial = _get_attribute("radial_nodes", required=False)
-    if radial is not None:
-        wann_string += ":r={}".format(str(radial + 1))
-
     zona = _get_attribute("diffusivity", required=False)
-    if zona is not None:
-        wann_string += ":{}".format(str(zona))
+    if any(arg is not None for arg in [zaxis, xaxis, radial, zona]):
+        zaxis_string = _format_values('z', zaxis)
+        xaxis_string = _format_values('x', xaxis)
+        radial_string = _format_values('r', radial + 1)
+        zona_string = str(zona) if zona is not None else ''
+        wann_string += ':{}:{}:{}:{}'.format(
+            zaxis_string, xaxis_string, radial_string, zona_string
+        )
 
     # spin, optional
     # Careful with spin, it is insufficient to set the spin the projection
