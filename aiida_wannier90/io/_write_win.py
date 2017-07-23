@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
+
 import copy
+
+from aiida.common.utils import conv_to_fortran_withlists
+
+from ._group_list import list_to_grouped_string
+
+__all__ = ['write_win']
 
 def write_win(
         filename,
@@ -13,10 +21,7 @@ def write_win(
     ):
     # prepare the main input text
     input_file_lines = []
-    from aiida.common.utils import conv_to_fortran_withlists
-    for key, value in parameters.items():
-        input_file_lines.append(key + ' = ' + conv_to_fortran_withlists(
-            value))
+    input_file_lines += _format_parameters(parameters)
 
     # take projections dict and write to file
     # checks if spins are used, and modifies the opening line
@@ -89,6 +94,28 @@ def write_win(
         file.write("\n".join(input_file_lines))
         file.write("\n")
 
+def _format_parameters(parameters_dict):
+    """
+    Join key / value pairs of the parameters dictionary into formatted strings, returning a list of lines for the .win file.
+    """
+    lines = []
+    for key, value in sorted(_format_values(parameters_dict).items()):
+        lines.append(key + ' = ' + value)
+    return lines
+
+def _format_values(parameters_dict):
+    """
+    Turn the values of the parameters dictionary into the appropriate string.
+    """
+    result_dict = {}
+    for key, value in parameters_dict.items():
+        key = key.lower()
+        if key == 'exclude_bands':
+            result_dict[key] = list_to_grouped_string(value)
+        else:
+            result_dict[key] = conv_to_fortran_withlists(value)
+    return result_dict
+
 def _wann_site_format(structure_sites):
     '''
     Generates site locations and cell dimensions
@@ -119,12 +146,10 @@ def _print_wann_line_from_orbital(orbital):
     information, or the information is badly formated
     """
     from aiida.common.orbital import OrbitalFactory
-    realh = OrbitalFactory("realhydrogen")
+    RealhydrogenOrbital = OrbitalFactory("realhydrogen")
 
-    if not isinstance(orbital, realh):
-        raise InputValidationError("Only realhydrogen oribtals supported"
-                                   " for wannier input currently")
-    import copy
+    if not isinstance(orbital, RealhydrogenOrbital):
+        raise InputValidationError("Only realhydrogen oribtals are currently supported for Wannier90 input.")
     orb_dict = copy.deepcopy(orbital.get_orbital_dict())
 
     # setup position
