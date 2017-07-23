@@ -64,7 +64,7 @@ class Wannier90Parser(Parser):
                 return successful, new_nodes_list
 
         # Tries to parse the bands
-        kpoints = self._calc.get_inputs_dict()['kpoints_path']
+        kpoints = self._calc.get_inputs_dict()['kpoint_path']
         special_points = kpoints.get_special_points()
         try:
             band_dat_path = out_folder.get_abs_path(

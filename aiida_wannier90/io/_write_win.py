@@ -19,7 +19,7 @@ def write_win(
     parameters,
     structure,
     kpoints,
-    kpoints_path,
+    kpoint_path,
     projections,
 ):
     with open(filename, 'w') as file:
@@ -27,7 +27,7 @@ def write_win(
             parameters=parameters,
             structure=structure,
             kpoints=kpoints,
-            kpoints_path=kpoints_path,
+            kpoint_path=kpoint_path,
             projections=projections
         ))
 
@@ -35,77 +35,32 @@ def _create_win_string(
     parameters,
     structure,
     kpoints,
-    kpoints_path,
+    kpoint_path,
     projections,
 ):
     # prepare the main input text
     input_file_lines = []
     if isinstance(parameters, DataFactory('parameter')):
         parameters = parameters.get_dict()
-    input_file_lines += _format_parameters(parameters)
-
-    block_inputs = {}
-
-    # take projections dict and write to file
-    # checks if spins are used, and modifies the opening line
-    projection_list = projections.get_orbitals()
-    spin_use = any([bool(projection.get_orbital_dict()['spin'])
-                    for projection in projection_list])
-    projector_type = "spinor_projections" if spin_use else "projections"
-    input_file_lines.append('Begin {}'.format(projector_type))
-    for projection in projection_list:
-        orbit_line = _create_wann_line_from_orbital(projection)
-        input_file_lines.append(orbit_line)
-    input_file_lines.append('End {}'.format(projector_type))
-
-    # convert the structure data
-    input_file_lines.append("Begin unit_cell_cart")
-    input_file_lines.append('ang')
-    for vector in structure.cell:
-        input_file_lines.append("{0:18.10f} {1:18.10f} {2:18.10f}".format
-                                (*vector))
-    input_file_lines.append('End unit_cell_cart')
-
-    input_file_lines.append('Begin atoms_cart')
-    input_file_lines.append('ang')
-    wann_positions, wann_kind_names = _wann_site_format(structure.sites)
-    atoms_cart = zip(wann_kind_names, wann_positions)
-    for atom in atoms_cart:
-        input_file_lines.append('{}  {}'.format(atom[0], atom[1]))
-    input_file_lines.append('End atoms_cart')
-
-    # convert the kpoints_path
     try:
-        special_points = kpoints_path.get_special_points()
-    except ModificationNotAllowed:
-        raise InputValidationError('kpoints_path must be kpoints with '
-                                   'a special kpoint path already set!')
-
-    input_file_lines.append('Begin Kpoint_Path')
-    for (point1, point2) in special_points[1]:
-        coord1 = special_points[0][point1]
-        coord2 = special_points[0][point2]
-        path_line = '{} {} {} {} '.format(point1, *coord1)
-        path_line += ' {} {} {} {}'.format(point2, *coord2)
-        input_file_lines.append(path_line)
-    input_file_lines.append('End Kpoint_Path')
-
-    # convert the kmesh
-    try:
-        kmesh = kpoints.get_kpoints_mesh()[0]
+        parameters['mp_grid'] = kpoints.get_kpoints_mesh()[0]
     except AttributeError:
         raise InputValidationError('kpoints should be set with '
                                    'set_kpoints_mesh, '
                                    'and not set_kpoints... ')
+    input_file_lines += _format_parameters(parameters)
 
-    mp_line = 'mp_grid = {},{},{}'.format(*kmesh)
-    input_file_lines.append(mp_line)
+    block_inputs = {}
+    if isinstance(projections, (tuple, list)):
+        block_inputs['projections'] = projections
+    else:
+        block_inputs['projections'] = _format_all_projections(projections)
 
-    input_file_lines.append('Begin kpoints')
-    for vector in kpoints.get_kpoints_mesh(print_list=True):
-        input_file_lines.append("{0:18.10f} {1:18.10f} {2:18.10f}"
-                                .format(*vector))
-    input_file_lines.append('End kpoints')
+    block_inputs['unit_cell_cart'] = _format_unit_cell(structure)
+    block_inputs['atoms_cart'] = _format_atoms_cart(structure)
+    block_inputs['kpoints'] = _format_kpoints(kpoints)
+    block_inputs['kpoint_path'] = _format_kpoint_path(kpoint_path)
+    input_file_lines += _format_block_inputs(block_inputs)
 
     return '\n'.join(input_file_lines) + '\n'
 
@@ -132,31 +87,15 @@ def _format_parameter_values(parameters_dict):
             result_dict[key] = conv_to_fortran_withlists(value)
     return result_dict
 
+def _format_all_projections(projections):
+    projection_list = projections.get_orbitals()
+    # TODO: Check if spinor_projections actually needs to be used.
+    # spin_use = any([bool(projection.get_orbital_dict()['spin'])
+    #                 for projection in projection_list])
+    # projector_type = "spinor_projections" if spin_use else "projections"
+    return [_format_single_projection(projection) for projection in projection_list]
 
-def _wann_site_format(structure_sites):
-    """
-    Generates site locations and cell dimensions
-    in a manner that can be used by the wannier90 input script
-    """
-    def list2str(list_item):
-        '''
-        Converts an input list item into a str
-        '''
-        list_item = copy.deepcopy(list_item)
-        if isinstance(list_item, (str, unicode)):
-            return list_item
-        else:
-            return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
-
-    calc_positions = []
-    calc_kind_names = []
-    for i in range(len(structure_sites)):
-        calc_positions.append(list2str(structure_sites[i].position))
-        calc_kind_names.append(structure_sites[i].kind_name)
-    return calc_positions, calc_kind_names
-
-
-def _create_wann_line_from_orbital(orbital):
+def _format_single_projection(orbital):
     """
     Creates an appropriate wannier line from input orbitaldata,
     will raise an exception if the orbital does not contain enough
@@ -219,3 +158,61 @@ def _create_wann_line_from_orbital(orbital):
         wann_string += "[" + ",".join([str(x) for x in spin_orient]) + "]"
 
     return wann_string
+
+
+def _format_unit_cell(structure):
+    return ['ang'] + [
+        "{0:18.10f} {1:18.10f} {2:18.10f}".format(*vector)
+        for vector in structure.cell
+    ]
+
+def _format_atoms_cart(structure):
+    """
+    Generates site locations and cell dimensions
+    in a manner that can be used by the wannier90 input script
+    """
+    def list2str(list_item):
+        '''
+        Converts an input list item into a str
+        '''
+        list_item = copy.deepcopy(list_item)
+        if isinstance(list_item, (str, unicode)):
+            return list_item
+        else:
+            return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
+
+    return ['ang'] + [
+        '{}  {}'.format(site.kind_name, list2str(site.position))
+        for site in structure.sites
+    ]
+
+def _format_kpoints(kpoints):
+    return [
+        "{0:18.10f} {1:18.10f} {2:18.10f}".format(*vector)
+        for vector in kpoints.get_kpoints_mesh(print_list=True)
+    ]
+
+def _format_kpoint_path(kpoint_path):
+    # convert the kpoint_path
+    try:
+        special_point_coords, special_point_path = kpoint_path.get_special_points()
+    except ModificationNotAllowed:
+        raise InputValidationError('kpoint_path must be kpoints with '
+                                   'a special kpoint path already set!')
+
+    res = []
+    for (point1, point2) in special_point_path:
+        coord1 = special_point_coords[point1]
+        coord2 = special_point_coords[point2]
+        path_line = '{} {} {} {} '.format(point1, *coord1)
+        path_line += ' {} {} {} {}'.format(point2, *coord2)
+        res.append(path_line)
+    return res
+
+def _format_block_inputs(block_inputs):
+    res = []
+    for name, lines in sorted(block_inputs.items()):
+        res.append('begin {}'.format(name))
+        res.extend(lines)
+        res.append('end {}'.format(name))
+    return res

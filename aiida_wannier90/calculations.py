@@ -89,10 +89,10 @@ class Wannier90Calculation(JobCalculation):
                 'linkname': 'kpoints',
                 'docstring': "Use the node defining the kpoint sampling to use",
             },
-            "kpoints_path": {
+            "kpoint_path": {
                 'valid_types': KpointsData,
                 'additional_parameter': None,
-                'linkname': 'kpoints_path',
+                'linkname': 'kpoint_path',
                 'docstring': "Use the node defining the k-points path to use for bands interpolation",
             },
         })
@@ -180,8 +180,8 @@ class Wannier90Calculation(JobCalculation):
         kpoints = input_validator(
             name='kpoints', valid_types=KpointsData
         )
-        kpoints_path = input_validator(
-            name='kpoints_path', valid_types=KpointsData, required=False
+        kpoint_path = input_validator(
+            name='kpoint_path', valid_types=KpointsData, required=False
         )
         structure = input_validator(
             name='structure', valid_types=StructureData
@@ -212,7 +212,7 @@ class Wannier90Calculation(JobCalculation):
             parameters=param_dict,
             structure=structure,
             kpoints=kpoints,
-            kpoints_path=kpoints_path,
+            kpoint_path=kpoint_path,
             projections=projections,
         )
 
