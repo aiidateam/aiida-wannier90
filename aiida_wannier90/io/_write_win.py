@@ -22,6 +22,27 @@ def write_win(
     kpoint_path,
     projections,
 ):
+    """
+    Write input to a ``.win`` file.
+
+    :param filename: Path of the file where the input is written.
+    :type filename: str
+
+    :param parameters: Additional input parameters, as specified in the Wannier90 user guide.
+    :type parameters: dict, ParameterData
+
+    :param structure: Structure of the calculated material.
+    :type structure: StructureData
+
+    :param kpoints: Mesh of k-points used for the Wannierization procedure.
+    :type kpoints: KpointsData (mesh type)
+
+    :param kpoint_path: List of k-points used for band interpolation.
+    :type kpoint_path: KpointsData (path type)
+
+    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, or as a list of strings specifying the projections in Wannier90's format.
+    :type projections: OrbitalData, List[str]
+    """
     with open(filename, 'w') as file:
         file.write(_create_win_string(
             parameters=parameters,

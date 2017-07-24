@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from aiida.orm import DataFactory 
+"""
+Creating OrbitalData instances
+==============================
+"""
+
+from aiida.orm import DataFactory
 from aiida.orm.data.orbital import OrbitalFactory
+
+__all__ = ['generate_projections']
 
 def _generate_wannier_orbitals(position_cart=None, structure=None,
                          kind_name=None, radial=1,

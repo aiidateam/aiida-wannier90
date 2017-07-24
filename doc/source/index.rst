@@ -2,17 +2,20 @@
 
 .. container:: section
 
+.. automodule:: aiida_wannier90
+    :members:
 
-.. rubric:: Indices and tables
-
-| :ref:`genindex`
-| list of all functions and classes
-|
-| :ref:`modindex`
-| list of all modules and submodules
+Reference
+---------
 
 .. toctree::
-    :maxdepth: 2
-    :hidden:
+    :maxdepth: 3
 
     reference/index.rst
+
+
+Indices and tables
+------------------
+
+* :ref:`genindex`
+* :ref:`modindex`
