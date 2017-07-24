@@ -2,8 +2,9 @@
 
 Reference
 =========
-.. toctree::
-    :maxdepth: 3
+
+.. contents::
+    :local:
 
 Calculation and Parser classes
 ------------------------------
