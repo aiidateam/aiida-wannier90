@@ -17,10 +17,10 @@ __all__ = ['write_win']
 def write_win(
     filename,
     parameters,
-    structure,
     kpoints,
-    kpoint_path,
-    projections,
+    structure=None,
+    kpoint_path=None,
+    projections=None,
 ):
     """
     Write input to a ``.win`` file.
@@ -55,10 +55,10 @@ def write_win(
 
 def _create_win_string(
     parameters,
-    structure,
     kpoints,
-    kpoint_path,
-    projections,
+    structure=None,
+    kpoint_path=None,
+    projections=None,
 ):
     # prepare the main input text
     input_file_lines = []
@@ -73,15 +73,19 @@ def _create_win_string(
     input_file_lines += _format_parameters(parameters)
 
     block_inputs = {}
-    if isinstance(projections, (tuple, list)):
+    if projections is None:
+        block_inputs['projections'] = ['    random']
+    elif isinstance(projections, (tuple, list)):
         block_inputs['projections'] = projections
     else:
         block_inputs['projections'] = _format_all_projections(projections)
 
-    block_inputs['unit_cell_cart'] = _format_unit_cell(structure)
-    block_inputs['atoms_cart'] = _format_atoms_cart(structure)
+    if structure is not None:
+        block_inputs['unit_cell_cart'] = _format_unit_cell(structure)
+        block_inputs['atoms_cart'] = _format_atoms_cart(structure)
     block_inputs['kpoints'] = _format_kpoints(kpoints)
-    block_inputs['kpoint_path'] = _format_kpoint_path(kpoint_path)
+    if kpoint_path is not None:
+        block_inputs['kpoint_path'] = _format_kpoint_path(kpoint_path)
     input_file_lines += _format_block_inputs(block_inputs)
 
     return '\n'.join(input_file_lines) + '\n'

@@ -175,7 +175,7 @@ class Wannier90Calculation(JobCalculation):
         check_capitals(param_dict)
 
         projections = input_validator(
-            name='projections', valid_types=OrbitalData
+            name='projections', valid_types=OrbitalData, required=False
         )
         kpoints = input_validator(
             name='kpoints', valid_types=KpointsData
