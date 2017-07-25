@@ -64,9 +64,9 @@ class Wannier90Parser(Parser):
                 return successful, new_nodes_list
 
         # Tries to parse the bands
-        kpoints = self._calc.get_inputs_dict()['kpoint_path']
-        special_points = kpoints.get_special_points()
         try:
+            kpoint_path = self._calc.get_inputs_dict()['kpoint_path']
+            special_points = kpoint_path.get_special_points()
             band_dat_path = out_folder.get_abs_path(
                 '{}_band.dat'.format(self._calc._SEEDNAME))
             with open(band_dat_path, 'r') as fil:
@@ -79,7 +79,7 @@ class Wannier90Parser(Parser):
             output_bandsdata = band_parser(band_dat_file, band_kpt_file,
                                            special_points, structure)
             new_nodes_list += [('interpolated_bands', output_bandsdata)]
-        except OSError:
+        except (OSError, KeyError):
             pass
         # save the arrays
         wout_dictionary = raw_wout_parser(out_file)
