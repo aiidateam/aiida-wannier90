@@ -245,6 +245,7 @@ def _format_kpoint_path(kpoint_path):
 def _format_block_inputs(block_inputs):
     res = []
     for name, lines in sorted(block_inputs.items()):
+        res.append('')
         res.append('begin {}'.format(name))
         res.extend(lines)
         res.append('end {}'.format(name))

@@ -263,8 +263,11 @@ class Wannier90Calculation(JobCalculation):
             if f not in found_in_remote + found_in_local
         ]
         if len(not_found) != 0:
-            raise InputValidationError("{} necessary input files were not found: {} "
-                                       .format(len(not_found), ''.join(str(nf) for nf in not_found)))
+            raise InputValidationError(
+                "{} necessary input files were not found: {} ".format(
+                    len(not_found), ', '.join(str(nf) for nf in not_found)
+                )
+            )
 
         remote_copy_list = []
         remote_symlink_list = []
