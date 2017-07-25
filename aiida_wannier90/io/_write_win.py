@@ -65,11 +65,9 @@ def _create_win_string(
     if isinstance(parameters, DataFactory('parameter')):
         parameters = parameters.get_dict()
     try:
-        parameters['mp_grid'] = kpoints.get_kpoints_mesh()[0]
+        parameters.setdefault('mp_grid', kpoints.get_kpoints_mesh()[0])
     except AttributeError:
-        raise InputValidationError('kpoints should be set with '
-                                   'set_kpoints_mesh, '
-                                   'and not set_kpoints... ')
+        pass
     input_file_lines += _format_parameters(parameters)
 
     block_inputs = {}
@@ -219,11 +217,13 @@ def _format_atoms_cart(structure):
 
 
 def _format_kpoints(kpoints):
-    return [
-        "{0:18.10f} {1:18.10f} {2:18.10f}".format(*vector)
-        for vector in kpoints.get_kpoints_mesh(print_list=True)
-    ]
-
+    # KpointsData was set with set_kpoints_mesh
+    try:
+        all_kpoints = kpoints.get_kpoints_mesh(print_list=True)
+    # KpointsData was set with set_kpoints
+    except AttributeError:
+        all_kpoints = kpoints.get_kpoints()
+    return ["{:18.10f} {:18.10f} {:18.10f}".format(*k) for k in all_kpoints]
 
 def _format_kpoint_path(kpoint_path):
     try:
