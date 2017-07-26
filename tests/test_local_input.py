@@ -4,19 +4,21 @@ import os
 
 from gaas_sample import *
 
-def test_local_input(create_gaas_calc, configure_with_daemon):
+def test_local_input(create_gaas_calc, configure_with_daemon, assert_finished):
     from aiida.work.run import run
     process, inputs = create_gaas_calc()
-    output = run(process, **inputs)
+    output, pid = run(process, _return_pid=True, **inputs)
     assert all(key in output for key in ['retrieved', 'output_parameters'])
+    assert_finished(pid)
 
-def test_changed_seedname(create_gaas_calc, configure_with_daemon):
+def test_changed_seedname(create_gaas_calc, configure_with_daemon, assert_finished):
     from aiida.work.run import run
     process, inputs = create_gaas_calc(seedname='wannier90')
-    output = run(process, **inputs)
+    output, pid = run(process, _return_pid=True, **inputs)
     assert all(key in output for key in ['retrieved', 'output_parameters'])
+    assert_finished(pid)
 
-def test_duplicate_exclude_bands(create_gaas_calc, configure_with_daemon):
+def test_duplicate_exclude_bands(create_gaas_calc, configure_with_daemon, assert_finished):
     from aiida.work.run import run
     from aiida.orm import DataFactory
     process, inputs = create_gaas_calc(
@@ -28,5 +30,6 @@ def test_duplicate_exclude_bands(create_gaas_calc, configure_with_daemon):
         wvfn_formatted=True,
         exclude_bands=[1] * 2 + [2, 3]
     ))
-    output = run(process, **inputs)
+    output, pid = run(process, _return_pid=True, **inputs)
     assert all(key in output for key in ['retrieved', 'output_parameters'])
+    assert_finished(pid)
