@@ -49,7 +49,7 @@ def create_gaas_win_params(configure):
 
 @pytest.fixture
 def create_gaas_calc(get_process_inputs, sample, configure, create_gaas_win_params):
-    def inner(projections_dict={'kind_name': 'As', 'ang_mtm_name': 'sp3'}):
+    def inner(projections_dict={'kind_name': 'As', 'ang_mtm_name': 'sp3'}, seedname='aiida'):
         from aiida.orm import DataFactory, CalculationFactory
         from aiida_wannier90.orbitals import generate_projections
 
@@ -67,8 +67,10 @@ def create_gaas_calc(get_process_inputs, sample, configure, create_gaas_win_para
             if path in exclude_list:
                 continue
             abs_path = os.path.join(sample_folder, path)
-            local_input_folder.add_path(abs_path, path.replace('gaas', 'aiida'))
+            local_input_folder.add_path(abs_path, path.replace('gaas', seedname))
         inputs.local_input_folder = local_input_folder
+        if seedname != 'aiida':
+            inputs.settings = DataFactory('parameter')(dict=dict(seedname=seedname))
 
         return process, inputs
     return inner

@@ -10,6 +10,12 @@ def test_local_input(create_gaas_calc, configure_with_daemon):
     output = run(process, **inputs)
     assert all(key in output for key in ['retrieved', 'output_parameters'])
 
+def test_changed_seedname(create_gaas_calc, configure_with_daemon):
+    from aiida.work.run import run
+    process, inputs = create_gaas_calc(seedname='wannier90')
+    output = run(process, **inputs)
+    assert all(key in output for key in ['retrieved', 'output_parameters'])
+
 def test_duplicate_exclude_bands(create_gaas_calc, configure_with_daemon):
     from aiida.work.run import run
     from aiida.orm import DataFactory

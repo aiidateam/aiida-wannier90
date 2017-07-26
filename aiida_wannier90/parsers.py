@@ -53,15 +53,9 @@ class Wannier90Parser(Parser):
             with open(filpath, 'r') as fil:
                 out_file = fil.readlines()
         except OSError:
-            try:
-                filpath = out_folder.get_abs_path(
-                    self._calc._DEFAULT_OUTPUT_FILE_GW)
-                with open(filpath, 'r') as fil:
-                    out_file = fil.readlines()
-            except OSError:
-                self.logger.error("Standard output file could not be found.")
-                successful = False
-                return successful, new_nodes_list
+            self.logger.error("Standard output file could not be found.")
+            successful = False
+            return successful, new_nodes_list
 
         # Tries to parse the bands
         try:

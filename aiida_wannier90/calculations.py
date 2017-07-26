@@ -30,13 +30,32 @@ class Wannier90Calculation(JobCalculation):
     def _init_internal_params(self):
         super(Wannier90Calculation, self)._init_internal_params()
 
-        self._SEEDNAME = 'aiida'
-        self._DEFAULT_INPUT_FILE = self._SEEDNAME + '.win'
-        self._DEFAULT_OUTPUT_FILE = self._SEEDNAME + '.wout'
-        self._ERROR_FILE_NAME = self._SEEDNAME + '.werr'
+        self._DEFAULT_SEEDNAME = 'aiida'
         self._default_parser = 'wannier90.wannier90'
-        self._CHK_FILE = self._SEEDNAME + '.chk'
         self._blocked_keywords = [['length_unit', 'ang']]
+
+    # Needed because the super() call tries to set the properties to None
+    def _property_helper(suffix):
+        def getter(self):
+            return self._SEEDNAME + suffix
+        def setter(self, value):
+            if value is None:
+                pass
+            else:
+                raise AttributeError('Cannot set attribute')
+        return property(fget=getter, fset=setter)
+
+    @property
+    def _SEEDNAME(self):
+        try:
+            return self.get_inputs_dict()['settings'].get_attr('seedname')
+        except KeyError:
+            return self._DEFAULT_SEEDNAME
+
+    _DEFAULT_INPUT_FILE = _property_helper('.win')
+    _DEFAULT_OUTPUT_FILE = _property_helper('.wout')
+    _ERROR_FILE_NAME = _property_helper('.werr')
+    _CHK_FILE = _property_helper('.chk')
 
     @classproperty
     def _use_methods(cls):
@@ -327,6 +346,8 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.retrieve_list += settings_dict.pop(
             "additional_retrieve_list", [])
 
+        # pop input keys not used here
+        settings_dict.pop('seedname', None)
         if settings_dict:
             raise InputValidationError("Some keys in settings unrecognized")
 
