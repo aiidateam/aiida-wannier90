@@ -52,6 +52,9 @@ class Wannier90Parser(Parser):
                 self._calc._DEFAULT_OUTPUT_FILE)
             with open(filpath, 'r') as fil:
                 out_file = fil.readlines()
+            # Wannier90 doesn't always write the .werr file on error
+            if any('Exiting.......' in line for line in out_file):
+                successful = False
         except OSError:
             self.logger.error("Standard output file could not be found.")
             successful = False
