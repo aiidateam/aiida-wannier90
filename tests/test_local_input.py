@@ -2,6 +2,8 @@
 
 import os
 
+import pytest
+
 from gaas_sample import *
 
 def test_local_input(create_gaas_calc, configure_with_daemon, assert_finished):
@@ -18,9 +20,10 @@ def test_changed_seedname(create_gaas_calc, configure_with_daemon, assert_finish
     assert all(key in output for key in ['retrieved', 'output_parameters'])
     assert_finished(pid)
 
-def test_duplicate_exclude_bands(create_gaas_calc, configure_with_daemon, assert_finished):
+def test_duplicate_exclude_bands(create_gaas_calc, configure_with_daemon, assert_state):
     from aiida.work.run import run
     from aiida.orm import DataFactory
+    from aiida.common.datastructures import calc_states
     process, inputs = create_gaas_calc(
         projections_dict={'kind_name': 'As', 'ang_mtm_name': 's'}
     )
@@ -32,4 +35,4 @@ def test_duplicate_exclude_bands(create_gaas_calc, configure_with_daemon, assert
     ))
     output, pid = run(process, _return_pid=True, **inputs)
     assert all(key in output for key in ['retrieved', 'output_parameters'])
-    assert_finished(pid)
+    assert_state(pid, calc_states.FAILED)
