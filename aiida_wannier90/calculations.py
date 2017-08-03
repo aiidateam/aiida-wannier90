@@ -49,12 +49,12 @@ class Wannier90Calculation(JobCalculation):
     def _SEEDNAME(self):
         try:
             return self.get_inputs_dict()['settings'].get_attr('seedname')
-        except KeyError:
+        except KeyError, AttributeError:
             return self._DEFAULT_SEEDNAME
 
-    _DEFAULT_INPUT_FILE = _property_helper('.win')
-    _DEFAULT_OUTPUT_FILE = _property_helper('.wout')
-    _ERROR_FILE_NAME = _property_helper('.werr')
+    _INPUT_FILE = _property_helper('.win')
+    _OUTPUT_FILE = _property_helper('.wout')
+    _ERROR_FILE = _property_helper('.werr')
     _CHK_FILE = _property_helper('.chk')
 
     @classproperty
@@ -225,9 +225,7 @@ class Wannier90Calculation(JobCalculation):
         # End basic check on inputs
         ############################################################
         write_win(
-            filename=tempfolder.get_abs_path(
-                self._DEFAULT_INPUT_FILE
-            ),
+            filename=tempfolder.get_abs_path(self._INPUT_FILE),
             parameters=param_dict,
             structure=structure,
             kpoints=kpoints,
@@ -324,15 +322,15 @@ class Wannier90Calculation(JobCalculation):
         codeinfo = CodeInfo()
         codeinfo.code_uuid = code.uuid
         codeinfo.withmpi = False  # No mpi with wannier
-        codeinfo.cmdline_params = [self._DEFAULT_INPUT_FILE]
+        codeinfo.cmdline_params = [self._INPUT_FILE]
 
         calcinfo.codes_info = [codeinfo]
         calcinfo.codes_run_mode = code_run_modes.SERIAL
 
         # Retrieve files
         calcinfo.retrieve_list = []
-        calcinfo.retrieve_list.append(self._DEFAULT_OUTPUT_FILE)
-        calcinfo.retrieve_list.append(self._ERROR_FILE_NAME)
+        calcinfo.retrieve_list.append(self._OUTPUT_FILE)
+        calcinfo.retrieve_list.append(self._ERROR_FILE)
 
         calcinfo.retrieve_list += ['{}_band.dat'.format(self._SEEDNAME),
                                    '{}_band.kpt'.format(self._SEEDNAME)]

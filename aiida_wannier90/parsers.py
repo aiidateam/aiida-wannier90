@@ -41,15 +41,15 @@ class Wannier90Parser(Parser):
             return successful, new_nodes_list
 
         # Checks for error output files
-        if self._calc._ERROR_FILE_NAME in out_folder.get_folder_list():
+        if self._calc._ERROR_FILE in out_folder.get_folder_list():
             self.logger.error('Errors were found please check the retrieved '
-                              '{} file'.format(self._calc._ERROR_FILE_NAME))
+                              '{} file'.format(self._calc._ERROR_FILE))
             successful = False
             return successful, new_nodes_list
 
         try:
             filpath = out_folder.get_abs_path(
-                self._calc._DEFAULT_OUTPUT_FILE)
+                self._calc._OUTPUT_FILE)
             with open(filpath, 'r') as fil:
                 out_file = fil.readlines()
             # Wannier90 doesn't always write the .werr file on error

@@ -69,6 +69,7 @@ def create_gaas_calc(get_process_inputs, sample, configure, create_gaas_win_para
             abs_path = os.path.join(sample_folder, path)
             local_input_folder.add_path(abs_path, path.replace('gaas', seedname))
         inputs.local_input_folder = local_input_folder
+        
         if seedname != 'aiida':
             inputs.settings = DataFactory('parameter')(dict=dict(seedname=seedname))
 

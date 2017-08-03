@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import copy
 
 from aiida.orm import DataFactory
+from aiida.orm.data.base import List
 from aiida.common.orbital import OrbitalFactory
 from aiida.common.utils import conv_to_fortran_withlists
 
@@ -17,7 +18,7 @@ __all__ = ['write_win']
 def write_win(
     filename,
     parameters,
-    kpoints,
+    kpoints=None,
     structure=None,
     kpoint_path=None,
     projections=None,
@@ -75,13 +76,16 @@ def _create_win_string(
         block_inputs['projections'] = ['    random']
     elif isinstance(projections, (tuple, list)):
         block_inputs['projections'] = projections
+    elif isinstance(projections, List):
+        block_inputs['projections'] = projections.get_attr('list')
     else:
         block_inputs['projections'] = _format_all_projections(projections)
 
     if structure is not None:
         block_inputs['unit_cell_cart'] = _format_unit_cell(structure)
         block_inputs['atoms_cart'] = _format_atoms_cart(structure)
-    block_inputs['kpoints'] = _format_kpoints(kpoints)
+    if kpoints is not None:
+        block_inputs['kpoints'] = _format_kpoints(kpoints)
     if kpoint_path is not None:
         block_inputs['kpoint_path'] = _format_kpoint_path(kpoint_path)
     input_file_lines += _format_block_inputs(block_inputs)
