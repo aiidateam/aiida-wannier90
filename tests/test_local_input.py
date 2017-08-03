@@ -20,8 +20,27 @@ def test_changed_seedname(create_gaas_calc, configure_with_daemon, assert_finish
     assert all(key in output for key in ['retrieved', 'output_parameters'])
     assert_finished(pid)
 
-def test_changed_seedname_wrong(create_gaas_calc, configure_with_daemon, assert_state):
+def test_changed_seedname_empty_settings(create_gaas_calc, configure_with_daemon, assert_state):
     from aiida.work.run import run
+    from aiida.orm import DataFactory
+    from aiida.common.datastructures import calc_states
+    process, inputs = create_gaas_calc(seedname='wannier90')
+    inputs.settings = DataFactory('parameter')()
+    output, pid = run(process, _return_pid=True, **inputs)
+    assert_state(pid, calc_states.SUBMISSIONFAILED)
+
+def test_empty_settings(create_gaas_calc, configure_with_daemon, assert_state):
+    from aiida.work.run import run
+    from aiida.orm import DataFactory
+    from aiida.common.datastructures import calc_states
+    process, inputs = create_gaas_calc()
+    inputs.settings = DataFactory('parameter')()
+    output, pid = run(process, _return_pid=True, **inputs)
+    assert_state(pid, calc_states.FINISHED)
+
+def test_changed_seedname_no_settings(create_gaas_calc, configure_with_daemon, assert_state):
+    from aiida.work.run import run
+    from aiida.common.datastructures import calc_states
     process, inputs = create_gaas_calc(seedname='wannier90')
     del inputs.settings
     output, pid = run(process, _return_pid=True, **inputs)

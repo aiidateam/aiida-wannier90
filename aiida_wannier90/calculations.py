@@ -49,7 +49,7 @@ class Wannier90Calculation(JobCalculation):
     def _SEEDNAME(self):
         try:
             return self.get_inputs_dict()['settings'].get_attr('seedname')
-        except KeyError, AttributeError:
+        except (KeyError, AttributeError):
             return self._DEFAULT_SEEDNAME
 
     _INPUT_FILE = _property_helper('.win')
