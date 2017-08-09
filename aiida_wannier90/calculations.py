@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from collections import Counter
 
 import numpy as np
 
@@ -33,7 +34,7 @@ class Wannier90Calculation(JobCalculation):
 
         self._DEFAULT_SEEDNAME = 'aiida'
         self._default_parser = 'wannier90.wannier90'
-        self._blocked_keywords = [['length_unit', 'ang']]
+        self._blocked_parameter_keys = ['length_unit', 'unit_cell_cart', 'atoms_cart']
 
     # Needed because the super() call tries to set the properties to None
     def _property_helper(suffix):
@@ -152,47 +153,7 @@ class Wannier90Calculation(JobCalculation):
         parameters = input_validator(
             name='parameters', valid_types=ParameterData
         )
-
-        def blocked_keyword_finder(input_params, blocked_keywords):
-            """
-            Searches through the input_params for any blocked_keywords and
-            forces the default, returns the modified input_params
-            """
-            import re
-            for blocked in blocked_keywords:
-                nl = blocked[0]
-                flag = blocked[1]
-                defaultvalue = None
-                if len(blocked) >= 3:
-                    defaultvalue = blocked[2]
-                if nl in input_params:
-                    # The following lines is meant to avoid putting in input the
-                    # parameters like celldm(*)
-                    stripped_inparams = [re.sub("[(0-9)]", "", _)
-                                         for _ in input_params[nl].keys()]
-                    if flag in stripped_inparams:
-                        raise InputValidationError(
-                            "You cannot specify explicitly the '{}' flag in "
-                            "the '{}' input.".format(flag, nl))
-                    if defaultvalue is not None:
-                        if nl not in input_params:
-                            input_params[nl] = {}
-                        input_params[nl][flag] = defaultvalue
-            return input_params
-
-        def check_capitals(input_params):
-            """
-            Goes through the input_params (which much be a dictionary) and
-            raises an InputValidationError if any of the keys are not capitalized
-            """
-            for k in input_params:
-                if k != k.lower():
-                    raise InputValidationError("Please make sure all keys"
-                                               "are lower case, {} was not!"
-                                               "".format(k))
-        param_dict = parameters.get_dict()
-        param_dict = blocked_keyword_finder(param_dict, self._blocked_keywords)
-        check_capitals(param_dict)
+        param_dict = self._get_validated_parameters_dict(parameters)
 
         projections = input_validator(
             name='projections', valid_types=(OrbitalData, List), required=False
@@ -348,7 +309,7 @@ class Wannier90Calculation(JobCalculation):
         # pop input keys not used here
         settings_dict.pop('seedname', None)
         if settings_dict:
-            raise InputValidationError("Some keys in settings unrecognized")
+            raise InputValidationError("The following keys in settings are unrecognized: {}".format(settings_dict.keys()))
 
         return calcinfo
 
@@ -374,3 +335,23 @@ class Wannier90Calculation(JobCalculation):
             return value
 
         return _validate_input
+
+    def _get_validated_parameters_dict(self, parameters):
+        param_dict_raw = parameters.get_dict()
+
+        # keys to lowercase, check for duplicates
+        param_dict = {key.lower(): value for key, value in param_dict_raw.items()}
+        if len(param_dict) != len(param_dict_raw):
+            counter = Counter([k.lower() for k in param_dict_raw])
+            counter = {key: val for key, val in counter if val > 1}
+            raise InputValidationError('The following keys were found more than once in the parameters: {}. Check for duplicates written in upper- / lowercase.'.format(counter))
+
+        # check for blocked keywords
+        existing_blocked_keys = []
+        for key in self._blocked_parameter_keys:
+            if key in param_dict:
+                existing_blocked_keys.append(key)
+        if existing_blocked_keys:
+            raise InputValidationError('The following blocked keys were found in the parameters: {}'.format(existing_blocked_keys))
+
+        return param_dict
