@@ -24,7 +24,7 @@ if __name__ == '__main__':
             'Environment :: Plugins',
             'Framework :: AiiDA',
             'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+            'License :: OSI Approved :: MIT License',
             'Programming Language :: Python :: 2.7',
             'Topic :: Scientific/Engineering :: Physics'
         ],

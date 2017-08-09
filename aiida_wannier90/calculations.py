@@ -8,6 +8,7 @@ from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
 from aiida.common.datastructures import CalcInfo, CodeInfo, code_run_modes
 from aiida.orm import JobCalculation
 from aiida.orm.code import Code
+from aiida.orm.data.base import List
 from aiida.orm.data.array.kpoints import KpointsData
 from aiida.orm.data.orbital import OrbitalData, OrbitalFactory
 from aiida.orm.data.parameter import ParameterData
@@ -84,7 +85,7 @@ class Wannier90Calculation(JobCalculation):
                               "for the wannier code"),
             },
             "projections": {
-                'valid_types': OrbitalData,
+                'valid_types': (OrbitalData, List),
                 'additional_parameter': None,
                 'linkname': 'projections',
                 'docstring': ("Starting projections of class OrbitalData"),
@@ -194,7 +195,7 @@ class Wannier90Calculation(JobCalculation):
         check_capitals(param_dict)
 
         projections = input_validator(
-            name='projections', valid_types=OrbitalData, required=False
+            name='projections', valid_types=(OrbitalData, List), required=False
         )
         kpoints = input_validator(
             name='kpoints', valid_types=KpointsData
