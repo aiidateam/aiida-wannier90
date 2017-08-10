@@ -34,7 +34,7 @@ class Wannier90Calculation(JobCalculation):
 
         self._DEFAULT_SEEDNAME = 'aiida'
         self._default_parser = 'wannier90.wannier90'
-        self._blocked_parameter_keys = ['length_unit', 'unit_cell_cart', 'atoms_cart']
+        self._blocked_parameter_keys = ['length_unit', 'unit_cell_cart', 'atoms_cart', 'projections']
 
     # Needed because the super() call tries to set the properties to None
     def _property_helper(suffix):
