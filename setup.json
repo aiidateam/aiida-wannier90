@@ -1,0 +1,36 @@
+{
+  "entry_points": {
+    "aiida.calculations": [
+      "wannier90.wannier90 = aiida_wannier90.calculations:Wannier90Calculation"
+    ], 
+    "aiida.parsers": [
+      "wannier90.wannier90 = aiida_wannier90.parsers:Wannier90Parser"
+    ], 
+    "aiida.data": []
+  }, 
+  "extras_require": {
+    "test": [
+      "pytest", 
+      "aiida-pytest"
+    ]
+  }, 
+  "name": "aiida-wannier90", 
+  "license": "MIT", 
+  "author": "Daniel Marchand, Antimo Marrazzo, Dominik Gresch, Giovanni Pizzi & The AiiDA Team.", 
+  "author_email": "developers@aiida.net", 
+  "install_requires": [
+    "aiida-core"
+  ], 
+  "version": "0.1.0", 
+  "keywords": "wannier90 aiida workflows", 
+  "classifiers": [
+    "Development Status :: 3 - Alpha", 
+    "Environment :: Plugins", 
+    "Framework :: AiiDA", 
+    "Intended Audience :: Science/Research", 
+    "License :: OSI Approved :: MIT License", 
+    "Programming Language :: Python :: 2.7", 
+    "Topic :: Scientific/Engineering :: Physics"
+  ], 
+  "description": "AiiDA Plugin for Wannier90"
+}
