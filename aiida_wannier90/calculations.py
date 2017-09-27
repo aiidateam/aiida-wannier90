@@ -56,6 +56,7 @@ class Wannier90Calculation(JobCalculation):
 
     _INPUT_FILE = _property_helper('.win')
     _OUTPUT_FILE = _property_helper('.wout')
+    _DEFAULT_OUTPUT_FILE = _OUTPUT_FILE
     _ERROR_FILE = _property_helper('.werr')
     _CHK_FILE = _property_helper('.chk')
 
