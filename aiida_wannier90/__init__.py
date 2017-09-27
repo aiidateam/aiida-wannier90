@@ -16,10 +16,6 @@ __copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For fu
 __license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
 __version__ = "0.0.0a0"
 
-from aiida import load_dbenv as _load_dbenv, is_dbenv_loaded as _is_dbenv_loaded
-if not _is_dbenv_loaded():
-    _load_dbenv()
-
 from . import io
 from . import parsers
 from . import orbitals
