@@ -9,6 +9,7 @@ from aiida.orm import DataFactory
 from aiida.orm.data.base import List
 from aiida.common.orbital import OrbitalFactory
 from aiida.common.utils import conv_to_fortran_withlists
+from aiida.common.exceptions import InputValidationError,ModificationNotAllowed
 
 from ._group_list import list_to_grouped_string
 
@@ -22,6 +23,7 @@ def write_win(
     structure=None,
     kpoint_path=None,
     projections=None,
+    random_projections=False,
 ):
     """
     Write input to a ``.win`` file.
@@ -43,6 +45,9 @@ def write_win(
 
     :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, or as a list of strings specifying the projections in Wannier90's format.
     :type projections: OrbitalData, List[str]
+
+    :param random_projections: If OrbitalData is used for projections, enables random projections completion
+    :type random_projections: Boolean
     """
     with open(filename, 'w') as file:
         file.write(_create_win_string(
@@ -50,8 +55,9 @@ def write_win(
             structure=structure,
             kpoints=kpoints,
             kpoint_path=kpoint_path,
-            projections=projections
-        ))
+            projections=projections,
+            random_projections=random_projections,
+                   ))
 
 
 def _create_win_string(
@@ -60,7 +66,9 @@ def _create_win_string(
     structure=None,
     kpoint_path=None,
     projections=None,
+    random_projections=False,
 ):
+
     # prepare the main input text
     input_file_lines = []
     if isinstance(parameters, DataFactory('parameter')):
@@ -73,13 +81,23 @@ def _create_win_string(
 
     block_inputs = {}
     if projections is None:
-        block_inputs['projections'] = ['    random']
+        # If no projections are specified, random projections is used (Dangerous!)
+        if random_projections:
+            block_inputs['projections'] = ['random']
+        else:
+            block_inputs['projections'] = []
     elif isinstance(projections, (tuple, list)):
+        if random_projections:
+            raise InputValidationError('random_projections cannot be True with (tuple,list) projections.'
+                                  'Instead, use "random" string as first element of the list.')
         block_inputs['projections'] = projections
     elif isinstance(projections, List):
+        if random_projections:
+            raise InputValidationError('random_projections cannot be True if with List-type projections.'
+                                  'Instead, use "random" string as first element of the List.')
         block_inputs['projections'] = projections.get_attr('list')
     else:
-        block_inputs['projections'] = _format_all_projections(projections)
+        block_inputs['projections'] = _format_all_projections(projections,random_projections=True)
 
     if structure is not None:
         block_inputs['unit_cell_cart'] = _format_unit_cell(structure)
@@ -117,13 +135,24 @@ def _format_parameter_values(parameters_dict):
     return result_dict
 
 
-def _format_all_projections(projections):
+def _format_all_projections(projections, random_projections = False):
+    """
+    Return a list of strings, they are the lines to insert into
+    Wannier90 projections block.
+
+    :param projections: OrbitalData object with projections info
+    :param random_projections: if True, add the 'random' keyword on top.
+        It asks the code to fill missing projections with random orbitals (see Wannier90 docs)
+    """
     projection_list = projections.get_orbitals()
     # TODO: Check if spinor_projections actually needs to be used.
     # spin_use = any([bool(projection.get_orbital_dict()['spin'])
     #                 for projection in projection_list])
     # projector_type = "spinor_projections" if spin_use else "projections"
-    return [_format_single_projection(projection) for projection in projection_list]
+    projection_lines =  [_format_single_projection(projection) for projection in projection_list]
+    if random_projections:
+        projection_lines = ['random'] + projection_lines
+    return projection_lines
 
 
 def _format_single_projection(orbital):
@@ -172,7 +201,7 @@ def _format_single_projection(orbital):
         zaxis_string = _format_projection_values('z', zaxis)
         xaxis_string = _format_projection_values('x', xaxis)
         radial_string = _format_projection_values('r', radial + 1)
-        zona_string = str(zona) if zona is not None else ''
+        zona_string = _format_projection_values('zona',zona)
         wann_string += ':{}:{}:{}:{}'.format(
             zaxis_string, xaxis_string, radial_string, zona_string
         )

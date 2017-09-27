@@ -35,7 +35,8 @@ class Wannier90Calculation(JobCalculation):
         self._DEFAULT_SEEDNAME = 'aiida'
         self._default_parser = 'wannier90.wannier90'
         self._blocked_parameter_keys = ['length_unit', 'unit_cell_cart', 'atoms_cart', 'projections']
-
+        #We do not block postproc_setup, but its usage is deprecated
+        #one should use settings instead
     # Needed because the super() call tries to set the properties to None
     def _property_helper(suffix):
         def getter(self):
@@ -187,6 +188,8 @@ class Wannier90Calculation(JobCalculation):
         ############################################################
         # End basic check on inputs
         ############################################################
+        random_projections = settings_dict.pop('random_projections',False)
+
         write_win(
             filename=tempfolder.get_abs_path(self._INPUT_FILE),
             parameters=param_dict,
@@ -194,6 +197,7 @@ class Wannier90Calculation(JobCalculation):
             kpoints=kpoints,
             kpoint_path=kpoint_path,
             projections=projections,
+            random_projections=random_projections,
         )
 
         if remote_input_folder is not None:
@@ -252,21 +256,22 @@ class Wannier90Calculation(JobCalculation):
         remote_copy_list = []
         remote_symlink_list = []
         local_copy_list = []
-
+        #Here we enforce that everything except checkpoints are symlinked
+        #because in W90 you never modify input files on the run
         ALWAYS_COPY_FILES = [self._CHK_FILE]
         for f in found_in_remote:
             file_info = (
                 remote_input_folder_uuid,
                 os.path.join(remote_input_folder_path, f),
-                '.'
+                os.path.basename(f)
             )
             if f in ALWAYS_COPY_FILES:
                 remote_copy_list.append(file_info)
             else:
-                sym_list.append(file_info)
+                remote_symlink_list.append(file_info)
         for f in found_in_local:
             local_copy_list.append(
-                (local_input_folder.get_abs_path(f), '.')
+                (local_input_folder.get_abs_path(f), os.path.basename(f))
             )
 
         # Add any custom copy/sym links

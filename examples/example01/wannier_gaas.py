@@ -89,19 +89,36 @@ calc.set_resources({"num_machines": 1})
 
 #calc.use_parent_calculation(parent_calc)
 input_folder = load_node(102)  
-
+remote_folder = load_node(122)
 
 #Two methods to define projections are available
 #Method 1
-projections = generate_projections({'kind_name': 'As', 'ang_mtm_name': 'sp3'},structure=structure)
-#Method 2
+projections = generate_projections(dict(position_cart=(1,2,0.5),
+                         radial=2,
+                         ang_mtm_l=2,
+                         ang_mtm_mr=5, spin=None,
+                         #zona=1.1,
+                         zaxis=(0,1,0),xaxis=(0,0,1), spin_axis=None),structure=structure)
+
+## Method 1bis, when you want to complete missing orbitals with random ones
+## This converts instead the 'projections' OrbitalData object to a list of strings, and passes
+## directly to Wannier90. DISCOURAGED: better to pass the OrbitalData object,
+## that contains 'parsed' information and is easier to query, and set 
+## random_projections = True in the input 'settings' ParameterData node.
+#from aiida_wannier90.io._write_win import _format_all_projections
+#projections_list = List()
+#projections_list.extend(_format_all_projections(projections, random_projections=True))
+#projections = projections_list
+
+## Method 2
 #projections = List()
-#projections.extend([{'kind_name': 'As', 'ang_mtm_name': 'sp3'}])
+#projections.extend(['As:s','As:p'])
+#projections.extend(['random','As:s'])
 
 if local_input:
     calc.use_local_input_folder(input_folder)
 else:
-    calc.use_remote_input_folder(remote_folder_node)
+    calc.use_remote_input_folder(remote_folder)
 calc.use_structure(structure)
 calc.use_projections(projections)
 calc.use_parameters(parameter)
@@ -110,7 +127,7 @@ calc.use_kpoint_path(kpoints_path)
 
 
 # settings that can only be enabled if parent is nscf
-settings_dict = {'seedname':'gaas'}
+settings_dict = {'seedname':'gaas','random_projections':True}
 # settings_dict.update({'INIT_ONLY':True}) # for setup calculation
 
 if settings_dict:
