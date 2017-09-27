@@ -3,3 +3,4 @@
 .cache/v/cache
 tests/.cache
 .idea
+*~
