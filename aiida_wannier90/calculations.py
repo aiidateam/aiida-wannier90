@@ -229,6 +229,7 @@ class Wannier90Calculation(JobCalculation):
                 result += fnmatch.filter(file_list, glob_p)
             return result
 
+        # Local FolderData has precedence over RemoteData
         if local_input_folder is not None:
             found_in_local = files_finder(
                 local_folder_content, input_files, wavefunctions_files)
