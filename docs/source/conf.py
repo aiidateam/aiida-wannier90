@@ -297,6 +297,11 @@ latex_elements = {
 # NOTE: it is needed to have these lines before load_dbenv()
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
+sys.path.append( os.path.join( os.path.split(__file__)[0],
+                                           os.pardir,os.pardir) )
+sys.path.append( os.path.join( os.path.split(__file__)[0],
+                                           os.pardir))
+
 from aiida.backends.utils import load_dbenv, is_dbenv_loaded
 if not is_dbenv_loaded():
     load_dbenv()
