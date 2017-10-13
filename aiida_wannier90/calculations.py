@@ -149,8 +149,6 @@ class Wannier90Calculation(JobCalculation):
         remote_input_folder = input_validator(
             name='remote_input_folder', valid_types=RemoteData, required=False
         )
-        if local_input_folder is None and remote_input_folder is None:
-            raise InputValidationError('Either local_input_folder or remote_input_folder must be set.')
 
         parameters = input_validator(
             name='parameters', valid_types=ParameterData
@@ -180,6 +178,12 @@ class Wannier90Calculation(JobCalculation):
             settings_dict = {key.lower(): val for key, val in settings_dict_raw.items()}
             if len(settings_dict_raw) != len(settings_dict):
                 raise InputValidationError('Input settings contain duplicate keys.')
+        pp_setup = settings_dict.pop('postproc_setup', False)
+        if pp_setup:
+            param_dict.update({'postproc_setup':True})
+
+        if local_input_folder is None and remote_input_folder is None and pp_setup is False:
+            raise InputValidationError('Either local_input_folder or remote_input_folder must be set.')
 
         code = input_validator(
             name='code', valid_types=Code
@@ -214,8 +218,10 @@ class Wannier90Calculation(JobCalculation):
 
         if local_input_folder is not None:
             local_folder_content = local_input_folder.get_folder_list()
-
-        required_files = [self._SEEDNAME +
+        if pp_setup:
+            required_files = []
+        else:
+            required_files = [self._SEEDNAME +
                           suffix for suffix in ['.mmn', '.amn']]
         optional_files = [self._SEEDNAME +
                           suffix for suffix in ['.eig', '.chk', '.spn']]
