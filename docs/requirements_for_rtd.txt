@@ -1,1 +1,2 @@
 setuptools==34.1.0
+aiida>0.9.0
