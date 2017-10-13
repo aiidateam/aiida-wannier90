@@ -16,6 +16,8 @@ from aiida.orm.data.parameter import ParameterData
 from aiida.orm.data.remote import RemoteData
 from aiida.orm.data.structure import StructureData
 from aiida.orm.data.folder import FolderData
+from aiida.orm.data.singlefile import SinglefileData
+
 try:
     from aiida.backends.utils import get_authinfo
 except ImportError:
@@ -60,6 +62,7 @@ class Wannier90Calculation(JobCalculation):
     _DEFAULT_OUTPUT_FILE = _OUTPUT_FILE
     _ERROR_FILE = _property_helper('.werr')
     _CHK_FILE = _property_helper('.chk')
+    _NNKP_FILE = _property_helper('.nnkp')
 
     @classproperty
     def _use_methods(cls):
@@ -306,6 +309,9 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.retrieve_list = []
         calcinfo.retrieve_list.append(self._OUTPUT_FILE)
         calcinfo.retrieve_list.append(self._ERROR_FILE)
+        if pp_setup:
+            calcinfo.retrieve_list.append(self._NNKP_FILE)
+            calcinfo.retrieve_singlefile_list = [('output_nnkp','singlefile',self._NNKP_FILE)]
 
         calcinfo.retrieve_list += ['{}_band.dat'.format(self._SEEDNAME),
                                    '{}_band.kpt'.format(self._SEEDNAME)]
