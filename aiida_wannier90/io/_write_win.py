@@ -5,9 +5,6 @@ from __future__ import unicode_literals
 
 import copy
 
-from aiida.orm import DataFactory
-from aiida.orm.data.base import List
-from aiida.common.orbital import OrbitalFactory
 from aiida.common.utils import conv_to_fortran_withlists
 from aiida.common.exceptions import InputValidationError,ModificationNotAllowed
 
@@ -68,6 +65,8 @@ def _create_win_string(
     projections=None,
     random_projections=False,
 ):
+    from aiida.orm import DataFactory
+    from aiida.orm.data.base import List
 
     # prepare the main input text
     input_file_lines = []
@@ -161,6 +160,7 @@ def _format_single_projection(orbital):
     will raise an exception if the orbital does not contain enough
     information, or the information is badly formated
     """
+    from aiida.common.orbital import OrbitalFactory
     RealhydrogenOrbital = OrbitalFactory("realhydrogen")
 
     if not isinstance(orbital, RealhydrogenOrbital):

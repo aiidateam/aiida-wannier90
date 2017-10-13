@@ -19,4 +19,6 @@ __version__ = "0.1.0"
 from . import io
 from . import parsers
 from . import orbitals
-from . import calculations
+## If this is imported then AiiDA ORM is loaded and this fails if the load_dbenv has not
+## been yet called
+#from . import calculations

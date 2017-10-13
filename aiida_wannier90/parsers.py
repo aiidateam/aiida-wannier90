@@ -2,11 +2,6 @@
 
 from aiida.parsers.parser import Parser
 from aiida.parsers.exceptions import OutputParsingError
-from aiida.orm.data.parameter import ParameterData
-from aiida.orm.data.array.bands import BandsData
-from aiida.orm.data.array.kpoints import KpointsData
-
-from .calculations import Wannier90Calculation
 
 class Wannier90Parser(Parser):
     """
@@ -17,6 +12,8 @@ class Wannier90Parser(Parser):
     _outarray_name = 'output_data'
 
     def __init__(self, calculation):
+        from .calculations import Wannier90Calculation
+        
         # check for valid input
         if not isinstance(calculation, Wannier90Calculation):
             raise OutputParsingError("Input must calc must be a "
@@ -29,6 +26,8 @@ class Wannier90Parser(Parser):
         This parser for this simple code does simply store in the DB a node
         representing the file of forces in real space
         """
+        from aiida.orm.data.parameter import ParameterData
+
         successful = True
         new_nodes_list = []
         # select the folder object
@@ -226,6 +225,9 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     :return: BandsData object constructed from the input params
     """
     import numpy as np
+    from aiida.orm.data.array.bands import BandsData
+    from aiida.orm.data.array.kpoints import KpointsData
+
     # imports the data
     out_kpt = np.genfromtxt(band_kpt_path, skip_header=1, usecols=(0, 1, 2))
     out_dat = np.genfromtxt(band_dat_path, usecols=1)
