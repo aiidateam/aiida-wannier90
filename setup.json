@@ -16,6 +16,7 @@
     "docs": [
         "sphinx",
 	"sphinx-rtd-theme"
+	]
   }, 
   "name": "aiida-wannier90", 
   "license": "MIT", 
