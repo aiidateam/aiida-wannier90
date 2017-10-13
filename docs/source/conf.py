@@ -15,7 +15,6 @@
 import os
 import sys
 import time
-import sphinx_rtd_theme
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -117,8 +116,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #~ html_theme = 'basicstrap'
-html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+## SET BELOW
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -302,7 +300,28 @@ sys.path.append( os.path.join( os.path.split(__file__)[0],
 sys.path.append( os.path.join( os.path.split(__file__)[0],
                                            os.pardir))
 
-from aiida.backends.utils import load_dbenv, is_dbenv_loaded
-if not is_dbenv_loaded():
-    load_dbenv()
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rtd_settings'
+
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    try:
+        import sphinx_rtd_theme
+        html_theme = 'sphinx_rtd_theme'
+        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+    except ImportError:
+        # No sphinx_rtd_theme installed
+        pass
+    # Loading the dbenv. The backend should be fixed before compiling the
+    # documentation.
+    from aiida.backends.utils import load_dbenv, is_dbenv_loaded
+    if not is_dbenv_loaded():
+        load_dbenv()
+else:
+    # Back-end settings for readthedocs online documentation -
+    # we don't want to create a profile there
+    from aiida.backends import settings
+    settings.IN_DOC_MODE = True
+    settings.BACKEND = "django"
+    settings.AIIDADB_PROFILE = "default"
+
+
 
