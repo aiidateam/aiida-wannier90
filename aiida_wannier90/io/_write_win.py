@@ -130,7 +130,7 @@ def _format_parameter_values(parameters_dict):
         if key == 'exclude_bands':
             result_dict[key] = list_to_grouped_string(value)
         else:
-            result_dict[key] = conv_to_fortran_withlists(value)
+            result_dict[key] = conv_to_fortran_withlists(value,quote_strings=False)
     return result_dict
 
 
