@@ -299,7 +299,7 @@ class Wannier90Calculation(JobCalculation):
 
         codeinfo = CodeInfo()
         codeinfo.code_uuid = code.uuid
-        codeinfo.withmpi = False  # No mpi with wannier
+        #codeinfo.withmpi = True  # Current version of W90 can be run in parallel
         codeinfo.cmdline_params = [self._INPUT_FILE]
 
         calcinfo.codes_info = [codeinfo]
