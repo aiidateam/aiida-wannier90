@@ -7,10 +7,6 @@ from aiida.common.example_helpers import test_and_get_code
 import pymatgen
 from aiida.orm.data.base import List
 from aiida_wannier90.orbitals import generate_projections
-__authors__ = "The AiiDA team."
-__copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
-__license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
-__version__ = "0.9.1"
 
 ParameterData = DataFactory('parameter')
 StructureData = DataFactory('structure')
@@ -42,9 +38,21 @@ except IndexError:
     sys.exit(1)
 
 try:
-    codename = sys.argv[3]
+    input_folder_pk = int(sys.argv[3])
+    #calc.use_parent_calculation(parent_calc)
+    input_folder = load_node(input_folder_pk)  
+
+except (IndexError, ValueError):
+    print >> sys.stderr, ("Must provide as third parameter the pk of the {} input folder node".format(
+        'local' if local_input else 'remote'))
+    print >> sys.stderr, ("If you don't have it, run the script 'create_local_input_folder.py' and then use that pk with the 'local' option")    
+    sys.exit(1)
+
+
+try:
+    codename = sys.argv[4]
 except IndexError:
-    print >> sys.stderr, ("Must provide as third parameter the main code")
+    print >> sys.stderr, ("Must provide as fourth parameter the main code")
     sys.exit(1)
 
 
@@ -79,17 +87,18 @@ structure.set_pymatgen_structure(structure_pmg)
 kpoints = KpointsData()
 kpoints.set_kpoints_mesh([2, 2, 2])
 
-kpoints_path = KpointsData()
-kpoints_path.set_cell_from_structure(structure)
-kpoints_path.set_kpoints_path()
+kpoints_path_tmp = KpointsData()
+kpoints_path_tmp.set_cell_from_structure(structure)
+kpoints_path_tmp.set_kpoints_path()
+point_coords, path = kpoints_path_tmp.get_special_points()
+kpoints_path = ParameterData(dict = {
+        'path': path,
+        'point_coords': point_coords,
+    })
 
 calc = code.new_calc()
 calc.set_max_wallclock_seconds(30*60) # 30 min
 calc.set_resources({"num_machines": 1})
-
-#calc.use_parent_calculation(parent_calc)
-input_folder = load_node(102)  
-remote_folder = load_node(122)
 
 #Two methods to define projections are available
 #Method 1
@@ -118,7 +127,7 @@ projections = generate_projections(dict(position_cart=(1,2,0.5),
 if local_input:
     calc.use_local_input_folder(input_folder)
 else:
-    calc.use_remote_input_folder(remote_folder)
+    calc.use_remote_input_folder(input_folder)
 calc.use_structure(structure)
 calc.use_projections(projections)
 calc.use_parameters(parameter)

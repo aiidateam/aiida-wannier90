@@ -259,16 +259,33 @@ def _format_kpoints(kpoints):
     return ["{:18.10f} {:18.10f} {:18.10f}".format(*k) for k in all_kpoints]
 
 def _format_kpoint_path(kpoint_path):
-    try:
-        special_point_coords, special_point_path = kpoint_path.get_special_points()
-    except ModificationNotAllowed:
-        raise InputValidationError('kpoint_path must be kpoints with '
-                                   'a special kpoint path already set!')
+    """
+    Prepare the lines for the Wannier90 input file related to
+    the kpoint_path.
 
+    :param kpoint_path_info: a ParameterData containing two entries:
+        a 'path' list with the labels of the endpoints of each
+        path segment, and a dictionary called "point_coords" that gives the
+        three (fractional) coordinates for each label.
+    :return: a list of strings to be added to the input file, within the
+        kpoint_info block
+    """
+    kinfo = kpoint_path.get_dict()
+    path = kinfo.pop('path')
+    point_coords = kinfo.pop('point_coords')
+    if kinfo:
+        raise InputValidationError('kpoint_path_info must be contain only a '
+            'list called "path" with the labels of the endpoints of each '
+            'path segment, and a dictionary called "point_coords". It contains '
+            'instead also other keys: {}'.format(", ".join(kinfo.keys())))
+
+    # In Wannier90 (from the user guide): Values are in
+    # fractional coordinates with respect to the primitive
+    # reciprocal lattice vectors.
     res = []
-    for (point1, point2) in special_point_path:
-        coord1 = special_point_coords[point1]
-        coord2 = special_point_coords[point2]
+    for (point1, point2) in path:
+        coord1 = point_coords[point1]
+        coord2 = point_coords[point2]
         path_line = '{} {} {} {} '.format(point1, *coord1)
         path_line += ' {} {} {} {}'.format(point2, *coord2)
         res.append(path_line)
