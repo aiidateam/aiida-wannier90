@@ -29,22 +29,22 @@ def write_win(
     :type filename: str
 
     :param parameters: Additional input parameters, as specified in the Wannier90 user guide.
-    :type parameters: dict, ParameterData
+    :type parameters: dict, aiida.orm.data.parameter.ParameterData
 
     :param structure: Structure of the calculated material.
-    :type structure: StructureData
+    :type structure: aiida.orm.data.structure.StructureData
 
     :param kpoints: Mesh of k-points used for the Wannierization procedure.
-    :type kpoints: KpointsData (mesh type)
+    :type kpoints: aiida.orm.data.array.kpoints.KpointsData
 
     :param kpoint_path: List of k-points used for band interpolation.
-    :type kpoint_path: KpointsData (path type)
+    :type kpoint_path: aiida.orm.data.parameter.ParameterData
 
     :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, or as a list of strings specifying the projections in Wannier90's format.
-    :type projections: OrbitalData, List[str]
+    :type projections: aiida.orm.data.orbital.OrbitalData, aiida.orm.data.base.List[str]
 
     :param random_projections: If OrbitalData is used for projections, enables random projections completion
-    :type random_projections: Boolean
+    :type random_projections: aiida.orm.data.base.Bool
     """
     with open(filename, 'w') as file:
         file.write(_create_win_string(
@@ -259,16 +259,33 @@ def _format_kpoints(kpoints):
     return ["{:18.10f} {:18.10f} {:18.10f}".format(*k) for k in all_kpoints]
 
 def _format_kpoint_path(kpoint_path):
-    try:
-        special_point_coords, special_point_path = kpoint_path.get_special_points()
-    except ModificationNotAllowed:
-        raise InputValidationError('kpoint_path must be kpoints with '
-                                   'a special kpoint path already set!')
+    """
+    Prepare the lines for the Wannier90 input file related to
+    the kpoint_path.
 
+    :param kpoint_path_info: a ParameterData containing two entries:
+        a 'path' list with the labels of the endpoints of each
+        path segment, and a dictionary called "point_coords" that gives the
+        three (fractional) coordinates for each label.
+    :return: a list of strings to be added to the input file, within the
+        kpoint_info block
+    """
+    kinfo = kpoint_path.get_dict()
+    path = kinfo.pop('path')
+    point_coords = kinfo.pop('point_coords')
+    if kinfo:
+        raise InputValidationError('kpoint_path_info must be contain only a '
+            'list called "path" with the labels of the endpoints of each '
+            'path segment, and a dictionary called "point_coords". It contains '
+            'instead also other keys: {}'.format(", ".join(kinfo.keys())))
+
+    # In Wannier90 (from the user guide): Values are in
+    # fractional coordinates with respect to the primitive
+    # reciprocal lattice vectors.
     res = []
-    for (point1, point2) in special_point_path:
-        coord1 = special_point_coords[point1]
-        coord2 = special_point_coords[point2]
+    for (point1, point2) in path:
+        coord1 = point_coords[point1]
+        coord2 = point_coords[point2]
         path_line = '{} {} {} {} '.format(point1, *coord1)
         path_line += ' {} {} {} {}'.format(point2, *coord2)
         res.append(path_line)

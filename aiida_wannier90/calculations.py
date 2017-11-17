@@ -116,10 +116,10 @@ class Wannier90Calculation(JobCalculation):
                 'docstring': "Use the node defining the kpoint sampling to use",
             },
             "kpoint_path": {
-                'valid_types': KpointsData,
+                'valid_types': ParameterData,
                 'additional_parameter': None,
                 'linkname': 'kpoint_path',
-                'docstring': "Use the node defining the k-points path to use for bands interpolation",
+                'docstring': "Use the node defining the k-points path for bands interpolation (see documentation for the format)",
             },
         })
 
@@ -165,7 +165,7 @@ class Wannier90Calculation(JobCalculation):
             name='kpoints', valid_types=KpointsData
         )
         kpoint_path = input_validator(
-            name='kpoint_path', valid_types=KpointsData, required=False
+            name='kpoint_path', valid_types=ParameterData, required=False
         )
         structure = input_validator(
             name='structure', valid_types=StructureData
@@ -318,7 +318,9 @@ class Wannier90Calculation(JobCalculation):
 
         if settings_dict.pop('retrieve_hoppings', False):
             calcinfo.retrieve_list += ['{}_wsvec.dat'.format(self._SEEDNAME),
-                                       '{}_hr.dat'.format(self._SEEDNAME)]
+                                       '{}_hr.dat'.format(self._SEEDNAME),
+                                       '{}_centres.xyz'.format(self._SEEDNAME),
+                                        ]
 
         # Retrieves bands automatically, if they are calculated
 
