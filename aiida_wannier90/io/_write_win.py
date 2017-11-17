@@ -96,7 +96,7 @@ def _create_win_string(
                                   'Instead, use "random" string as first element of the List.')
         block_inputs['projections'] = projections.get_attr('list')
     else:
-        block_inputs['projections'] = _format_all_projections(projections,random_projections=True)
+        block_inputs['projections'] = _format_all_projections(projections, random_projections=True)
 
     if structure is not None:
         block_inputs['unit_cell_cart'] = _format_unit_cell(structure)
@@ -130,11 +130,11 @@ def _format_parameter_values(parameters_dict):
         if key == 'exclude_bands':
             result_dict[key] = list_to_grouped_string(value)
         else:
-            result_dict[key] = conv_to_fortran_withlists(value,quote_strings=False)
+            result_dict[key] = conv_to_fortran_withlists(value, quote_strings=False)
     return result_dict
 
 
-def _format_all_projections(projections, random_projections = False):
+def _format_all_projections(projections, random_projections=False):
     """
     Return a list of strings, they are the lines to insert into
     Wannier90 projections block.
