@@ -11,16 +11,14 @@ Please cite:
     * *AiiDA: automated interactive infrastructure and database for computational science* G. Pizzi, A. Cepellotti, R. Sabatini, N. Marzari, and B. Kozinsky *Comp. Mat. Sci.* **111**, 218-230 (2016) `[Journal link] <http://dx.doi.org/10.1016/j.commatsci.2015.09.013>`_ `[arXiv link] <https://arxiv.org/abs/1504.01163>`_
 """
 
-__authors__ = "Daniel Marchand, Antimo Marrazzo, Dominik Gresch & The AiiDA Team."
-__copyright__ = u"Copyright (c), This file is part of the AiiDA platform. For further information please visit http://www.aiida.net/. All rights reserved"
-__license__ = "Non-Commercial, End-User Software License Agreement, see LICENSE.txt file."
-__version__ = "0.0.0a0"
-
-from aiida import load_dbenv as _load_dbenv, is_dbenv_loaded as _is_dbenv_loaded
-if not _is_dbenv_loaded():
-    _load_dbenv()
+__authors__ = "Daniel Marchand, Antimo Marrazzo, Dominik Gresch, Giovanni Pizzi & The AiiDA Team."
+__license__ = "MIT License, see LICENSE.txt file."
+## If upgraded, remember to change it also in setup.json (for pip)
+__version__ = "0.1.0"
 
 from . import io
 from . import parsers
 from . import orbitals
-from . import calculations
+## If this is imported then AiiDA ORM is loaded and this fails if the load_dbenv has not
+## been yet called
+#from . import calculations

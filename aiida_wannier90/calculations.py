@@ -16,6 +16,8 @@ from aiida.orm.data.parameter import ParameterData
 from aiida.orm.data.remote import RemoteData
 from aiida.orm.data.structure import StructureData
 from aiida.orm.data.folder import FolderData
+from aiida.orm.data.singlefile import SinglefileData
+
 try:
     from aiida.backends.utils import get_authinfo
 except ImportError:
@@ -35,7 +37,8 @@ class Wannier90Calculation(JobCalculation):
         self._DEFAULT_SEEDNAME = 'aiida'
         self._default_parser = 'wannier90.wannier90'
         self._blocked_parameter_keys = ['length_unit', 'unit_cell_cart', 'atoms_cart', 'projections']
-
+        #We do not block postproc_setup, but its usage is deprecated
+        #one should use settings instead
     # Needed because the super() call tries to set the properties to None
     def _property_helper(suffix):
         def getter(self):
@@ -56,8 +59,10 @@ class Wannier90Calculation(JobCalculation):
 
     _INPUT_FILE = _property_helper('.win')
     _OUTPUT_FILE = _property_helper('.wout')
+    _DEFAULT_OUTPUT_FILE = _OUTPUT_FILE
     _ERROR_FILE = _property_helper('.werr')
     _CHK_FILE = _property_helper('.chk')
+    _NNKP_FILE = _property_helper('.nnkp')
 
     @classproperty
     def _use_methods(cls):
@@ -147,8 +152,6 @@ class Wannier90Calculation(JobCalculation):
         remote_input_folder = input_validator(
             name='remote_input_folder', valid_types=RemoteData, required=False
         )
-        if local_input_folder is None and remote_input_folder is None:
-            raise InputValidationError('Either local_input_folder or remote_input_folder must be set.')
 
         parameters = input_validator(
             name='parameters', valid_types=ParameterData
@@ -178,6 +181,12 @@ class Wannier90Calculation(JobCalculation):
             settings_dict = {key.lower(): val for key, val in settings_dict_raw.items()}
             if len(settings_dict_raw) != len(settings_dict):
                 raise InputValidationError('Input settings contain duplicate keys.')
+        pp_setup = settings_dict.pop('postproc_setup', False)
+        if pp_setup:
+            param_dict.update({'postproc_setup':True})
+
+        if local_input_folder is None and remote_input_folder is None and pp_setup is False:
+            raise InputValidationError('Either local_input_folder or remote_input_folder must be set.')
 
         code = input_validator(
             name='code', valid_types=Code
@@ -186,6 +195,8 @@ class Wannier90Calculation(JobCalculation):
         ############################################################
         # End basic check on inputs
         ############################################################
+        random_projections = settings_dict.pop('random_projections',False)
+
         write_win(
             filename=tempfolder.get_abs_path(self._INPUT_FILE),
             parameters=param_dict,
@@ -193,6 +204,7 @@ class Wannier90Calculation(JobCalculation):
             kpoints=kpoints,
             kpoint_path=kpoint_path,
             projections=projections,
+            random_projections=random_projections,
         )
 
         if remote_input_folder is not None:
@@ -209,8 +221,10 @@ class Wannier90Calculation(JobCalculation):
 
         if local_input_folder is not None:
             local_folder_content = local_input_folder.get_folder_list()
-
-        required_files = [self._SEEDNAME +
+        if pp_setup:
+            required_files = []
+        else:
+            required_files = [self._SEEDNAME +
                           suffix for suffix in ['.mmn', '.amn']]
         optional_files = [self._SEEDNAME +
                           suffix for suffix in ['.eig', '.chk', '.spn']]
@@ -224,6 +238,7 @@ class Wannier90Calculation(JobCalculation):
                 result += fnmatch.filter(file_list, glob_p)
             return result
 
+        # Local FolderData has precedence over RemoteData
         if local_input_folder is not None:
             found_in_local = files_finder(
                 local_folder_content, input_files, wavefunctions_files)
@@ -251,21 +266,22 @@ class Wannier90Calculation(JobCalculation):
         remote_copy_list = []
         remote_symlink_list = []
         local_copy_list = []
-
+        #Here we enforce that everything except checkpoints are symlinked
+        #because in W90 you never modify input files on the run
         ALWAYS_COPY_FILES = [self._CHK_FILE]
         for f in found_in_remote:
             file_info = (
                 remote_input_folder_uuid,
                 os.path.join(remote_input_folder_path, f),
-                '.'
+                os.path.basename(f)
             )
             if f in ALWAYS_COPY_FILES:
                 remote_copy_list.append(file_info)
             else:
-                sym_list.append(file_info)
+                remote_symlink_list.append(file_info)
         for f in found_in_local:
             local_copy_list.append(
-                (local_input_folder.get_abs_path(f), '.')
+                (local_input_folder.get_abs_path(f), os.path.basename(f))
             )
 
         # Add any custom copy/sym links
@@ -283,7 +299,7 @@ class Wannier90Calculation(JobCalculation):
 
         codeinfo = CodeInfo()
         codeinfo.code_uuid = code.uuid
-        codeinfo.withmpi = False  # No mpi with wannier
+        #codeinfo.withmpi = True  # Current version of W90 can be run in parallel
         codeinfo.cmdline_params = [self._INPUT_FILE]
 
         calcinfo.codes_info = [codeinfo]
@@ -293,6 +309,9 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.retrieve_list = []
         calcinfo.retrieve_list.append(self._OUTPUT_FILE)
         calcinfo.retrieve_list.append(self._ERROR_FILE)
+        if pp_setup:
+            calcinfo.retrieve_list.append(self._NNKP_FILE)
+            calcinfo.retrieve_singlefile_list = [('output_nnkp','singlefile',self._NNKP_FILE)]
 
         calcinfo.retrieve_list += ['{}_band.dat'.format(self._SEEDNAME),
                                    '{}_band.kpt'.format(self._SEEDNAME)]

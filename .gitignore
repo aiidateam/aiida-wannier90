@@ -3,3 +3,5 @@
 .cache/v/cache
 tests/.cache
 .idea
+*~
+.DS_Store
