@@ -5,6 +5,14 @@
 .. automodule:: aiida_wannier90
     :members:
 
+Example submission file
+-----------------------
+
+.. toctree::
+    :maxdepth: 3
+
+    inputexample.rst
+
 Reference
 ---------
 

@@ -29,22 +29,22 @@ def write_win(
     :type filename: str
 
     :param parameters: Additional input parameters, as specified in the Wannier90 user guide.
-    :type parameters: dict, ParameterData
+    :type parameters: dict, aiida.orm.data.parameter.ParameterData
 
     :param structure: Structure of the calculated material.
-    :type structure: StructureData
+    :type structure: aiida.orm.data.structure.StructureData
 
     :param kpoints: Mesh of k-points used for the Wannierization procedure.
-    :type kpoints: KpointsData (mesh type)
+    :type kpoints: aiida.orm.data.array.kpoints.KpointsData
 
     :param kpoint_path: List of k-points used for band interpolation.
-    :type kpoint_path: KpointsData (path type)
+    :type kpoint_path: aiida.orm.data.parameter.ParameterData
 
     :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, or as a list of strings specifying the projections in Wannier90's format.
-    :type projections: OrbitalData, List[str]
+    :type projections: aiida.orm.data.orbital.OrbitalData, aiida.orm.data.base.List[str]
 
     :param random_projections: If OrbitalData is used for projections, enables random projections completion
-    :type random_projections: Boolean
+    :type random_projections: aiida.orm.data.base.Bool
     """
     with open(filename, 'w') as file:
         file.write(_create_win_string(
