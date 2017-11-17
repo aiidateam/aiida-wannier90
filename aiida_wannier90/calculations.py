@@ -318,7 +318,9 @@ class Wannier90Calculation(JobCalculation):
 
         if settings_dict.pop('retrieve_hoppings', False):
             calcinfo.retrieve_list += ['{}_wsvec.dat'.format(self._SEEDNAME),
-                                       '{}_hr.dat'.format(self._SEEDNAME)]
+                                       '{}_hr.dat'.format(self._SEEDNAME),
+                                       '{}_centres.xyz'.format(self._SEEDNAME),
+                                        ]
 
         # Retrieves bands automatically, if they are calculated
 
