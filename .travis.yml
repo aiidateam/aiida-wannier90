@@ -9,8 +9,6 @@ addons:
         - gfortran
         - libblas-dev
         - liblapack-dev
-        - openmpi-bin
-        - libopenmpi-dev
 install:
   - pip install -e git+https://github.com/greschd/aiida_pytest#egg=aiida_pytest
   - pip install -e .[test,dev,docs]
