@@ -6,6 +6,7 @@ import pytest
 
 from gaas_sample import *
 
+
 def test_caching(create_gaas_calc, configure_with_daemon, assert_finished):
     from aiida.work.run import run
     from aiida.orm import load_node

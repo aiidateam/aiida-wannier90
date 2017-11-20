@@ -58,7 +58,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'aiida-wannier90'
-copyright = u'2015-{}, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and ETH Zurich and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland. All rights reserved.'.format(time.localtime().tm_year)
+copyright = u'2015-{}, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and ETH Zurich and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland. All rights reserved.'.format(
+    time.localtime().tm_year
+)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -111,7 +113,6 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -123,9 +124,9 @@ pygments_style = 'sphinx'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #~ html_theme_options = {
-  #~ 'inner_theme': True,
-  #~ 'inner_theme_name': 'bootswatch-darkly',
-  #~ 'nav_fixed_top': False
+#~ 'inner_theme': True,
+#~ 'inner_theme_name': 'bootswatch-darkly',
+#~ 'nav_fixed_top': False
 #~ }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -218,17 +219,17 @@ htmlhelp_basename = 'aiida-wannier90doc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    #'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    #'pointsize': '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
 
-# Latex figure (float) alignment
-#'figure_align': 'htbp',
+    # Latex figure (float) alignment
+    #'figure_align': 'htbp',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -257,7 +258,6 @@ latex_elements = {
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
@@ -267,7 +267,6 @@ latex_elements = {
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
-
 
 # -- Options for Texinfo output -------------------------------------------
 
@@ -289,17 +288,14 @@ latex_elements = {
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
-
 ## BEFORE STARTING, LET'S LOAD THE CORRECT AIIDA DBENV
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed
 # from docs.readthedocs.org
 # NOTE: it is needed to have these lines before load_dbenv()
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
-sys.path.append( os.path.join( os.path.split(__file__)[0],
-                                           os.pardir,os.pardir) )
-sys.path.append( os.path.join( os.path.split(__file__)[0],
-                                           os.pardir))
+sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir, os.pardir))
+sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir))
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtd_settings'
 
@@ -323,6 +319,3 @@ else:
     settings.IN_DOC_MODE = True
     settings.BACKEND = "django"
     settings.AIIDADB_PROFILE = "default"
-
-
-

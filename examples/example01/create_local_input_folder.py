@@ -2,9 +2,8 @@
 import os
 
 files_folder = os.path.join(
-    os.path.split(os.path.abspath(__file__))[0],
-    "inputdata"
-    )
+    os.path.split(os.path.abspath(__file__))[0], "inputdata"
+)
 
 folder_node = DataFactory('folder')()
 folder_node.replace_with_folder(files_folder)
@@ -14,6 +13,6 @@ raw_input()
 folder_node.store()
 print "Stored FolderData node pk={}".format(folder_node.pk)
 print "You can now run:"
-print "verdi run wannier_gaas.py --dont-send local {} <WANNIER_CODE_NAME>".format(folder_node.pk)
-
-
+print "verdi run wannier_gaas.py --dont-send local {} <WANNIER_CODE_NAME>".format(
+    folder_node.pk
+)
