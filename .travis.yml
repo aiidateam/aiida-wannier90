@@ -8,7 +8,6 @@ install:
   - pip install -e .[test,dev,docs]
 env:
   - TEST_TYPE="pre-commit"
-  - TEST_TYPE="docs"
   - TEST_TYPE="tests"
 script:
   - ./.travis-data/test_script.sh
