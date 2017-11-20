@@ -11,7 +11,8 @@
   "extras_require": {
     "test": [
       "pytest",
-      "aiida-pytest"
+      "aiida-pytest",
+      "pymatgen"
     ],
     "docs": [
       "sphinx",
