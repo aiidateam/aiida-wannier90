@@ -3,6 +3,9 @@ python: 2.7
 cache: pip
 services:
   - postgresql
+addons:
+  apt_packages:
+    - gfortran
 install:
   - pip install -e git+https://github.com/greschd/aiida_pytest#egg=aiida_pytest
   - pip install -e .[test,dev,docs]
