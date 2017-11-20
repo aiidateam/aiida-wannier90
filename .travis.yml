@@ -6,7 +6,7 @@ services:
   - postgresql
 addons:
   postgresql: "9.5"
-  apt:
+  apt: # copied from wannier90's travis.yml
     packages:
       - gfortran
       - libblas-dev
@@ -18,6 +18,7 @@ before_install:  # copied from pgtest's travis.yml
   - sudo apt-get install postgresql
   - sudo updatedb
 install:
+  - pip install -e git+https://github.com/aiidateam/aiida_core.git#egg=aiida_core
   - pip install -e git+https://github.com/greschd/aiida_pytest#egg=aiida_pytest
   - pip install -e .[test,dev,docs]
 env:
