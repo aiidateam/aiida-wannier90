@@ -20,7 +20,7 @@
     "dev": [
       "pre-commit",
       "yapf==0.19"
-    ],
+    ]
   },
   "name": "aiida-wannier90",
   "license": "MIT",
