@@ -1,14 +1,22 @@
 language: python
 python: 2.7
 cache: pip
+sudo: true
 services:
   - postgresql
 addons:
+  postgresql: "9.5"
   apt:
     packages:
-        - gfortran
-        - libblas-dev
-        - liblapack-dev
+      - gfortran
+      - libblas-dev
+      - liblapack-dev
+before_install:  # copied from pgtest's travis.yml
+  - sudo apt-get install locate
+  - sudo service postgresql stop
+  - sudo apt-get remove postgresql
+  - sudo apt-get install postgresql
+  - sudo updatedb
 install:
   - pip install -e git+https://github.com/greschd/aiida_pytest#egg=aiida_pytest
   - pip install -e .[test,dev,docs]
