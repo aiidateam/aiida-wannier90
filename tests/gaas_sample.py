@@ -34,9 +34,16 @@ def create_gaas_win_params(configure):
         kpoints.set_kpoints_mesh([2, 2, 2])
         res['kpoints'] = kpoints
 
-        kpoint_path = KpointsData()
-        kpoint_path.set_cell_from_structure(structure)
-        kpoint_path.set_kpoints_path()
+        kpoint_path_tmp = KpointsData()
+        kpoint_path_tmp.set_cell_from_structure(structure)
+        kpoint_path_tmp.set_kpoints_path()
+        point_coords, path = kpoint_path_tmp.get_special_points()
+        kpoint_path = DataFactory('parameter')(
+            dict={
+                'path': path,
+                'point_coords': point_coords,
+            }
+        )
         res['kpoint_path'] = kpoint_path
 
         res['parameters'] = DataFactory('parameter')(
