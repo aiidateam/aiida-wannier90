@@ -18,9 +18,9 @@ before_install:  # copied from pgtest's travis.yml
   - sudo apt-get install postgresql
   - sudo updatedb
 install:
-  - pip install -e git+https://github.com/aiidateam/aiida_core.git#egg=aiida_core
-  - pip install -e git+https://github.com/greschd/aiida_pytest#egg=aiida_pytest
-  - pip install -e .[test,dev,docs]
+  - pip install git+https://github.com/aiidateam/aiida_core.git#egg=aiida_core
+  - pip install git+https://github.com/greschd/aiida_pytest#egg=aiida_pytest
+  - pip install .[test,dev,docs]
 env:
   - TEST_TYPE="pre-commit"
   - TEST_TYPE="tests"
