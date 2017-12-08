@@ -12,6 +12,7 @@ case "$TEST_TYPE" in
         cd ${TRAVIS_BUILD_DIR}/tests; py.test --quiet-wipe
         ;;
     pre-commit)
-        pre-commit run --all-files || git status --short && git diff
+	# Need to finish with exit 1 otherwise travis thinks that it all went well
+        pre-commit run --all-files || (git status --short ; git diff ; exit 1)
         ;;
 esac
