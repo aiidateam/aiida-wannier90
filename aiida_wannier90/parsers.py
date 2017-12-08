@@ -103,7 +103,7 @@ def raw_wout_parser(wann_out_file):
     :param out_file: the .wout file, as a list of strings
     :return out: a dictionary of parameters that can be stored as parameter data
     '''
-    w90_conv = False #Used to assess convergence of MLWF procedure use conv_tol and conv_window>1
+    w90_conv = False  #Used to assess convergence of MLWF procedure use conv_tol and conv_window>1
     out = {}
     out.update({'warnings': []})
     for i in range(len(wann_out_file)):
@@ -137,13 +137,15 @@ def raw_wout_parser(wann_out_file):
                     if (out['length_units'] != 'Ang'):
                         out['warnings'].append(
                             'Units not Ang, '
-                            'be sure this is OK!')
+                            'be sure this is OK!'
+                        )
                 if 'Output verbosity (1=low, 5=high)' in line:
                     out.update({'output_verbosity': int(line.split()[-2])})
                     if out['output_verbosity'] != 1:
                         out['warnings'].append(
                             'Parsing is only supported '
-                            'directly supported if output verbosity is set to 1')
+                            'directly supported if output verbosity is set to 1'
+                        )
                 if 'Post-processing' in line:
                     out.update({'preprocess_only': line.split()[-2]})
                 i += 1
@@ -164,7 +166,8 @@ def raw_wout_parser(wann_out_file):
                     if out['r2_nm_writeout'] != 'F':
                         out['warnings'].append(
                             'The r^2_nm file has been selected '
-                            'to be written, but this is not yet supported!')
+                            'to be written, but this is not yet supported!'
+                        )
 
                 if 'Write xyz WF centres to file' in line:
                     out.update({'xyz_wf_center_writeout': line.split()[-2]})
@@ -172,7 +175,8 @@ def raw_wout_parser(wann_out_file):
                         out['warnings'].append(
                             'The xyz_WF_center file has '
                             'been selected to be written, but this is not '
-                            'yet supported!')
+                            'yet supported!'
+                        )
 
                 i += 1
         if 'Wannierisation convergence criteria satisfied' in line:
@@ -233,7 +237,8 @@ def raw_wout_parser(wann_out_file):
             wann_function = wann_functions[wann_id - 1]
             wann_function.update({'im_re_ratio': float(line.split()[-1])})
     if not w90_conv:
-        out['warnings'].append('Wannierisation finished because num_iter was reached.')
+        out['warnings'
+            ].append('Wannierisation finished because num_iter was reached.')
     return out
 
 
@@ -265,14 +270,14 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
 
     # finds expected points of discontinuity
     kpath = special_points['path']
-    cont_break = [(i, (kpath[i - 1][1], kpath[i][0])) for i in
-                  range(1, len(kpath)) if kpath[i - 1][1] != kpath[i][0]]
+    cont_break = [(i, (kpath[i - 1][1], kpath[i][0]))
+                  for i in range(1, len(kpath))
+                  if kpath[i - 1][1] != kpath[i][0]]
 
     # finds the special points
     special_points_dict = special_points['point_coords']
-    labels = [(i, k) for k in special_points_dict for i in
-              range(len(out_kpt)) if all(
-              np.isclose(special_points_dict[k], out_kpt[i]))]
+    labels = [(i, k) for k in special_points_dict for i in range(len(out_kpt))
+              if all(np.isclose(special_points_dict[k], out_kpt[i]))]
     labels.sort()
 
     # Checks and appends labels if discontinuity
