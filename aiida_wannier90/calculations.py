@@ -25,6 +25,7 @@ except ImportError:
 
 from .io import write_win
 
+
 class Wannier90Calculation(JobCalculation):
     """
     Plugin for Wannier90, a code for producing maximally localized Wannier
@@ -36,18 +37,23 @@ class Wannier90Calculation(JobCalculation):
 
         self._DEFAULT_SEEDNAME = 'aiida'
         self._default_parser = 'wannier90.wannier90'
-        self._blocked_parameter_keys = ['length_unit', 'unit_cell_cart', 'atoms_cart', 'projections']
+        self._blocked_parameter_keys = [
+            'length_unit', 'unit_cell_cart', 'atoms_cart', 'projections'
+        ]
         #We do not block postproc_setup, but its usage is deprecated
         #one should use settings instead
+
     # Needed because the super() call tries to set the properties to None
     def _property_helper(suffix):
         def getter(self):
             return self._SEEDNAME + suffix
+
         def setter(self, value):
             if value is None:
                 pass
             else:
                 raise AttributeError('Cannot set attribute')
+
         return property(fget=getter, fset=setter)
 
     @property
@@ -85,11 +91,16 @@ class Wannier90Calculation(JobCalculation):
                 'docstring': "Use an additional node for special settings",
             },
             "parameters": {
-                'valid_types': ParameterData,
-                'additional_parameter': None,
-                'linkname': 'parameters',
-                'docstring': ("Use a node that specifies the input parameters "
-                              "for the wannier code"),
+                'valid_types':
+                ParameterData,
+                'additional_parameter':
+                None,
+                'linkname':
+                'parameters',
+                'docstring': (
+                    "Use a node that specifies the input parameters "
+                    "for the wannier code"
+                ),
             },
             "projections": {
                 'valid_types': (OrbitalData, List),
@@ -98,11 +109,16 @@ class Wannier90Calculation(JobCalculation):
                 'docstring': ("Starting projections of class OrbitalData"),
             },
             "local_input_folder": {
-                'valid_types': FolderData,
-                'additional_parameter': None,
-                'linkname': 'local_input_folder',
-                'docstring': ("Use a local folder as parent folder (for "
-                              "restarts and similar"),
+                'valid_types':
+                FolderData,
+                'additional_parameter':
+                None,
+                'linkname':
+                'local_input_folder',
+                'docstring': (
+                    "Use a local folder as parent folder (for "
+                    "restarts and similar"
+                ),
             },
             "remote_input_folder": {
                 'valid_types': RemoteData,
@@ -114,13 +130,18 @@ class Wannier90Calculation(JobCalculation):
                 'valid_types': KpointsData,
                 'additional_parameter': None,
                 'linkname': 'kpoints',
-                'docstring': "Use the node defining the kpoint sampling to use",
+                'docstring':
+                "Use the node defining the kpoint sampling to use",
             },
             "kpoint_path": {
-                'valid_types': ParameterData,
-                'additional_parameter': None,
-                'linkname': 'kpoint_path',
-                'docstring': "Use the node defining the k-points path for bands interpolation (see documentation for the format)",
+                'valid_types':
+                ParameterData,
+                'additional_parameter':
+                None,
+                'linkname':
+                'kpoint_path',
+                'docstring':
+                "Use the node defining the k-points path for bands interpolation (see documentation for the format)",
             },
         })
 
@@ -133,8 +154,10 @@ class Wannier90Calculation(JobCalculation):
         try:
             remote_folder = calc.get_outputs_dict()['remote_folder']
         except KeyError:
-            raise AttributeError("No remote_folder found in output to the "
-                                 "parent calculation set")
+            raise AttributeError(
+                "No remote_folder found in output to the "
+                "parent calculation set"
+            )
         self.use_remote_input_folder(remote_folder)
 
     def _prepare_for_submission(self, tempfolder, inputdict):
@@ -160,11 +183,11 @@ class Wannier90Calculation(JobCalculation):
         param_dict = self._get_validated_parameters_dict(parameters)
 
         projections = input_validator(
-            name='projections', valid_types=(OrbitalData, List), required=False
+            name='projections',
+            valid_types=(OrbitalData, List),
+            required=False
         )
-        kpoints = input_validator(
-            name='kpoints', valid_types=KpointsData
-        )
+        kpoints = input_validator(name='kpoints', valid_types=KpointsData)
         kpoint_path = input_validator(
             name='kpoint_path', valid_types=ParameterData, required=False
         )
@@ -179,24 +202,29 @@ class Wannier90Calculation(JobCalculation):
             settings_dict = {}
         else:
             settings_dict_raw = settings.get_dict()
-            settings_dict = {key.lower(): val for key, val in settings_dict_raw.items()}
+            settings_dict = {
+                key.lower(): val
+                for key, val in settings_dict_raw.items()
+            }
             if len(settings_dict_raw) != len(settings_dict):
-                raise InputValidationError('Input settings contain duplicate keys.')
+                raise InputValidationError(
+                    'Input settings contain duplicate keys.'
+                )
         pp_setup = settings_dict.pop('postproc_setup', False)
         if pp_setup:
-            param_dict.update({'postproc_setup':True})
+            param_dict.update({'postproc_setup': True})
 
         if local_input_folder is None and remote_input_folder is None and pp_setup is False:
-            raise InputValidationError('Either local_input_folder or remote_input_folder must be set.')
+            raise InputValidationError(
+                'Either local_input_folder or remote_input_folder must be set.'
+            )
 
-        code = input_validator(
-            name='code', valid_types=Code
-        )
+        code = input_validator(name='code', valid_types=Code)
 
         ############################################################
         # End basic check on inputs
         ############################################################
-        random_projections = settings_dict.pop('random_projections',False)
+        random_projections = settings_dict.pop('random_projections', False)
 
         write_win(
             filename=tempfolder.get_abs_path(self._INPUT_FILE),
@@ -218,17 +246,20 @@ class Wannier90Calculation(JobCalculation):
             ).get_transport()
             with t_dest:
                 remote_folder_content = t_dest.listdir(
-                    path=remote_input_folder_path)
+                    path=remote_input_folder_path
+                )
 
         if local_input_folder is not None:
             local_folder_content = local_input_folder.get_folder_list()
         if pp_setup:
             required_files = []
         else:
-            required_files = [self._SEEDNAME +
-                          suffix for suffix in ['.mmn', '.amn']]
-        optional_files = [self._SEEDNAME +
-                          suffix for suffix in ['.eig', '.chk', '.spn']]
+            required_files = [
+                self._SEEDNAME + suffix for suffix in ['.mmn', '.amn']
+            ]
+        optional_files = [
+            self._SEEDNAME + suffix for suffix in ['.eig', '.chk', '.spn']
+        ]
         input_files = required_files + optional_files
         wavefunctions_files = ['UNK*']
 
@@ -242,14 +273,17 @@ class Wannier90Calculation(JobCalculation):
         # Local FolderData has precedence over RemoteData
         if local_input_folder is not None:
             found_in_local = files_finder(
-                local_folder_content, input_files, wavefunctions_files)
+                local_folder_content, input_files, wavefunctions_files
+            )
         else:
             found_in_local = []
         if remote_input_folder is not None:
             found_in_remote = files_finder(
-                remote_folder_content, input_files, wavefunctions_files)
+                remote_folder_content, input_files, wavefunctions_files
+            )
             found_in_remote = [
-                f for f in found_in_remote if f not in found_in_local]
+                f for f in found_in_remote if f not in found_in_local
+            ]
         else:
             found_in_remote = []
 
@@ -273,8 +307,7 @@ class Wannier90Calculation(JobCalculation):
         for f in found_in_remote:
             file_info = (
                 remote_input_folder_uuid,
-                os.path.join(remote_input_folder_path, f),
-                os.path.basename(f)
+                os.path.join(remote_input_folder_path, f), os.path.basename(f)
             )
             if f in ALWAYS_COPY_FILES:
                 remote_copy_list.append(file_info)
@@ -286,8 +319,12 @@ class Wannier90Calculation(JobCalculation):
             )
 
         # Add any custom copy/sym links
-        remote_symlink_list += settings_dict.pop("additional_remote_symlink_list", [])
-        remote_copy_list += settings_dict.pop("additional_remote_copy_list", [])
+        remote_symlink_list += settings_dict.pop(
+            "additional_remote_symlink_list", []
+        )
+        remote_copy_list += settings_dict.pop(
+            "additional_remote_copy_list", []
+        )
         local_copy_list += settings_dict.pop("additional_local_copy_list", [])
 
         #######################################################################
@@ -312,26 +349,36 @@ class Wannier90Calculation(JobCalculation):
         calcinfo.retrieve_list.append(self._ERROR_FILE)
         if pp_setup:
             calcinfo.retrieve_list.append(self._NNKP_FILE)
-            calcinfo.retrieve_singlefile_list = [('output_nnkp','singlefile',self._NNKP_FILE)]
+            calcinfo.retrieve_singlefile_list = [
+                ('output_nnkp', 'singlefile', self._NNKP_FILE)
+            ]
 
-        calcinfo.retrieve_list += ['{}_band.dat'.format(self._SEEDNAME),
-                                   '{}_band.kpt'.format(self._SEEDNAME)]
+        calcinfo.retrieve_list += [
+            '{}_band.dat'.format(self._SEEDNAME),
+            '{}_band.kpt'.format(self._SEEDNAME)
+        ]
 
         if settings_dict.pop('retrieve_hoppings', False):
-            calcinfo.retrieve_list += ['{}_wsvec.dat'.format(self._SEEDNAME),
-                                       '{}_hr.dat'.format(self._SEEDNAME),
-                                       '{}_centres.xyz'.format(self._SEEDNAME),
-                                        ]
+            calcinfo.retrieve_list += [
+                '{}_wsvec.dat'.format(self._SEEDNAME),
+                '{}_hr.dat'.format(self._SEEDNAME),
+                '{}_centres.xyz'.format(self._SEEDNAME),
+            ]
 
         # Retrieves bands automatically, if they are calculated
 
         calcinfo.retrieve_list += settings_dict.pop(
-            "additional_retrieve_list", [])
+            "additional_retrieve_list", []
+        )
 
         # pop input keys not used here
         settings_dict.pop('seedname', None)
         if settings_dict:
-            raise InputValidationError("The following keys in settings are unrecognized: {}".format(settings_dict.keys()))
+            raise InputValidationError(
+                "The following keys in settings are unrecognized: {}".format(
+                    settings_dict.keys()
+                )
+            )
 
         return calcinfo
 
@@ -342,7 +389,9 @@ class Wannier90Calculation(JobCalculation):
                 value = inputdict.pop(name)
             except KeyError:
                 if required:
-                    raise InputValidationError("Missing required input parameter '{}'".format(name))
+                    raise InputValidationError(
+                        "Missing required input parameter '{}'".format(name)
+                    )
                 else:
                     value = default
 
@@ -353,7 +402,10 @@ class Wannier90Calculation(JobCalculation):
             valid_types = tuple(valid_types)
 
             if not isinstance(value, valid_types):
-                raise InputValidationError("Input parameter '{}' is of type '{}', but should be of type(s) '{}'".format(name, type(value), valid_types))
+                raise InputValidationError(
+                    "Input parameter '{}' is of type '{}', but should be of type(s) '{}'".
+                    format(name, type(value), valid_types)
+                )
             return value
 
         return _validate_input
@@ -362,11 +414,17 @@ class Wannier90Calculation(JobCalculation):
         param_dict_raw = parameters.get_dict()
 
         # keys to lowercase, check for duplicates
-        param_dict = {key.lower(): value for key, value in param_dict_raw.items()}
+        param_dict = {
+            key.lower(): value
+            for key, value in param_dict_raw.items()
+        }
         if len(param_dict) != len(param_dict_raw):
             counter = Counter([k.lower() for k in param_dict_raw])
             counter = {key: val for key, val in counter if val > 1}
-            raise InputValidationError('The following keys were found more than once in the parameters: {}. Check for duplicates written in upper- / lowercase.'.format(counter))
+            raise InputValidationError(
+                'The following keys were found more than once in the parameters: {}. Check for duplicates written in upper- / lowercase.'.
+                format(counter)
+            )
 
         # check for blocked keywords
         existing_blocked_keys = []
@@ -374,6 +432,9 @@ class Wannier90Calculation(JobCalculation):
             if key in param_dict:
                 existing_blocked_keys.append(key)
         if existing_blocked_keys:
-            raise InputValidationError('The following blocked keys were found in the parameters: {}'.format(existing_blocked_keys))
+            raise InputValidationError(
+                'The following blocked keys were found in the parameters: {}'.
+                format(existing_blocked_keys)
+            )
 
         return param_dict

@@ -6,6 +6,7 @@ import os
 import pytest
 import pymatgen
 
+
 @pytest.fixture
 def create_gaas_win_params(configure):
     def inner(projections_dict={'kind_name': 'As', 'ang_mtm_name': 'sp3'}):
@@ -25,8 +26,7 @@ def create_gaas_win_params(configure):
         res['structure'] = structure
 
         res['projections'] = generate_projections(
-            projections_dict,
-            structure=structure
+            projections_dict, structure=structure
         )
 
         KpointsData = DataFactory('array.kpoints')
@@ -34,30 +34,44 @@ def create_gaas_win_params(configure):
         kpoints.set_kpoints_mesh([2, 2, 2])
         res['kpoints'] = kpoints
 
-        kpoint_path = KpointsData()
-        kpoint_path.set_cell_from_structure(structure)
-        kpoint_path.set_kpoints_path()
+        kpoint_path_tmp = KpointsData()
+        kpoint_path_tmp.set_cell_from_structure(structure)
+        kpoint_path_tmp.set_kpoints_path()
+        point_coords, path = kpoint_path_tmp.get_special_points()
+        kpoint_path = DataFactory('parameter')(
+            dict={
+                'path': path,
+                'point_coords': point_coords,
+            }
+        )
         res['kpoint_path'] = kpoint_path
 
-        res['parameters'] = DataFactory('parameter')(dict=dict(
-            num_wann=4,
-            num_iter=12,
-            wvfn_formatted=True
-        ))
+        res['parameters'] = DataFactory('parameter')(
+            dict=dict(num_wann=4, num_iter=12, wvfn_formatted=True)
+        )
         return res
+
     return inner
 
+
 @pytest.fixture
-def create_gaas_calc(get_process_inputs, sample, configure, create_gaas_win_params):
-    def inner(projections_dict={'kind_name': 'As', 'ang_mtm_name': 'sp3'}, seedname='aiida'):
+def create_gaas_calc(
+    get_process_inputs, sample, configure, create_gaas_win_params
+):
+    def inner(
+        projections_dict={'kind_name': 'As',
+                          'ang_mtm_name': 'sp3'},
+        seedname='aiida'
+    ):
         from aiida.orm import DataFactory, CalculationFactory
         from aiida_wannier90.orbitals import generate_projections
 
         process, inputs = get_process_inputs(
-            calculation_string='wannier90.wannier90',
-            code_string='wannier90'
+            calculation_string='wannier90.wannier90', code_string='wannier90'
         )
-        inputs.update(create_gaas_win_params(projections_dict=projections_dict))
+        inputs.update(
+            create_gaas_win_params(projections_dict=projections_dict)
+        )
 
         FolderData = DataFactory('folder')
         local_input_folder = FolderData()
@@ -67,11 +81,16 @@ def create_gaas_calc(get_process_inputs, sample, configure, create_gaas_win_para
             if path in exclude_list:
                 continue
             abs_path = os.path.join(sample_folder, path)
-            local_input_folder.add_path(abs_path, path.replace('gaas', seedname))
+            local_input_folder.add_path(
+                abs_path, path.replace('gaas', seedname)
+            )
         inputs.local_input_folder = local_input_folder
-        
+
         if seedname != 'aiida':
-            inputs.settings = DataFactory('parameter')(dict=dict(seedname=seedname))
+            inputs.settings = DataFactory('parameter')(
+                dict=dict(seedname=seedname)
+            )
 
         return process, inputs
+
     return inner

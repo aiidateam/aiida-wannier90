@@ -1,18 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 Creating OrbitalData instances
 ==============================
 """
 __all__ = ['generate_projections']
 
-def _generate_wannier_orbitals(position_cart=None, structure=None,
-                         kind_name=None, radial=1,
-                         ang_mtm_name=None, ang_mtm_l=None,
-                         ang_mtm_mr=None, spin=None,
-                         zona=None, zaxis=None,
-                         xaxis=None, spin_axis=None):
+
+def _generate_wannier_orbitals(
+    position_cart=None,
+    structure=None,
+    kind_name=None,
+    radial=1,
+    ang_mtm_name=None,
+    ang_mtm_l=None,
+    ang_mtm_mr=None,
+    spin=None,
+    zona=None,
+    zaxis=None,
+    xaxis=None,
+    spin_axis=None
+):
     """
     Use this method to emulate the input style of wannier90,
     when setting the orbitals (see chapter 3 in the user_guide). Position
@@ -50,7 +58,7 @@ def _generate_wannier_orbitals(position_cart=None, structure=None,
         if not returns a tuple containing only item, otherwise returns
         tuple(item)
         """
-        if isinstance(item,(list,tuple)):
+        if isinstance(item, (list, tuple)):
             return tuple(item)
         else:
             return tuple([item])
@@ -60,7 +68,7 @@ def _generate_wannier_orbitals(position_cart=None, structure=None,
         Creates a list of every dict in dict_list1 updated with every
         dict in dict_list2
         """
-        out_list =  [ ]
+        out_list = []
         # excpetion handling for the case of empty dicts
         dict_list1_empty = not any([bool(x) for x in dict_list1])
         dict_list2_empty = not any([bool(x) for x in dict_list2])
@@ -87,32 +95,40 @@ def _generate_wannier_orbitals(position_cart=None, structure=None,
     if position_cart == None and kind_name == None:
         raise InputValidationError('Must supply a kind_name or position')
     if position_cart != None and kind_name != None:
-        raise InputValidationError('Must supply position or kind_name'
-                                   ' not both')
+        raise InputValidationError(
+            'Must supply position or kind_name'
+            ' not both'
+        )
 
     structure_class = DataFactory('structure')
     if kind_name != None:
         if not isinstance(structure, structure_class):
-            raise InputValidationError('Must supply a StructureData as '
-                                        'structure if using kind_name')
+            raise InputValidationError(
+                'Must supply a StructureData as '
+                'structure if using kind_name'
+            )
         if not isinstance(kind_name, basestring):
             raise InputValidationError('kind_name must be a string')
 
     if ang_mtm_name == None and ang_mtm_l == None:
         raise InputValidationError("Must supply ang_mtm_name or ang_mtm_l")
     if ang_mtm_name != None and (ang_mtm_l != None or ang_mtm_mr != None):
-        raise InputValidationError("Cannot supply ang_mtm_l or ang_mtm_mr"
-                                   " but not both")
+        raise InputValidationError(
+            "Cannot supply ang_mtm_l or ang_mtm_mr"
+            " but not both"
+        )
     if ang_mtm_l == None and ang_mtm_mr != None:
-        raise InputValidationError("Cannot supply ang_mtm_mr without "
-                                   "ang_mtm_l")
+        raise InputValidationError(
+            "Cannot supply ang_mtm_mr without "
+            "ang_mtm_l"
+        )
 
     ####################################################################
     #Setting up initial basic parameters
     ####################################################################
     projection_dict = {}
     if radial:
-        projection_dict['radial_nodes'] = radial-1
+        projection_dict['radial_nodes'] = radial - 1
     if xaxis:
         projection_dict['x_orientation'] = xaxis
     if zaxis:
@@ -136,12 +152,14 @@ def _generate_wannier_orbitals(position_cart=None, structure=None,
             if site.kind_name == kind_name:
                 position_list.append(site.position)
         if len(position_list) == 0:
-            raise InputValidationError("No valid positions found in structure "
-                                    "using {}".format(kind_name))
+            raise InputValidationError(
+                "No valid positions found in structure "
+                "using {}".format(kind_name)
+            )
     # otherwise turns position into position_list
     else:
         position_list = [convert_to_list(position_cart)]
-    position_dicts = [{"position":v} for v in position_list]
+    position_dicts = [{"position": v} for v in position_list]
     projection_dicts = combine_dictlists(projection_dicts, position_dicts)
 
     #######################################################################
@@ -153,38 +171,48 @@ def _generate_wannier_orbitals(position_cart=None, structure=None,
         ang_mtm_dicts = []
         for l in ang_mtm_l:
             if l >= 0:
-                ang_mtm_dicts += [{'angular_momentum':l,'magnetic_number':i}
-                                  for i in range(2*l+1)]
+                ang_mtm_dicts += [{
+                    'angular_momentum': l,
+                    'magnetic_number': i
+                } for i in range(2 * l + 1)]
             else:
-                ang_mtm_dicts += [{'angular_momentum':l,'magnetic_number':i}
-                                  for i in range(-l+1)]
+                ang_mtm_dicts += [{
+                    'angular_momentum': l,
+                    'magnetic_number': i
+                } for i in range(-l + 1)]
         if ang_mtm_mr is not None:
             if len(ang_mtm_l) > 1:
-                raise InputValidationError("If you are giving specific"
-                                           " magnetic numbers please do"
-                                           " not supply more than one"
-                                           " angular number.")
+                raise InputValidationError(
+                    "If you are giving specific"
+                    " magnetic numbers please do"
+                    " not supply more than one"
+                    " angular number."
+                )
             ang_mtm_mr = convert_to_list(ang_mtm_mr)
             ang_mtm_l_num = ang_mtm_l[0]
-            ang_mtm_dicts = [{'angular_momentum':ang_mtm_l_num,
-                              'magnetic_number':j-1} for j in ang_mtm_mr]
+            ang_mtm_dicts = [{
+                'angular_momentum': ang_mtm_l_num,
+                'magnetic_number': j - 1
+            } for j in ang_mtm_mr]
     if ang_mtm_name is not None:
-        ang_mtm_names =  convert_to_list(ang_mtm_name)
+        ang_mtm_names = convert_to_list(ang_mtm_name)
         ang_mtm_dicts = []
         for name in ang_mtm_names:
-            ang_mtm_dicts += RealhydrogenOrbital.get_quantum_numbers_from_name(name)
+            ang_mtm_dicts += RealhydrogenOrbital.get_quantum_numbers_from_name(
+                name
+            )
     projection_dicts = combine_dictlists(projection_dicts, ang_mtm_dicts)
 
     #####################################################################
     # Setting up the spin                                               #
     #####################################################################
     if spin:
-        spin_dict = {'U':1,'u':1,1:1,'D':-1,'d':-1,-1:-1}
-        if isinstance(spin, (list,tuple)):
+        spin_dict = {'U': 1, 'u': 1, 1: 1, 'D': -1, 'd': -1, -1: -1}
+        if isinstance(spin, (list, tuple)):
             spin = [spin_dict[x] for x in spin]
         else:
             spin = [spin_dict[spin]]
-        spin_dicts = [{'spin':v} for v in spin]
+        spin_dicts = [{'spin': v} for v in spin]
         projection_dicts = combine_dictlists(projection_dicts, spin_dicts)
 
     # generating and returning a list of all corresponding orbitals
@@ -194,6 +222,7 @@ def _generate_wannier_orbitals(position_cart=None, structure=None,
         realh.set_orbital_dict(projection_dict)
         orbital_out.append(realh)
     return orbital_out
+
 
 def generate_projections(list_of_projection_dicts, structure):
     """
@@ -246,12 +275,12 @@ def generate_projections(list_of_projection_dicts, structure):
     """
     from aiida.orm import DataFactory
 
-    if not isinstance(list_of_projection_dicts,(list,tuple)):
+    if not isinstance(list_of_projection_dicts, (list, tuple)):
         list_of_projection_dicts = [list_of_projection_dicts]
     orbitals = []
     for this_dict in list_of_projection_dicts:
         if 'kind_name' in this_dict:
-            this_dict.update({'structure':structure})
+            this_dict.update({'structure': structure})
         orbitals += _generate_wannier_orbitals(**this_dict)
     orbitaldata = DataFactory('orbital')()
     orbitaldata.set_orbitals(orbitals)

@@ -23,7 +23,9 @@ def group_list(values):
 
 
 def groups_to_string(value_groups):
-    return ','.join('-'.join([str(g) for g in group]) for group in value_groups)
+    return ','.join(
+        '-'.join([str(g) for g in group]) for group in value_groups
+    )
 
 
 def list_to_grouped_string(values):

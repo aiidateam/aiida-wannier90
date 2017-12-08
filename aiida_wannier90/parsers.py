@@ -3,6 +3,7 @@
 from aiida.parsers.parser import Parser
 from aiida.parsers.exceptions import OutputParsingError
 
+
 class Wannier90Parser(Parser):
     """
     Wannier90 output parser. Will parse global gauge invarient spread as well as
@@ -13,11 +14,13 @@ class Wannier90Parser(Parser):
 
     def __init__(self, calculation):
         from .calculations import Wannier90Calculation
-        
+
         # check for valid input
         if not isinstance(calculation, Wannier90Calculation):
-            raise OutputParsingError("Input must calc must be a "
-                                     "Wannier90Calculation")
+            raise OutputParsingError(
+                "Input must calc must be a "
+                "Wannier90Calculation"
+            )
         super(Wannier90Parser, self).__init__(calculation)
 
     def parse_with_retrieved(self, retrieved):
@@ -41,14 +44,15 @@ class Wannier90Parser(Parser):
 
         # Checks for error output files
         if self._calc._ERROR_FILE in out_folder.get_folder_list():
-            self.logger.error('Errors were found please check the retrieved '
-                              '{} file'.format(self._calc._ERROR_FILE))
+            self.logger.error(
+                'Errors were found please check the retrieved '
+                '{} file'.format(self._calc._ERROR_FILE)
+            )
             successful = False
             return successful, new_nodes_list
 
         try:
-            filpath = out_folder.get_abs_path(
-                self._calc._OUTPUT_FILE)
+            filpath = out_folder.get_abs_path(self._calc._OUTPUT_FILE)
             with open(filpath, 'r') as fil:
                 out_file = fil.readlines()
             # Wannier90 doesn't always write the .werr file on error
@@ -64,16 +68,19 @@ class Wannier90Parser(Parser):
             kpoint_path = self._calc.get_inputs_dict()['kpoint_path']
             special_points = kpoint_path.get_dict()
             band_dat_path = out_folder.get_abs_path(
-                '{}_band.dat'.format(self._calc._SEEDNAME))
+                '{}_band.dat'.format(self._calc._SEEDNAME)
+            )
             with open(band_dat_path, 'r') as fil:
                 band_dat_file = fil.readlines()
             band_kpt_path = out_folder.get_abs_path(
-                '{}_band.kpt'.format(self._calc._SEEDNAME))
+                '{}_band.kpt'.format(self._calc._SEEDNAME)
+            )
             with open(band_kpt_path, 'r') as fil:
                 band_kpt_file = fil.readlines()
             structure = self._calc.get_inputs_dict()['structure']
-            output_bandsdata = band_parser(band_dat_file, band_kpt_file,
-                                           special_points, structure)
+            output_bandsdata = band_parser(
+                band_dat_file, band_kpt_file, special_points, structure
+            )
             new_nodes_list += [('interpolated_bands', output_bandsdata)]
         except (OSError, KeyError):
             pass
@@ -120,18 +127,24 @@ def raw_wout_parser(wann_out_file):
             while '-----' not in line:
                 line = wann_out_file[i]
                 if 'Number of Wannier Functions' in line:
-                    out.update({'number_wannier_functions':
-                                int(line.split()[-2])})
+                    out.update({
+                        'number_wannier_functions':
+                        int(line.split()[-2])
+                    })
                 if 'Length Unit' in line:
                     out.update({'length_units': line.split()[-2]})
                     if (out['length_units'] != 'Ang'):
-                        out['warnings'] += ['Units not Ang, '
-                                            'be sure this is OK!']
+                        out['warnings'] += [
+                            'Units not Ang, '
+                            'be sure this is OK!'
+                        ]
                 if 'Output verbosity (1=low, 5=high)' in line:
                     out.update({'output_verbosity': int(line.split()[-2])})
                     if out['output_verbosity'] != 1:
-                        out['warnings'] += ['Parsing is only supported '
-                                            'directly supported if output verbosity is set to 1']
+                        out['warnings'] += [
+                            'Parsing is only supported '
+                            'directly supported if output verbosity is set to 1'
+                        ]
                 if 'Post-processing' in line:
                     out.update({'preprocess_only': line.split()[-2]})
                 i += 1
@@ -143,19 +156,25 @@ def raw_wout_parser(wann_out_file):
             while '-----' not in line:
                 line = wann_out_file[i]
                 if 'Convergence tolerence' in line:
-                    out.update({'wannierise_convergence_tolerance':
-                                float(line.split()[-2])})
+                    out.update({
+                        'wannierise_convergence_tolerance':
+                        float(line.split()[-2])
+                    })
                 if 'Write r^2_nm to file' in line:
                     out.update({'r2_nm_writeout': line.split()[-2]})
                     if out['r2_nm_writeout'] != 'F':
-                        out['warnings'] += ['The r^2_nm file has been selected '
-                                            'to be written, but this is not yet supported!']
+                        out['warnings'] += [
+                            'The r^2_nm file has been selected '
+                            'to be written, but this is not yet supported!'
+                        ]
                 if 'Write xyz WF centres to file' in line:
                     out.update({'xyz_wf_center_writeout': line.split()[-2]})
                     if out['xyz_wf_center_writeout'] != 'F':
-                        out['warnings'] += ['The xyz_WF_center file has '
-                                            'been selected to be written, but this is not '
-                                            'yet supported!']
+                        out['warnings'] += [
+                            'The xyz_WF_center file has '
+                            'been selected to be written, but this is not '
+                            'yet supported!'
+                        ]
                 i += 1
 
         # Reading the final WF, also checks to see if they converged or not
@@ -175,11 +194,15 @@ def raw_wout_parser(wann_out_file):
             end_wf_loop = i + num_wf + 1
             for i in range(i + 1, end_wf_loop):
                 line = wann_out_file[i]
-                wf_out_i = {'wannier_function': '',
-                            'coordinates': '', 'spread': ''}
+                wf_out_i = {
+                    'wannier_function': '',
+                    'coordinates': '',
+                    'spread': ''
+                }
                 #wf_out_i['wannier_function'] = int(line.split()[-7])
                 wf_out_i['wannier_function'] = int(
-                    line.split('(')[0].split()[-1])
+                    line.split('(')[0].split()[-1]
+                )
                 wf_out_i['spread'] = float(line.split('(')[1].split()[-1])
                 #wf_out_i['spread'] = float(line.split()[-1])
                 #x = float(line.split()[-5].strip(','))
@@ -235,7 +258,8 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
 
     # reshaps the output bands
     out_dat = out_dat.reshape(
-        len(out_kpt), (len(out_dat) / len(out_kpt)), order="F")
+        len(out_kpt), (len(out_dat) / len(out_kpt)), order="F"
+    )
 
     # finds expected points of discontinuity
     kpath = special_points['path']

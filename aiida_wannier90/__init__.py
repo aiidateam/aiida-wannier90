@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 AiiDA Wannier90 plugin
 ======================
