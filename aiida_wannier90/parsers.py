@@ -62,7 +62,7 @@ class Wannier90Parser(Parser):
         # Tries to parse the bands
         try:
             kpoint_path = self._calc.get_inputs_dict()['kpoint_path']
-            special_points = kpoint_path.get_special_points()
+            special_points = kpoint_path.get_dict()
             band_dat_path = out_folder.get_abs_path(
                 '{}_band.dat'.format(self._calc._SEEDNAME))
             with open(band_dat_path, 'r') as fil:
@@ -221,7 +221,8 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
 
     :param band_dat_path: file path to the aiida_band.dat file
     :param band_kpt_path: file path to the aiida_band.kpt file
-    :param special_points: special points to add labels to the bands
+    :param special_points: special points to add labels to the bands a dictionary in
+        the form expected in the input as described in the wannier90 documentation
     :return: BandsData object constructed from the input params
     """
     import numpy as np
@@ -237,12 +238,12 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
         len(out_kpt), (len(out_dat) / len(out_kpt)), order="F")
 
     # finds expected points of discontinuity
-    kpath = special_points[1]
+    kpath = special_points['path']
     cont_break = [(i, (kpath[i - 1][1], kpath[i][0])) for i in
                   range(1, len(kpath)) if kpath[i - 1][1] != kpath[i][0]]
 
     # finds the special points
-    special_points_dict = special_points[0]
+    special_points_dict = special_points['point_coords']
     labels = [(i, k) for k in special_points_dict for i in
               range(len(out_kpt)) if all(
               np.isclose(special_points_dict[k], out_kpt[i]))]
