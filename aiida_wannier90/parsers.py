@@ -103,6 +103,7 @@ def raw_wout_parser(wann_out_file):
     :param out_file: the .wout file, as a list of strings
     :return out: a dictionary of parameters that can be stored as parameter data
     '''
+    w90_conv = False #Used to assess convergence of MLWF procedure use conv_tol and conv_window>1
     out = {}
     out.update({'warnings': []})
     for i in range(len(wann_out_file)):
@@ -110,7 +111,7 @@ def raw_wout_parser(wann_out_file):
         # checks for any warnings
         if 'Warning' in line:
             # Certain warnings get a special flag
-            out['warnings'] += [line]
+            out['warnings'].append(line)
 
         # From the 'initial' part of the output, only sections which indicate
         # whether certain files have been written, e.g. 'Write r^2_nm to file'
@@ -134,17 +135,15 @@ def raw_wout_parser(wann_out_file):
                 if 'Length Unit' in line:
                     out.update({'length_units': line.split()[-2]})
                     if (out['length_units'] != 'Ang'):
-                        out['warnings'] += [
+                        out['warnings'].append(
                             'Units not Ang, '
-                            'be sure this is OK!'
-                        ]
+                            'be sure this is OK!')
                 if 'Output verbosity (1=low, 5=high)' in line:
                     out.update({'output_verbosity': int(line.split()[-2])})
                     if out['output_verbosity'] != 1:
-                        out['warnings'] += [
+                        out['warnings'].append(
                             'Parsing is only supported '
-                            'directly supported if output verbosity is set to 1'
-                        ]
+                            'directly supported if output verbosity is set to 1')
                 if 'Post-processing' in line:
                     out.update({'preprocess_only': line.split()[-2]})
                 i += 1
@@ -163,19 +162,21 @@ def raw_wout_parser(wann_out_file):
                 if 'Write r^2_nm to file' in line:
                     out.update({'r2_nm_writeout': line.split()[-2]})
                     if out['r2_nm_writeout'] != 'F':
-                        out['warnings'] += [
+                        out['warnings'].append(
                             'The r^2_nm file has been selected '
-                            'to be written, but this is not yet supported!'
-                        ]
+                            'to be written, but this is not yet supported!')
+
                 if 'Write xyz WF centres to file' in line:
                     out.update({'xyz_wf_center_writeout': line.split()[-2]})
                     if out['xyz_wf_center_writeout'] != 'F':
-                        out['warnings'] += [
+                        out['warnings'].append(
                             'The xyz_WF_center file has '
                             'been selected to be written, but this is not '
-                            'yet supported!'
-                        ]
+                            'yet supported!')
+
                 i += 1
+        if 'Wannierisation convergence criteria satisfied' in line:
+            w90_conv = True
 
         # Reading the final WF, also checks to see if they converged or not
         if 'Final State' in line:
@@ -231,7 +232,8 @@ def raw_wout_parser(wann_out_file):
             wann_id = int(line.split()[3])
             wann_function = wann_functions[wann_id - 1]
             wann_function.update({'im_re_ratio': float(line.split()[-1])})
-
+    if not w90_conv:
+        out['warnings'].append('Wannierisation finished because num_iter was reached.')
     return out
 
 
