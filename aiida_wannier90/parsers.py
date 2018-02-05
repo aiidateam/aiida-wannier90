@@ -208,14 +208,27 @@ def raw_wout_parser(wann_out_file):
                 wf_out_i['wannier_function'] = int(
                     line.split('(')[0].split()[-1]
                 )
-                wf_out_i['spread'] = float(line.split('(')[1].split()[-1])
+                wf_out_i['spread'] = float(line.split(')')[1].strip())
                 #wf_out_i['spread'] = float(line.split()[-1])
-                #x = float(line.split()[-5].strip(','))
-                #y = float(line.split()[-4].strip(','))
-                #z = float(line.split()[-3].strip(','))
-                x = float(line.split('(')[1].split()[0].strip(','))
-                y = float(line.split('(')[1].split()[1].strip(','))
-                z = float(line.split('(')[1].split()[2].strip(','))
+                try:
+                    x = float(
+                        line.split('(')[1].split(')')[0].split(',')[0].strip()
+                    )
+                except (ValueError, IndexError):
+                    # To avoid that the crasher completely fails, we set None as a fallback
+                    x = None
+                try:
+                    y = float(
+                        line.split('(')[1].split(')')[0].split(',')[1].strip()
+                    )
+                except (ValueError, IndexError):
+                    y = None
+                try:
+                    z = float(
+                        line.split('(')[1].split(')')[0].split(',')[2].strip()
+                    )
+                except (ValueError, IndexError):
+                    z = None
                 coord = (x, y, z)
                 wf_out_i['coordinates'] = coord
                 wf_out.append(wf_out_i)
