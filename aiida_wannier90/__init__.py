@@ -13,7 +13,7 @@ Please cite:
 __authors__ = "Daniel Marchand, Antimo Marrazzo, Dominik Gresch, Giovanni Pizzi & The AiiDA Team."
 __license__ = "MIT License, see LICENSE.txt file."
 ## If upgraded, remember to change it also in setup.json (for pip)
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 from . import io
 from . import parsers

@@ -25,15 +25,15 @@
   },
   "name": "aiida-wannier90",
   "license": "MIT",
-  "author": "Daniel Marchand, Antimo Marrazzo, Dominik Gresch, Giovanni Pizzi & The AiiDA Team.",
+  "author": "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi & The AiiDA Team.",
   "author_email": "developers@aiida.net",
   "install_requires": [
     "aiida-core>=0.9.1"
   ],
-  "version": "0.1.0",
-  "keywords": "wannier90 aiida workflows",
+  "version": "1.0.0",
+  "keywords": "wannier90 AiiDA workflows plugin",
   "classifiers": [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Plugins",
     "Framework :: AiiDA",
     "Intended Audience :: Science/Research",
