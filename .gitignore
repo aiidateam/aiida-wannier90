@@ -5,3 +5,4 @@ tests/.cache
 .idea
 *~
 .DS_Store
+.ropeproject

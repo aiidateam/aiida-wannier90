@@ -18,11 +18,6 @@ from aiida.orm.data.structure import StructureData
 from aiida.orm.data.folder import FolderData
 from aiida.orm.data.singlefile import SinglefileData
 
-try:
-    from aiida.backends.utils import get_authinfo
-except ImportError:
-    from aiida.execmanager import get_authinfo
-
 from .io import write_win
 
 
@@ -240,8 +235,7 @@ class Wannier90Calculation(JobCalculation):
             remote_input_folder_uuid = remote_input_folder.get_computer().uuid
             remote_input_folder_path = remote_input_folder.get_remote_path()
 
-            t_dest = get_authinfo(
-                computer=remote_input_folder.get_computer(),
+            t_dest = remote_input_folder.get_computer().get_authinfo(
                 aiidauser=remote_input_folder.get_user()
             ).get_transport()
             with t_dest:
