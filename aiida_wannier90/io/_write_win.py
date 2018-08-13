@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 
 import copy
 
+from past.builtins import basestring
+
 from aiida.common.utils import conv_to_fortran_withlists
 from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
 
@@ -138,7 +140,10 @@ def _format_parameter_values(parameters_dict):
     for key, value in parameters_dict.items():
         key = key.lower()
         if key == 'exclude_bands':
-            result_dict[key] = list_to_grouped_string(value)
+            if isinstance(value, basestring):
+                result_dict[key] = value
+            else:
+                result_dict[key] = list_to_grouped_string(value)
         else:
             result_dict[key] = conv_to_fortran_withlists(
                 value, quote_strings=False

@@ -28,7 +28,7 @@
   "author": "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi & The AiiDA Team.",
   "author_email": "developers@aiida.net",
   "install_requires": [
-    "aiida-core>=0.9.1"
+    "aiida-core>=0.9.1", "future"
   ],
   "version": "1.0.0",
   "keywords": "wannier90 AiiDA workflows plugin",
