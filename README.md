@@ -8,8 +8,6 @@ The documentation of this package is available on [read the docs](http://aiida-w
 
 # Acknowledgements
 
-This work is supported by the [MARVEL National Centre for Competency in                                  
-Research](<http://nccr-marvel.ch>) funded by the [Swiss National
-Science Foundation](<http://www.snf.ch/en>).
+This work is supported by the [MARVEL National Centre for Competency in Research](<http://nccr-marvel.ch>) funded by the [Swiss National Science Foundation](<http://www.snf.ch/en>).
 
-![MARVEL](miscellaneous/logos/MARVEL.png)   
+![MARVEL](miscellaneous/logos/MARVEL.png)
