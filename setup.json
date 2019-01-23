@@ -20,7 +20,7 @@
     ],
     "dev": [
       "pre-commit",
-      "yapf==0.19"
+      "yapf==0.25"
     ]
   },
   "name": "aiida-wannier90",

@@ -79,10 +79,14 @@ wc = submit(
         'settings': scf_settings,
         'options': scf_options
     },
-    nscf={'parameters': nscf_parameters,
-          'kpoints': nscf_kpoints},
-    mlwf={'projections': projections,
-          'parameters': wannier90_parameters},
+    nscf={
+        'parameters': nscf_parameters,
+        'kpoints': nscf_kpoints
+    },
+    mlwf={
+        'projections': projections,
+        'parameters': wannier90_parameters
+    },
     matrices={},  #'_options':pw2wannier90_options},
     restart_options={
         'scf_workchain': load_node(712),

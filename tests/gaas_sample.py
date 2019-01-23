@@ -59,8 +59,10 @@ def create_gaas_calc(
     get_process_inputs, sample, configure, create_gaas_win_params
 ):
     def inner(
-        projections_dict={'kind_name': 'As',
-                          'ang_mtm_name': 'sp3'},
+        projections_dict={
+            'kind_name': 'As',
+            'ang_mtm_name': 'sp3'
+        },
         seedname='aiida'
     ):
         from aiida.orm import DataFactory, CalculationFactory

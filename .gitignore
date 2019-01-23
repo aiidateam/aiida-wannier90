@@ -1,6 +1,7 @@
 *.pyc
 *.egg*
 .cache/v/cache
+.pytest_cache/v/cache
 tests/.cache
 .idea
 *~

@@ -397,8 +397,8 @@ class Wannier90Calculation(JobCalculation):
 
             if not isinstance(value, valid_types):
                 raise InputValidationError(
-                    "Input parameter '{}' is of type '{}', but should be of type(s) '{}'".
-                    format(name, type(value), valid_types)
+                    "Input parameter '{}' is of type '{}', but should be of type(s) '{}'"
+                    .format(name, type(value), valid_types)
                 )
             return value
 
@@ -416,8 +416,8 @@ class Wannier90Calculation(JobCalculation):
             counter = Counter([k.lower() for k in param_dict_raw])
             counter = {key: val for key, val in counter if val > 1}
             raise InputValidationError(
-                'The following keys were found more than once in the parameters: {}. Check for duplicates written in upper- / lowercase.'.
-                format(counter)
+                'The following keys were found more than once in the parameters: {}. Check for duplicates written in upper- / lowercase.'
+                .format(counter)
             )
 
         # check for blocked keywords

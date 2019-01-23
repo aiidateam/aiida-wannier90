@@ -250,8 +250,9 @@ def raw_wout_parser(wann_out_file):
             wann_function = wann_functions[wann_id - 1]
             wann_function.update({'im_re_ratio': float(line.split()[-1])})
     if not w90_conv:
-        out['warnings'
-            ].append('Wannierisation finished because num_iter was reached.')
+        out['warnings'].append(
+            'Wannierisation finished because num_iter was reached.'
+        )
     return out
 
 
@@ -290,8 +291,12 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     # finds the special points
     special_points_dict = special_points['point_coords']
     # We set atol to 1e-5 because in the kpt file the coords are printed with fixed precision
-    labels = [(i, k) for k in special_points_dict for i in range(len(out_kpt))
-              if all(np.isclose(special_points_dict[k], out_kpt[i], rtol=0, atol=1.e-5))]    
+    labels = [
+        (i, k) for k in special_points_dict for i in range(len(out_kpt))
+        if all(
+            np.isclose(special_points_dict[k], out_kpt[i], rtol=0, atol=1.e-5)
+        )
+    ]
     labels.sort()
 
     # Checks and appends labels if discontinuity
