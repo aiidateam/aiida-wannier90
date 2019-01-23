@@ -12,6 +12,7 @@ addons:
       - libblas-dev
       - liblapack-dev
 install:
+  - pip install -U 'pip<19'
   - pip install git+https://github.com/aiidateam/aiida_core.git#egg=aiida_core
   - pip install git+https://github.com/greschd/aiida_pytest#egg=aiida_pytest
   - pip install .[test,dev,docs]
