@@ -65,80 +65,21 @@ class Wannier90Calculation(CalcJob):
     _NNKP_FILE = _property_helper('.nnkp')
 
     @classproperty
-    def _use_methods(cls):
-        """
-        Additional use_* methods for the Wannier90 calculation class.
-        """
-        retdict = JobCalculation._use_methods
-        retdict.update({
-            "structure": {
-                'valid_types': StructureData,
-                'additional_parameter': None,
-                'linkname': 'structure',
-                'docstring': "Choose the input structure to use",
-            },
-            "settings": {
-                'valid_types': ParameterData,
-                'additional_parameter': None,
-                'linkname': 'settings',
-                'docstring': "Use an additional node for special settings",
-            },
-            "parameters": {
-                'valid_types':
-                ParameterData,
-                'additional_parameter':
-                None,
-                'linkname':
-                'parameters',
-                'docstring': (
-                    "Use a node that specifies the input parameters "
-                    "for the wannier code"
-                ),
-            },
-            "projections": {
-                'valid_types': (OrbitalData, List),
-                'additional_parameter': None,
-                'linkname': 'projections',
-                'docstring': ("Starting projections of class OrbitalData"),
-            },
-            "local_input_folder": {
-                'valid_types':
-                FolderData,
-                'additional_parameter':
-                None,
-                'linkname':
-                'local_input_folder',
-                'docstring': (
-                    "Use a local folder as parent folder (for "
-                    "restarts and similar"
-                ),
-            },
-            "remote_input_folder": {
-                'valid_types': RemoteData,
-                'additional_parameter': None,
-                'linkname': 'remote_input_folder',
-                'docstring': ("Use a remote folder as parent folder"),
-            },
-            "kpoints": {
-                'valid_types': KpointsData,
-                'additional_parameter': None,
-                'linkname': 'kpoints',
-                'docstring':
-                "Use the node defining the kpoint sampling to use",
-            },
-            "kpoint_path": {
-                'valid_types':
-                ParameterData,
-                'additional_parameter':
-                None,
-                'linkname':
-                'kpoint_path',
-                'docstring':
-                "Use the node defining the k-points path for bands interpolation (see documentation for the format)",
-            },
-        })
-
-        return retdict
+    def define(cls, spec):
+        super(Wannier90Calculation, class).define(spec)
+        spec.input("structure", valid_type=StructureData, help="Choose the input structure to use")
+        spec.input("settings", valid_type=Dict, help="Use an additional node for special settings")
+        spec.input("parameters", valid_type=Dict, help="")
+        spec.input("projections", valid_types=(OrbitalData, Dict),
+                   help="Starting projections of class OrbitalData")
+        spec.input("local_input_folder", valid_type=FolderData,
+                   help="Use a local folder as parent folder for restarts and similar")
+        spec.input("remote_input_folder", valid_type=RemoteData,
+                   help="Use a remote folder as parent folder")
+        spec.input("kpoints", valid_type=KpointsData,
+                   help="Use the node defining the kpoint sampling to use")
+        spec.input("kpoints_path", valid_type=Dict,
+                   help="Use the node defining the k-points path for bands interpolation")
 
     def use_parent_calculation(self, calc):
         """
@@ -171,7 +112,7 @@ class Wannier90Calculation(CalcJob):
         )
 
         parameters = input_validator(
-            name='parameters', valid_types=ParameterData
+            name='parameters', valid_types=Dict
         )
         param_dict = self._get_validated_parameters_dict(parameters)
 
@@ -182,14 +123,14 @@ class Wannier90Calculation(CalcJob):
         )
         kpoints = input_validator(name='kpoints', valid_types=KpointsData)
         kpoint_path = input_validator(
-            name='kpoint_path', valid_types=ParameterData, required=False
+            name='kpoint_path', valid_types=Dict, required=False
         )
         structure = input_validator(
             name='structure', valid_types=StructureData
         )
 
         settings = input_validator(
-            name='settings', valid_types=ParameterData, required=False
+            name='settings', valid_types=Dict, required=False
         )
         if settings is None:
             settings_dict = {}
