@@ -49,8 +49,8 @@ def _generate_wannier_orbitals(
     :param spin_axis: the spin alignment axis, as described in the
                       user guide
     """
-    from aiida.orm import DataFactory
-    from aiida.orm.data.orbital import OrbitalFactory
+    from aiida.plugins import DataFactory
+    from aiida.orm.nodes.orbital import OrbitalFactory
 
     def convert_to_list(item):
         """
@@ -273,7 +273,7 @@ def generate_projections(list_of_projection_dicts, structure):
     :param spin_axis: the spin alignment axis, as described in the
                       user guide (spin_orientation)
     """
-    from aiida.orm import DataFactory
+    from aiida.plugins import DataFactory
 
     if not isinstance(list_of_projection_dicts, (list, tuple)):
         list_of_projection_dicts = [list_of_projection_dicts]

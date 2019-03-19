@@ -7,16 +7,16 @@ import numpy as np
 from aiida.common.utils import classproperty
 from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
 from aiida.common.datastructures import CalcInfo, CodeInfo, code_run_modes
-from aiida.orm import JobCalculation
-from aiida.orm.code import Code
-from aiida.orm.data.base import List
-from aiida.orm.data.array.kpoints import KpointsData
-from aiida.orm.data.orbital import OrbitalData, OrbitalFactory
-from aiida.orm.data.parameter import ParameterData
-from aiida.orm.data.remote import RemoteData
-from aiida.orm.data.structure import StructureData
-from aiida.orm.data.folder import FolderData
-from aiida.orm.data.singlefile import SinglefileData
+from aiida.orm import CalcJob
+from aiida.orm import Code
+from aiida.orm.nodes.base import List
+from aiida.orm.nodes.array.kpoints import KpointsData
+from aiida.orm.nodes.orbital import OrbitalData, OrbitalFactory
+from aiida.orm.nodes.parameter import Dict
+from aiida.orm.nodes.remote import RemoteData
+from aiida.orm.nodes.structure import StructureData
+from aiida.orm.nodes.folder import FolderData
+from aiida.orm.nodes.singlefile import SinglefileData
 
 try:
     from aiida.backends.utils import get_authinfo
@@ -26,7 +26,7 @@ except ImportError:
 from .io import write_win
 
 
-class Wannier90Calculation(JobCalculation):
+class Wannier90Calculation(CalcJob):
     """
     Plugin for Wannier90, a code for producing maximally localized Wannier
     functions. See http://www.wannier.org/ for more details

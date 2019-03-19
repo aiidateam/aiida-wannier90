@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from aiida.parsers.parser import Parser
-from aiida.parsers.exceptions import OutputParsingError
+from aiida.common.exceptions import OutputParsingError
 
 
 class Wannier90Parser(Parser):
@@ -29,7 +29,7 @@ class Wannier90Parser(Parser):
         This parser for this simple code does simply store in the DB a node
         representing the file of forces in real space
         """
-        from aiida.orm.data.parameter import ParameterData
+        from aiida.orm.nodes.parameter import Dict
 
         successful = True
         new_nodes_list = []
@@ -86,7 +86,7 @@ class Wannier90Parser(Parser):
             pass
         # save the arrays
         wout_dictionary = raw_wout_parser(out_file)
-        output_data = ParameterData(dict=wout_dictionary)
+        output_data = Dict(dict=wout_dictionary)
         linkname = 'output_parameters'
         new_nodes_list += [(linkname, output_data)]
 
@@ -269,8 +269,8 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     :return: BandsData object constructed from the input params
     """
     import numpy as np
-    from aiida.orm.data.array.bands import BandsData
-    from aiida.orm.data.array.kpoints import KpointsData
+    from aiida.orm.nodes.array.bands import BandsData
+    from aiida.orm.nodes.array.kpoints import KpointsData
 
     # imports the data
     out_kpt = np.genfromtxt(band_kpt_path, skip_header=1, usecols=(0, 1, 2))

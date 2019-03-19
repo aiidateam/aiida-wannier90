@@ -67,8 +67,8 @@ def _create_win_string(
     projections=None,
     random_projections=False,
 ):
-    from aiida.orm import DataFactory
-    from aiida.orm.data.base import List
+    from aiida.plugins import DataFactory
+    from aiida.orm.nodes.base import List
 
     # prepare the main input text
     input_file_lines = []
@@ -174,7 +174,7 @@ def _format_single_projection(orbital):
     will raise an exception if the orbital does not contain enough
     information, or the information is badly formated
     """
-    from aiida.common.orbital import OrbitalFactory
+    from aiida.tools.data import OrbitalFactory
     RealhydrogenOrbital = OrbitalFactory("realhydrogen")
 
     if not isinstance(orbital, RealhydrogenOrbital):

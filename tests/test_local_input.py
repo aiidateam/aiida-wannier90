@@ -8,7 +8,7 @@ from gaas_sample import *
 
 
 def test_local_input(create_gaas_calc, configure_with_daemon, assert_finished):
-    from aiida.work.run import run
+    from aiida.engine import run
     process, inputs = create_gaas_calc()
     output, pid = run(process, _return_pid=True, **inputs)
     assert all(key in output for key in ['retrieved', 'output_parameters'])
@@ -18,7 +18,7 @@ def test_local_input(create_gaas_calc, configure_with_daemon, assert_finished):
 def test_changed_seedname(
     create_gaas_calc, configure_with_daemon, assert_finished
 ):
-    from aiida.work.run import run
+    from aiida.engine import run
     process, inputs = create_gaas_calc(seedname='wannier90')
     output, pid = run(process, _return_pid=True, **inputs)
     assert all(key in output for key in ['retrieved', 'output_parameters'])
@@ -28,8 +28,8 @@ def test_changed_seedname(
 def test_changed_seedname_empty_settings(
     create_gaas_calc, configure_with_daemon, assert_state
 ):
-    from aiida.work.run import run
-    from aiida.orm import DataFactory
+    from aiida.engine import run
+    from aiida.plugins import DataFactory
     from aiida.common.datastructures import calc_states
     process, inputs = create_gaas_calc(seedname='wannier90')
     inputs.settings = DataFactory('parameter')()
@@ -38,8 +38,8 @@ def test_changed_seedname_empty_settings(
 
 
 def test_empty_settings(create_gaas_calc, configure_with_daemon, assert_state):
-    from aiida.work.run import run
-    from aiida.orm import DataFactory
+    from aiida.engine import run
+    from aiida.plugins import DataFactory
     from aiida.common.datastructures import calc_states
     process, inputs = create_gaas_calc()
     inputs.settings = DataFactory('parameter')()
@@ -50,7 +50,7 @@ def test_empty_settings(create_gaas_calc, configure_with_daemon, assert_state):
 def test_changed_seedname_no_settings(
     create_gaas_calc, configure_with_daemon, assert_state
 ):
-    from aiida.work.run import run
+    from aiida.engine import run
     from aiida.common.datastructures import calc_states
     process, inputs = create_gaas_calc(seedname='wannier90')
     del inputs.settings
@@ -61,8 +61,8 @@ def test_changed_seedname_no_settings(
 def test_duplicate_exclude_bands(
     create_gaas_calc, configure_with_daemon, assert_state
 ):
-    from aiida.work.run import run
-    from aiida.orm import DataFactory
+    from aiida.engine import run
+    from aiida.plugins import DataFactory
     from aiida.common.datastructures import calc_states
     process, inputs = create_gaas_calc(
         projections_dict={

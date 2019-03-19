@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
-from aiida.orm import DataFactory, CalculationFactory
+from aiida.plugins import DataFactory, CalculationFactory
 from aiida.common.example_helpers import test_and_get_code
 import pymatgen
-from aiida.orm.data.base import List
+from aiida.orm import List
 from aiida_wannier90.orbitals import generate_projections
 
 ParameterData = DataFactory('parameter')
@@ -21,10 +21,10 @@ try:
     else:
         raise IndexError
 except IndexError:
-    print >> sys.stderr, (
+    print((
         "The first parameter can only be either "
         "--send or --dont-send"
-    )
+    ), file=sys.stderr)
     sys.exit(1)
 
 try:
@@ -36,7 +36,7 @@ try:
     else:
         raise IndexError
 except IndexError:
-    print >> sys.stderr, ('Must provide the input mode ("local" or "remote")')
+    print(('Must provide the input mode ("local" or "remote")'), file=sys.stderr)
     sys.exit(1)
 
 try:
@@ -45,19 +45,19 @@ try:
     input_folder = load_node(input_folder_pk)
 
 except (IndexError, ValueError):
-    print >> sys.stderr, (
+    print((
         "Must provide as third parameter the pk of the {} input folder node".
         format('local' if local_input else 'remote')
-    )
-    print >> sys.stderr, (
+    ), file=sys.stderr)
+    print((
         "If you don't have it, run the script 'create_local_input_folder.py' and then use that pk with the 'local' option"
-    )
+    ), file=sys.stderr)
     sys.exit(1)
 
 try:
     codename = sys.argv[4]
 except IndexError:
-    print >> sys.stderr, ("Must provide as fourth parameter the main code")
+    print(("Must provide as fourth parameter the main code"), file=sys.stderr)
     sys.exit(1)
 
 code = test_and_get_code(codename, expected_code_type='wannier90.wannier90')
@@ -67,7 +67,7 @@ code = test_and_get_code(codename, expected_code_type='wannier90.wannier90')
 ###############SETTING UP WANNIER PARAMETERS ###################################
 
 #exclude_bands = []
-parameter = ParameterData(
+parameter = Dict(
     dict={
         'bands_plot': False,
         'num_iter': 12,
@@ -95,7 +95,7 @@ kpoints_path_tmp = KpointsData()
 kpoints_path_tmp.set_cell_from_structure(structure)
 kpoints_path_tmp.set_kpoints_path()
 point_coords, path = kpoints_path_tmp.get_special_points()
-kpoints_path = ParameterData(
+kpoints_path = Dict(
     dict={
         'path': path,
         'point_coords': point_coords,
@@ -153,21 +153,21 @@ settings_dict = {'seedname': 'gaas', 'random_projections': True}
 # settings_dict.update({'INIT_ONLY':True}) # for setup calculation
 
 if settings_dict:
-    settings = ParameterData(dict=settings_dict)
+    settings = Dict(dict=settings_dict)
     calc.use_settings(settings)
 
 if submit_test:
     subfolder, script_filename = calc.submit_test()
-    print "Test_submit for calculation (uuid='{}')".format(calc.uuid)
-    print "Submit file in {}".format(
+    print("Test_submit for calculation (uuid='{}')".format(calc.uuid))
+    print("Submit file in {}".format(
         os.path.join(os.path.relpath(subfolder.abspath), script_filename)
-    )
+    ))
 else:
     calc.store_all()
-    print "created calculation; calc=Calculation(uuid='{}') # ID={}".format(
+    print("created calculation; calc=Calculation(uuid='{}') # ID={}".format(
         calc.uuid, calc.dbnode.pk
-    )
+    ))
     calc.submit()
-    print "submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
+    print("submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
         calc.uuid, calc.dbnode.pk
-    )
+    ))

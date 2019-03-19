@@ -3,14 +3,14 @@
 
 import argparse
 from aiida.common.exceptions import NotExistent
-from aiida.orm.data.base import Str
-from aiida.orm.data.parameter import ParameterData
-from aiida.orm.data.structure import StructureData
-from aiida.orm.data.array.kpoints import KpointsData
-from aiida.work.run import run, submit
+from aiida.orm import Str
+from aiida.orm import Dict
+from aiida.orm.nodes.data.structure import StructureData
+from aiida.orm.nodes.data.array.kpoints import KpointsData
+from aiida.engine import run, submit
 from aiida_wannier90.workflows.W90 import SimpleWannier90WorkChain
-from aiida.orm.data.base import List
-scf_parameters = ParameterData(
+from aiida.orm import List
+scf_parameters = Dict(
     dict={
         'CONTROL': {
             'restart_mode': 'from_scratch',
@@ -21,14 +21,14 @@ scf_parameters = ParameterData(
         },
     }
 )
-nscf_parameters = ParameterData(dict={
+nscf_parameters = Dict(dict={
     'SYSTEM': {
         'nbnd': 10,
     },
 })
-scf_settings = ParameterData(dict={})
+scf_settings = Dict(dict={})
 max_wallclock_seconds = 60 * 30
-scf_options = ParameterData(
+scf_options = Dict(
     dict={
         'resources': {
             'num_machines': 1,
@@ -37,7 +37,7 @@ scf_options = ParameterData(
         'max_wallclock_seconds': max_wallclock_seconds,
     }
 )
-pw2wannier90_options = ParameterData(
+pw2wannier90_options = Dict(
     dict={
         'resources': {
             'num_machines': 1,
@@ -46,7 +46,7 @@ pw2wannier90_options = ParameterData(
         'max_wallclock_seconds': 60 * 60 * 10,
     }
 )
-wannier90_parameters = ParameterData(
+wannier90_parameters = Dict(
     dict={
         'bands_plot': False,
         'num_iter': 12,
@@ -91,4 +91,4 @@ wc = submit(
     },
 )
 
-print 'launched WorkChain pk {}'.format(wc.pid)
+print('launched WorkChain pk {}'.format(wc.pid))

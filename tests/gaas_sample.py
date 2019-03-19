@@ -10,7 +10,7 @@ import pymatgen
 @pytest.fixture
 def create_gaas_win_params(configure):
     def inner(projections_dict={'kind_name': 'As', 'ang_mtm_name': 'sp3'}):
-        from aiida.orm import DataFactory, CalculationFactory
+        from aiida.plugins import DataFactory, CalculationFactory
         from aiida_wannier90.orbitals import generate_projections
 
         res = dict()
@@ -63,7 +63,7 @@ def create_gaas_calc(
                           'ang_mtm_name': 'sp3'},
         seedname='aiida'
     ):
-        from aiida.orm import DataFactory, CalculationFactory
+        from aiida.plugins import DataFactory, CalculationFactory
         from aiida_wannier90.orbitals import generate_projections
 
         process, inputs = get_process_inputs(
