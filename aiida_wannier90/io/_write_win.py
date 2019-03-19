@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import copy
 
 from aiida.common.utils import conv_to_fortran_withlists
-from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
+from aiida.common import InputValidationError, ModificationNotAllowed
 
 from ._group_list import list_to_grouped_string
 

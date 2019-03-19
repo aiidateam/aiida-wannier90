@@ -4,19 +4,17 @@ from collections import Counter
 
 import numpy as np
 
-from aiida.common.utils import classproperty
-from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
-from aiida.common.datastructures import CalcInfo, CodeInfo, code_run_modes
-from aiida.orm import CalcJob
+#NOTE: below is a rather unsightly import should discuss
+from aiida.common import (classproperty, InputValidationError,
+                          ModificationNotAllowed, CalcInfo,
+                          CodeInfo, code_run_modes)
+from aiida.engine import CalcJob
 from aiida.orm import Code
 from aiida.orm.nodes.base import List
-from aiida.orm.nodes.array.kpoints import KpointsData
-from aiida.orm.nodes.orbital import OrbitalData, OrbitalFactory
-from aiida.orm.nodes.parameter import Dict
-from aiida.orm.nodes.remote import RemoteData
-from aiida.orm.nodes.structure import StructureData
-from aiida.orm.nodes.folder import FolderData
-from aiida.orm.nodes.singlefile import SinglefileData
+from aiida.orm import (KpointsData, OrbitalData,
+                       OrbitalFactory, Dict,
+                       RemoteData, StructureData,
+                       FolderData, SinglefileData)
 
 try:
     from aiida.backends.utils import get_authinfo
@@ -31,17 +29,12 @@ class Wannier90Calculation(CalcJob):
     Plugin for Wannier90, a code for producing maximally localized Wannier
     functions. See http://www.wannier.org/ for more details
     """
-
-    def _init_internal_params(self):
-        super(Wannier90Calculation, self)._init_internal_params()
-
-        self._DEFAULT_SEEDNAME = 'aiida'
-        self._default_parser = 'wannier90.wannier90'
-        self._blocked_parameter_keys = [
-            'length_unit', 'unit_cell_cart', 'atoms_cart', 'projections'
-        ]
-        #We do not block postproc_setup, but its usage is deprecated
-        #one should use settings instead
+    #NOTE: consider altering the names of these defaults
+    self._DEFAULT_SEEDNAME = 'aiida'
+    self._default_parser = 'wannier90.wannier90'
+    self._blocked_parameter_keys = [
+        'length_unit', 'unit_cell_cart', 'atoms_cart', 'projections'
+    ]
 
     # Needed because the super() call tries to set the properties to None
     def _property_helper(suffix):
