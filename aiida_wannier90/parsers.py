@@ -26,7 +26,7 @@ class Wannier90Parser(Parser):
             )
         super(Wannier90Parser, self).__init__(calculation)
 
-    def parse_with_retrieved(self, retrieved):
+    def parse(self, **kwargs):
         """
         Parses the datafolder, stores results.
         This parser for this simple code does simply store in the DB a node
