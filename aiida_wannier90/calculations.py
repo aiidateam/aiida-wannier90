@@ -68,9 +68,12 @@ class Wannier90Calculation(CalcJob):
     @classproperty
     def define(cls, spec):
         super(Wannier90Calculation, cls).define(spec)
-        spec.input("structure", valid_type=StructureData, help="Choose the input structure to use")
-        spec.input("settings", valid_type=Dict, help="Use an additional node for special settings")
-        spec.input("parameters", valid_type=Dict, help="")
+        spec.input("structure", valid_type=StructureData,
+                   help="Choose the input structure to use")
+        spec.input("parameters", valid_type=Dict,
+                   help="Input parameters for Wannier90 code")
+        spec.input("settings", valid_type=Dict, required=False,
+                   help="Additional settings to manage wannier90 calculation")
         spec.input("projections", valid_types=(OrbitalData, Dict),
                    help="Starting projections of class OrbitalData")
         spec.input("local_input_folder", valid_type=FolderData,
@@ -79,7 +82,7 @@ class Wannier90Calculation(CalcJob):
                    help="Use a remote folder as parent folder")
         spec.input("kpoints", valid_type=KpointsData,
                    help="Use the node defining the kpoint sampling to use")
-        spec.input("kpoints_path", valid_type=Dict,
+        spec.input("kpoints_path", valid_type=Dict, required=False,
                    help="Use the node defining the k-points path for bands interpolation")
 
     def use_parent_calculation(self, calc):
@@ -95,44 +98,34 @@ class Wannier90Calculation(CalcJob):
             )
         self.use_remote_input_folder(remote_folder)
 
-    def _prepare_for_submission(self, tempfolder, inputdict):
+    def prepare_for_submission(self, folder):
         """
         Routine, which creates the input and prepares for submission
 
-        :param tempfolder: a aiida.common.folders.Folder subclass where
+        :param folder: a aiida.common.folders.Folder subclass where
                            the plugin should put all its files.
-        :param inputdict: a dictionary with the input nodes, as they would
-                be returned by get_inputdata_dict (without the Code!)
         """
-        input_validator = self._get_input_validator(inputdict=inputdict)
-        local_input_folder = input_validator(
-            name='local_input_folder', valid_types=FolderData, required=False
-        )
-        remote_input_folder = input_validator(
-            name='remote_input_folder', valid_types=RemoteData, required=False
-        )
+        #NOTE: check if _get_input_validator is still needed, otherwise, delete it!
+        #input_validator = self._get_input_validator(inputdict=inputdict)
 
-        parameters = input_validator(
-            name='parameters', valid_types=Dict
-        )
+        local_input_folder = self.inputs.local_input_folder
+        remote_input_folder = self.inputs.remote_input_folder 
+        #NOTE: the relationship between parameters/param_dict is strange
+        parameters = self.inputs.parameters
         param_dict = self._get_validated_parameters_dict(parameters)
+        #NOTE: List was also a valid type??
+        projections = self.inputs.projections
+        kpoints = self.inputs.kpoints
+        if 'kpoints_path' in self.inputs:
+            kpoints_path = self.inputs.kpoints_path
+        else:
+            kpoints_path = None
+        structure = self.inputs.structure
+        if 'settings' in self.inputs:
+            settings = self.inputs.settings
+        else:
+            settings = None
 
-        projections = input_validator(
-            name='projections',
-            valid_types=(OrbitalData, List),
-            required=False
-        )
-        kpoints = input_validator(name='kpoints', valid_types=KpointsData)
-        kpoint_path = input_validator(
-            name='kpoint_path', valid_types=Dict, required=False
-        )
-        structure = input_validator(
-            name='structure', valid_types=StructureData
-        )
-
-        settings = input_validator(
-            name='settings', valid_types=Dict, required=False
-        )
         if settings is None:
             settings_dict = {}
         else:
@@ -162,7 +155,7 @@ class Wannier90Calculation(CalcJob):
         random_projections = settings_dict.pop('random_projections', False)
 
         write_win(
-            filename=tempfolder.get_abs_path(self._INPUT_FILE),
+            filename=folder.get_abs_path(self._INPUT_FILE),
             parameters=param_dict,
             structure=structure,
             kpoints=kpoints,
