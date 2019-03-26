@@ -38,6 +38,7 @@ class Wannier90Calculation(CalcJob):
     ]
 
     # Needed because the super() call tries to set the properties to None
+    #NOTE: is this even needed anymore?
     def _property_helper(suffix):
         def getter(self):
             return self._SEEDNAME + suffix
@@ -109,7 +110,7 @@ class Wannier90Calculation(CalcJob):
         #input_validator = self._get_input_validator(inputdict=inputdict)
 
         local_input_folder = self.inputs.local_input_folder
-        remote_input_folder = self.inputs.remote_input_folder 
+        remote_input_folder = self.inputs.remote_input_folder
         #NOTE: the relationship between parameters/param_dict is strange
         parameters = self.inputs.parameters
         param_dict = self._get_validated_parameters_dict(parameters)
@@ -164,11 +165,14 @@ class Wannier90Calculation(CalcJob):
             random_projections=random_projections,
         )
 
+        #NOTE: remote_input_folder -> parent_calc_folder (for consistency)
+        #NOTE: pretty sure we can never run wannier90 without a parent_calc_folder!
         if remote_input_folder is not None:
-            remote_input_folder_uuid = remote_input_folder.get_computer().uuid
+            remote_input_folder_uuid = remote_input_folder.computer.uuid
             remote_input_folder_path = remote_input_folder.get_remote_path()
 
             t_dest = get_authinfo(
+                #NOTE: I think get_computer() --> .computer. ?
                 computer=remote_input_folder.get_computer(),
                 aiidauser=remote_input_folder.get_user()
             ).get_transport()
@@ -233,6 +237,8 @@ class Wannier90Calculation(CalcJob):
         #because in W90 you never modify input files on the run
         ALWAYS_COPY_FILES = [self._CHK_FILE]
         for f in found_in_remote:
+            #NOTE: for symlinks this appears wrong (comp_uuid, remote_path, default_calc_fldr)
+            #NOTE: what is self._DEFAULT_PARENT_CALC_FLDR_NAME equivalent to here? 
             file_info = (
                 remote_input_folder_uuid,
                 os.path.join(remote_input_folder_path, f), os.path.basename(f)
