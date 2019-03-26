@@ -10,6 +10,7 @@ Please cite:
     * *AiiDA: automated interactive infrastructure and database for computational science* G. Pizzi, A. Cepellotti, R. Sabatini, N. Marzari, and B. Kozinsky *Comp. Mat. Sci.* **111**, 218-230 (2016) `[Journal link] <http://dx.doi.org/10.1016/j.commatsci.2015.09.013>`_ `[arXiv link] <https://arxiv.org/abs/1504.01163>`_
 """
 
+from __future__ import absolute_import
 __authors__ = "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi & The AiiDA Team."
 __license__ = "MIT License, see LICENSE.txt file."
 ## If upgraded, remember to change it also in setup.json (for pip)

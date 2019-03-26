@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 from aiida.parsers.parser import Parser
 from aiida.common.exceptions import OutputParsingError
+import six
+from six.moves import range
 
 
 class Wannier90Parser(Parser):
@@ -321,7 +324,7 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     appends.sort()
     for i in range(len(appends)):
         append = appends[i]
-        labels.insert(append[0] + i, (append[2], unicode(append[1])))
+        labels.insert(append[0] + i, (append[2], six.text_type(append[1])))
     bands = BandsData()
     k = KpointsData()
     k.set_cell_from_structure(structure)

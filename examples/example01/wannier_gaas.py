@@ -1,11 +1,13 @@
 #!/usr/bin/env runaiida
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
-from aiida.plugins import DataFactory, CalculationFactory
+from aiida.orm import DataFactory, CalculationFactory
 from aiida.common.example_helpers import test_and_get_code
 import pymatgen
-from aiida.orm import List
+from aiida.orm.data.base import List
 from aiida_wannier90.orbitals import generate_projections
 
 ParameterData = DataFactory('parameter')
@@ -67,7 +69,7 @@ code = test_and_get_code(codename, expected_code_type='wannier90.wannier90')
 ###############SETTING UP WANNIER PARAMETERS ###################################
 
 #exclude_bands = []
-parameter = Dict(
+parameter = ParameterData(
     dict={
         'bands_plot': False,
         'num_iter': 12,
@@ -95,7 +97,7 @@ kpoints_path_tmp = KpointsData()
 kpoints_path_tmp.set_cell_from_structure(structure)
 kpoints_path_tmp.set_kpoints_path()
 point_coords, path = kpoints_path_tmp.get_special_points()
-kpoints_path = Dict(
+kpoints_path = ParameterData(
     dict={
         'path': path,
         'point_coords': point_coords,
@@ -153,7 +155,7 @@ settings_dict = {'seedname': 'gaas', 'random_projections': True}
 # settings_dict.update({'INIT_ONLY':True}) # for setup calculation
 
 if settings_dict:
-    settings = Dict(dict=settings_dict)
+    settings = ParameterData(dict=settings_dict)
     calc.use_settings(settings)
 
 if submit_test:

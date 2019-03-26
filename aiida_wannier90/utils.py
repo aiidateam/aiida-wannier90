@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     """
     Plots Wannier function centres in .xsf format

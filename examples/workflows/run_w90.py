@@ -1,6 +1,8 @@
 #!/usr/bin/env runaiida
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 from aiida.common.exceptions import NotExistent
 from aiida.orm import Str
@@ -91,4 +93,4 @@ wc = submit(
     },
 )
 
-print('launched WorkChain pk {}'.format(wc.pid))
+print(('launched WorkChain pk {}'.format(wc.pid)))

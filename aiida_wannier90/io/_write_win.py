@@ -3,12 +3,14 @@
 
 from __future__ import unicode_literals
 
+from __future__ import absolute_import
 import copy
 
 from aiida.common.utils import conv_to_fortran_withlists
 from aiida.common import InputValidationError, ModificationNotAllowed
 
 from ._group_list import list_to_grouped_string
+import six
 
 __all__ = ['write_win']
 
@@ -255,7 +257,7 @@ def _format_atoms_cart(structure):
         Converts an input list item into a str
         '''
         list_item = copy.deepcopy(list_item)
-        if isinstance(list_item, (str, unicode)):
+        if isinstance(list_item, (str, six.text_type)):
             return list_item
         else:
             return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
@@ -296,7 +298,7 @@ def _format_kpoint_path(kpoint_path):
             'kpoint_path_info must be contain only a '
             'list called "path" with the labels of the endpoints of each '
             'path segment, and a dictionary called "point_coords". It contains '
-            'instead also other keys: {}'.format(", ".join(kinfo.keys()))
+            'instead also other keys: {}'.format(", ".join(list(kinfo.keys())))
         )
 
     # In Wannier90 (from the user guide): Values are in

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import os
 from collections import Counter
 
@@ -66,7 +67,7 @@ class Wannier90Calculation(CalcJob):
 
     @classproperty
     def define(cls, spec):
-        super(Wannier90Calculation, class).define(spec)
+        super(Wannier90Calculation, cls).define(spec)
         spec.input("structure", valid_type=StructureData, help="Choose the input structure to use")
         spec.input("settings", valid_type=Dict, help="Use an additional node for special settings")
         spec.input("parameters", valid_type=Dict, help="")
@@ -310,7 +311,7 @@ class Wannier90Calculation(CalcJob):
         if settings_dict:
             raise InputValidationError(
                 "The following keys in settings are unrecognized: {}".format(
-                    settings_dict.keys()
+                    list(settings_dict.keys())
                 )
             )
 
