@@ -33,7 +33,7 @@ def test_changed_seedname_empty_settings(
     from aiida.plugins import DataFactory
     from aiida.common.datastructures import calc_states
     process, inputs = create_gaas_calc(seedname='wannier90')
-    inputs.settings = DataFactory('parameter')()
+    inputs.settings = DataFactory('dict')()
     output, pid = run(process, _return_pid=True, **inputs)
     assert_state(pid, calc_states.SUBMISSIONFAILED)
 
@@ -43,7 +43,7 @@ def test_empty_settings(create_gaas_calc, configure_with_daemon, assert_state):
     from aiida.plugins import DataFactory
     from aiida.common.datastructures import calc_states
     process, inputs = create_gaas_calc()
-    inputs.settings = DataFactory('parameter')()
+    inputs.settings = DataFactory('dict')()
     output, pid = run(process, _return_pid=True, **inputs)
     assert_state(pid, calc_states.FINISHED)
 
@@ -71,7 +71,7 @@ def test_duplicate_exclude_bands(
             'ang_mtm_name': 's'
         }
     )
-    inputs.parameters = DataFactory('parameter')(
+    inputs.parameters = DataFactory('dict')(
         dict=dict(
             num_wann=1,
             num_iter=12,

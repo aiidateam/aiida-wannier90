@@ -74,7 +74,7 @@ def _create_win_string(
 
     # prepare the main input text
     input_file_lines = []
-    if isinstance(parameters, DataFactory('parameter')):
+    if isinstance(parameters, DataFactory('dict')):
         parameters = parameters.get_dict()
     try:
         parameters.setdefault('mp_grid', kpoints.get_kpoints_mesh()[0])

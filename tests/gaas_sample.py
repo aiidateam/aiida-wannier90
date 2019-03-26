@@ -39,7 +39,7 @@ def create_gaas_win_params(configure):
         kpoint_path_tmp.set_cell_from_structure(structure)
         kpoint_path_tmp.set_kpoints_path()
         point_coords, path = kpoint_path_tmp.get_special_points()
-        kpoint_path = DataFactory('parameter')(
+        kpoint_path = DataFactory('dict')(
             dict={
                 'path': path,
                 'point_coords': point_coords,
@@ -47,7 +47,7 @@ def create_gaas_win_params(configure):
         )
         res['kpoint_path'] = kpoint_path
 
-        res['parameters'] = DataFactory('parameter')(
+        res['parameters'] = DataFactory('dict')(
             dict=dict(num_wann=4, num_iter=12, wvfn_formatted=True)
         )
         return res
@@ -88,7 +88,7 @@ def create_gaas_calc(
         inputs.local_input_folder = local_input_folder
 
         if seedname != 'aiida':
-            inputs.settings = DataFactory('parameter')(
+            inputs.settings = DataFactory('dict')(
                 dict=dict(seedname=seedname)
             )
 

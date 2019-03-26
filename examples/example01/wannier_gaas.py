@@ -10,7 +10,7 @@ import pymatgen
 from aiida.orm.data.base import List
 from aiida_wannier90.orbitals import generate_projections
 
-ParameterData = DataFactory('parameter')
+ParameterData = DataFactory('dict')
 StructureData = DataFactory('structure')
 KpointsData = DataFactory('array.kpoints')
 
