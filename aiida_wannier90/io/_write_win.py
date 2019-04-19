@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 import copy
 
-from aiida.common.utils import conv_to_fortran_withlists
+from aiida_wannier90.utils import conv_to_fortran_withlists
 from aiida.common import InputValidationError, ModificationNotAllowed
 
 from ._group_list import list_to_grouped_string
@@ -176,7 +176,7 @@ def _format_single_projection(orbital):
     will raise an exception if the orbital does not contain enough
     information, or the information is badly formated
     """
-    from aiida.tools.data import OrbitalFactory
+    from aiida.plugins import OrbitalFactory
     RealhydrogenOrbital = OrbitalFactory("realhydrogen")
 
     if not isinstance(orbital, RealhydrogenOrbital):

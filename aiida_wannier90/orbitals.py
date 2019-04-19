@@ -53,7 +53,7 @@ def _generate_wannier_orbitals(
                       user guide
     """
     from aiida.plugins import DataFactory
-    from aiida.orm.nodes.orbital import OrbitalFactory
+    from aiida.plugins import OrbitalFactory
 
     def convert_to_list(item):
         """
@@ -221,8 +221,7 @@ def _generate_wannier_orbitals(
     # generating and returning a list of all corresponding orbitals
     orbital_out = []
     for projection_dict in projection_dicts:
-        realh = RealhydrogenOrbital()
-        realh.set_orbital_dict(projection_dict)
+        realh = RealhydrogenOrbital(**projection_dict)
         orbital_out.append(realh)
     return orbital_out
 
