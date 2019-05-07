@@ -70,7 +70,7 @@ def _create_win_string(
     random_projections=False,
 ):
     from aiida.plugins import DataFactory
-    from aiida.orm.nodes.base import List
+    from aiida.orm import List
 
     # prepare the main input text
     input_file_lines = []
@@ -229,7 +229,7 @@ def _format_single_projection(orbital):
     # line alone. You must, in addition, apply the appropriate settings:
     # either set spinors=.true. or use spinor_projections, see user guide
     spin = _get_attribute("spin", required=False)
-    if spin is not None:
+    if spin is not None and spin != 0:
         spin_dict = {-1: "d", 1: "u"}
         wann_string += "({})".format(spin_dict[spin])
     spin_orient = _get_attribute("spin_orientation", required=False)
