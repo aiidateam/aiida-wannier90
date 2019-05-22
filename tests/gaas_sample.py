@@ -10,11 +10,11 @@ import pymatgen
 PROJECTIONS_DICT={'kind_name': 'As',
                   'ang_mtm_name': 'sp3'},
 SEEDNAME='aiida' 
-
+#@pytest.fixture
+#def create_gaas_win_params(configure):
 def create_gaas_win_params():
     from aiida.plugins import DataFactory, CalculationFactory
     from aiida_wannier90.orbitals import generate_projections
-    from aiida.tools import get_kpoints_path
 
     res = dict()
 
@@ -37,7 +37,16 @@ def create_gaas_win_params():
     kpoints.set_kpoints_mesh([2, 2, 2])
     res['kpoints'] = kpoints
 
-    kpoint_path = get_kpoints_path(structure)['parameters']
+    kpoint_path_tmp = KpointsData()
+    kpoint_path_tmp.set_cell_from_structure(structure)
+    kpoint_path_tmp.set_kpoints_path()
+    point_coords, path = kpoint_path_tmp.get_special_points()
+    kpoint_path = DataFactory('dict')(
+        dict={
+            'path': path,
+            'point_coords': point_coords,
+        }
+    )
     res['kpoint_path'] = kpoint_path
 
     res['parameters'] = DataFactory('dict')(
