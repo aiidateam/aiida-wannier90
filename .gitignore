@@ -5,3 +5,5 @@ tests/.cache
 .idea
 *~
 .DS_Store
+.vscode
+.pytest_cache

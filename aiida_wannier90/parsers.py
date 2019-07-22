@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
-from aiida.parsers.parser import Parser
-from aiida.common.exceptions import OutputParsingError
+from aiida.parsers import Parser
+from aiida.common import exceptions as exc
 import six
 from six.moves import range
 
@@ -20,7 +20,7 @@ class Wannier90Parser(Parser):
 
         # check for valid input
         if not isinstance(calculation, Wannier90Calculation):
-            raise OutputParsingError(
+            raise exc.OutputParsingError(
                 "Input must calc must be a "
                 "Wannier90Calculation"
             )
@@ -32,31 +32,31 @@ class Wannier90Parser(Parser):
         This parser for this simple code does simply store in the DB a node
         representing the file of forces in real space
         """
-        from aiida.orm.nodes.parameter import Dict
+        from aiida.orm import Dict, SinglefileData
 
         successful = True
         new_nodes_list = []
         # select the folder object
         # Check that the retrieved folder is there
         try:
-            out_folder = retrieved[self._calc._get_linkname_retrieved()]
-        except KeyError:
-            self.logger.error("No retrieved folder found")
-            successful = False
-            return successful, new_nodes_list
+            out_folder = self.retrieved
+        except exc.NotExistent:
+            return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
+
+        with out_folder.open('output_file_name') as handle:
+            self.out('output_link_label', SinglefileData(file=handle))
 
         # Checks for error output files
-        if self._calc._ERROR_FILE in out_folder.get_folder_list():
+        if self.calc._ERROR_FILE in out_folder.get_folder_list():
             self.logger.error(
                 'Errors were found please check the retrieved '
-                '{} file'.format(self._calc._ERROR_FILE)
+                '{} file'.format(self.calc._ERROR_FILE)
             )
             successful = False
             return successful, new_nodes_list
 
         try:
-            filpath = out_folder.get_abs_path(self._calc._OUTPUT_FILE)
-            with open(filpath, 'r') as fil:
+            with out_folder.open(self.calc._OUTPUT_FILE) as fil:
                 out_file = fil.readlines()
             # Wannier90 doesn't always write the .werr file on error
             if any('Exiting.......' in line for line in out_file):
@@ -68,19 +68,15 @@ class Wannier90Parser(Parser):
 
         # Tries to parse the bands
         try:
-            kpoint_path = self._calc.get_inputs_dict()['kpoint_path']
+            kpoint_path = self.calc.inputs.kpoint_path
             special_points = kpoint_path.get_dict()
-            band_dat_path = out_folder.get_abs_path(
-                '{}_band.dat'.format(self._calc._SEEDNAME)
-            )
-            with open(band_dat_path, 'r') as fil:
+            
+            with out_folder.open('{}_band.dat'.format(self.calc._SEEDNAME)) as fil:
                 band_dat_file = fil.readlines()
-            band_kpt_path = out_folder.get_abs_path(
-                '{}_band.kpt'.format(self._calc._SEEDNAME)
-            )
-            with open(band_kpt_path, 'r') as fil:
+
+            with out_folder.open('{}_band.kpt'.format(self.calc._SEEDNAME)) as fil:
                 band_kpt_file = fil.readlines()
-            structure = self._calc.get_inputs_dict()['structure']
+            structure = self.calc.get_inputs_dict()['structure']
             output_bandsdata = band_parser(
                 band_dat_file, band_kpt_file, special_points, structure
             )

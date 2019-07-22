@@ -13,7 +13,7 @@ import os
 from aiida.manage.fixtures import fixture_manager
 
 #TODO: try to break dependencies here
-from aiida_pytest import configure, config_dict
+#from aiida_pytest import configure, config_dict
 
 
 @pytest.fixture

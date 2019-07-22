@@ -1,21 +1,25 @@
 #!/usr/bin/env runaiida
 from __future__ import absolute_import
 from __future__ import print_function
+
 import os
 from six.moves import input
 
+from aiida.plugins import DataFactory
+
+# Get path of 'inputdata' folder in the same folder as this script.
 files_folder = os.path.join(
     os.path.split(os.path.abspath(__file__))[0], "inputdata"
 )
 
+# Create empty FolderData node
 folder_node = DataFactory('folder')()
-folder_node.replace_with_folder(files_folder)
+for file_name in ['gaas.amn', 'gaas.mmn']:
+    folder_node.put_object_from_file(path=os.path.join(files_folder, file_name), key=file_name, mode='w', encoding=None)
 
 print("Do you want to store the FolderData node? [CTRL+C to stop]")
 input()
 folder_node.store()
-print(("Stored FolderData node pk={}".format(folder_node.pk)))
+print("Stored FolderData node pk={}".format(folder_node.pk))
 print("You can now run:")
-print(("verdi run wannier_gaas.py --dont-send local {} <WANNIER_CODE_NAME>".format(
-    folder_node.pk
-)))
+print("verdi run wannier_gaas.py --dont-send local {} <WANNIER_CODE_NAME>".format(folder_node.pk))
