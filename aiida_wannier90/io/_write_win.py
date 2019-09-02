@@ -20,7 +20,7 @@ def write_win(
     parameters,
     kpoints=None,
     structure=None,
-    kpoints_path=None,
+    kpoint_path=None,
     projections=None,
     random_projections=False,
 ):
@@ -39,8 +39,8 @@ def write_win(
     :param kpoints: Mesh of k-points used for the Wannierization procedure.
     :type kpoints: aiida.orm.data.array.kpoints.KpointsData
 
-    :param kpoints_path: List of k-points used for band interpolation.
-    :type kpoints_path: aiida.orm.data.parameter.ParameterData
+    :param kpoint_path: List of k-points used for band interpolation.
+    :type kpoint_path: aiida.orm.data.parameter.ParameterData
 
     :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, or as a list of strings specifying the projections in Wannier90's format.
     :type projections: aiida.orm.data.orbital.OrbitalData, aiida.orm.data.base.List[str]
@@ -54,7 +54,7 @@ def write_win(
                 parameters=parameters,
                 structure=structure,
                 kpoints=kpoints,
-                kpoints_path=kpoints_path,
+                kpoint_path=kpoint_path,
                 projections=projections,
                 random_projections=random_projections,
             )
@@ -65,7 +65,7 @@ def _create_win_string(
     parameters,
     kpoints,
     structure=None,
-    kpoints_path=None,
+    kpoint_path=None,
     projections=None,
     random_projections=False,
 ):
@@ -113,8 +113,8 @@ def _create_win_string(
         block_inputs['atoms_cart'] = _format_atoms_cart(structure)
     if kpoints is not None:
         block_inputs['kpoints'] = _format_kpoints(kpoints)
-    if kpoints_path is not None:
-        block_inputs['kpoints_path'] = _format_kpoints_path(kpoints_path)
+    if kpoint_path is not None:
+        block_inputs['kpoint_path'] = _format_kpoint_path(kpoint_path)
     input_file_lines += _format_block_inputs(block_inputs)
 
     return '\n'.join(input_file_lines) + '\n'
@@ -278,24 +278,24 @@ def _format_kpoints(kpoints):
     return ["{:18.10f} {:18.10f} {:18.10f}".format(*k) for k in all_kpoints]
 
 
-def _format_kpoints_path(kpoints_path):
+def _format_kpoint_path(kpoint_path):
     """
     Prepare the lines for the Wannier90 input file related to
-    the kpoints_path.
+    the kpoint_path.
 
-    :param kpoints_path: a ParameterData containing two entries:
+    :param kpoint_path: a ParameterData containing two entries:
         a 'path' list with the labels of the endpoints of each
         path segment, and a dictionary called "point_coords" that gives the
         three (fractional) coordinates for each label.
     :return: a list of strings to be added to the input file, within the
         kpoint_info block
     """
-    kinfo = kpoints_path.get_dict()
+    kinfo = kpoint_path.get_dict()
     path = kinfo.pop('path')
     point_coords = kinfo.pop('point_coords')
     if kinfo:
         raise InputValidationError(
-            'kpoints_path must be contain only a '
+            'kpoint_path must be contain only a '
             'list called "path" with the labels of the endpoints of each '
             'path segment, and a dictionary called "point_coords". It contains '
             'instead also other keys: {}'.format(", ".join(list(kinfo.keys())))

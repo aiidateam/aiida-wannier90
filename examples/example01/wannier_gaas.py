@@ -99,7 +99,7 @@ structure.append_atom(symbols=['As'], position=(-a/4., a/4., a/4.))
 kpoints = KpointsData()
 kpoints.set_kpoints_mesh([2, 2, 2])
 
-kpoints_path = Dict(dict={
+kpoint_path = Dict(dict={
     'point_coords': {
         'G': [0.0, 0.0, 0.0],
         'K': [0.375, 0.375, 0.75],
@@ -165,11 +165,11 @@ builder.structure = structure
 builder.projections = projections
 builder.parameters = parameter
 builder.kpoints = kpoints
-builder.kpoints_path = kpoints_path
+builder.kpoint_path = kpoint_path
 
 # settings that can only be enabled if parent is nscf
 settings_dict = {'seedname': 'gaas', 'random_projections': True}
-# settings_dict.update({'INIT_ONLY':True}) # for setup calculation
+settings_dict.update({'postproc_setup':True}) # for setup calculation (preprocessing, -pp flag)
 if settings_dict:
     settings = Dict(dict=settings_dict)
     builder.settings = settings

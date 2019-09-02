@@ -11,7 +11,7 @@ from aiida.common import exceptions as exc
 from aiida.engine import CalcJob
 from aiida.common.lang import classproperty
 from aiida.orm import (
-    AuthInfo, Code, Dict, FolderData, KpointsData, List, OrbitalData, RemoteData, 
+    AuthInfo, BandsData, Code, Dict, FolderData, KpointsData, List, OrbitalData, RemoteData, 
     SinglefileData, StructureData)
 from aiida.plugins import OrbitalFactory
 
@@ -24,8 +24,6 @@ class Wannier90Calculation(CalcJob):
     functions. See http://www.wannier.org/ for more details
     """
     _DEFAULT_SEEDNAME = 'aiida'
-    _DEFAULT_INPUT_FILE = 'aiida.win'
-    _DEFAULT_OUTPUT_FILE = 'aiida.wout'
     # The following ones CANNOT be set by the user - in this case an exception will be raised
     # IMPORTANT: define them here in lower-case
     _BLOCKED_PARAMETER_KEYS = [
@@ -50,21 +48,35 @@ class Wannier90Calculation(CalcJob):
                    help="Get input files (.amn, .mmn, ...) from a RemoteData possibly stored in a remote computer")
         spec.input("kpoints", valid_type=KpointsData,
                    help="k-point mesh used in the NSCF calculation")
-        spec.input("kpoints_path", valid_type=Dict, required=False,
+        spec.input("kpoint_path", valid_type=Dict, required=False,
                    help=
                     "Description of the kpoints-path to be used for bands interpolation; "
                     "it should contain two properties: "
                     "a list 'path' of length-2 tuples with the labels of the endpoints of the path; and "
                     "a dictionary 'point_coords' giving the scaled coordinates for each high-symmetry endpoint")
 
-        # If you set the seedname as a user, you should also set the input_filename and the output_filename accordingly
+        spec.output('output_parameters', valid_type=Dict,
+            help='The `output_parameters` output node of the successful calculation.')
+        spec.output('interpolated_bands', valid_type=BandsData, required=False,
+            help='The interpolated band structure by Wannier90 (if any).')
+        spec.output('nnkp_file', valid_type=SinglefileData, required=False,
+            help='The SEEDAME.nnkp file, produced only in -pp (postproc) mode.')
+
+        # This is used to allow the user to choose the input and output filenames
         spec.input('metadata.options.seedname', valid_type=six.string_types, default=cls._DEFAULT_SEEDNAME)
-        spec.input('metadata.options.input_filename', valid_type=six.string_types, default=cls._DEFAULT_INPUT_FILE)
-        spec.input('metadata.options.output_filename', valid_type=six.string_types, default=cls._DEFAULT_OUTPUT_FILE)
         spec.input('metadata.options.parser_name', valid_type=six.string_types, default='wannier90.wannier90')
         # withmpi defaults to "False" in aiida-core 1.0. Below, we override to default to withmpi=True
         spec.input('metadata.options.withmpi', valid_type=bool, default=True)
-
+        spec.exit_code(200, 'ERROR_NO_RETRIEVED_FOLDER',
+        message='The retrieved folder data node could not be accessed.')
+        spec.exit_code(210, 'ERROR_OUTPUT_STDOUT_MISSING',
+        message='The retrieved folder did not contain the required stdout output file.')
+        spec.exit_code(300, 'ERROR_WERR_FILE_PRESENT',
+        message='A Wannier90 error file (.werr) has been found.')
+        spec.exit_code(400, 'ERROR_EXITING_MESSAGE_IN_STDOUT',
+        message='The string "Exiting..." has been found in the Wannier90 output (some partial output might have been '
+            'parsed).')
+    
     @property
     def _SEEDNAME(self):
         """
@@ -102,7 +114,7 @@ class Wannier90Calculation(CalcJob):
         # TODO: implement the same pattern above also for remote_input_folder and the other
         #       similar optional keys, then replace below
 
-        if self.inputs.local_input_folder is None and self.inputs.remote_input_folder is None and not pp_setup:
+        if 'local_input_folder' not in self.inputs and 'remote_input_folder' not in self.inputs and not pp_setup:
             raise exc.InputValidationError(
                 'Either local_input_folder or remote_input_folder must be set.'
             )
@@ -117,13 +129,13 @@ class Wannier90Calculation(CalcJob):
             parameters=param_dict,
             structure=self.inputs.structure,
             kpoints=self.inputs.kpoints,
-            kpoints_path=self.inputs.kpoints_path,
+            kpoint_path=self.inputs.kpoint_path if 'kpoint_path' in self.inputs else None, ### TODO: check if this works, and/or if it's needed for other optional things; maybe better, for all optional, to first get them in a variable
             projections=self.inputs.projections,
             random_projections=random_projections,
         )
 
         #NOTE: remote_input_folder -> parent_calc_folder (for consistency)
-        if self.inputs.remote_input_folder is not None:
+        if 'remote_input_folder' in self.inputs:
             remote_input_folder_uuid = self.inputs.remote_input_folder.computer.uuid
             remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path()
 
@@ -137,7 +149,7 @@ class Wannier90Calculation(CalcJob):
                     path=remote_input_folder_path
                 )
 
-        if self.inputs.local_input_folder is not None:
+        if 'local_input_folder' in self.inputs:
             local_folder_content = self.inputs.local_input_folder.list_object_names()
         if pp_setup:
             required_files = []
@@ -159,13 +171,13 @@ class Wannier90Calculation(CalcJob):
             return result
 
         # Local FolderData has precedence over RemoteData
-        if self.inputs.local_input_folder is not None:
+        if 'local_input_folder' in self.inputs:
             found_in_local = files_finder(
                 local_folder_content, input_files, wavefunctions_files
             )
         else:
             found_in_local = []
-        if self.inputs.remote_input_folder is not None:
+        if 'remote_input_folder' in self.inputs:
             found_in_remote = files_finder(
                 remote_folder_content, input_files, wavefunctions_files
             )
@@ -181,7 +193,9 @@ class Wannier90Calculation(CalcJob):
         ]
         if len(not_found) != 0:
             raise exc.InputValidationError(
-                "{} necessary input files were not found: {} ".format(
+                "{} necessary input files were not found: {} (NOTE: if you "
+                "wanted to run a preprocess step, remember to pass "
+                "postproc_setup=True in the input settings node)".format(
                     len(not_found), ', '.join(str(nf) for nf in not_found)
                 )
             )
@@ -234,10 +248,12 @@ class Wannier90Calculation(CalcJob):
 
         # Retrieve files
         calcinfo.retrieve_list = []
+        calcinfo.retrieve_temporary_list = []
         calcinfo.retrieve_list.append('{}.wout'.format(self._SEEDNAME))
         calcinfo.retrieve_list.append('{}.werr'.format(self._SEEDNAME))
         if pp_setup:
-            calcinfo.retrieve_list.append('{}.nnkp'.format(self._SEEDNAME))
+            # The parser will then put this in a SinglefileData (if present)
+            calcinfo.retrieve_temporary_list.append('{}.nnkp'.format(self._SEEDNAME))
 
         calcinfo.retrieve_list += [
             '{}_band.dat'.format(self._SEEDNAME),
