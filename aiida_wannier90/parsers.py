@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import absolute_import
-from aiida.parsers.parser import Parser
-from aiida.common.exceptions import OutputParsingError
+import io
+import os
 import six
 from six.moves import range
+from aiida.parsers import Parser
+from aiida.common import exceptions as exc
 
 
 class Wannier90Parser(Parser):
@@ -19,10 +20,10 @@ class Wannier90Parser(Parser):
         from .calculations import Wannier90Calculation
 
         # check for valid input
-        if not isinstance(calculation, Wannier90Calculation):
-            raise OutputParsingError(
+        if not issubclass(calculation.process_class, Wannier90Calculation):
+            raise exc.OutputParsingError(
                 "Input must calc must be a "
-                "Wannier90Calculation"
+                "Wannier90Calculation, it is instead {}".format(type(calculation.process_class))
             )
         super(Wannier90Parser, self).__init__(calculation)
 
@@ -32,68 +33,77 @@ class Wannier90Parser(Parser):
         This parser for this simple code does simply store in the DB a node
         representing the file of forces in real space
         """
-        from aiida.orm.nodes.parameter import Dict
+        from aiida.orm import Dict, SinglefileData
 
-        successful = True
-        new_nodes_list = []
+        # None if unset
+        temporary_folder = kwargs.get('retrieved_temporary_folder')
+
+        seedname = self.node.get_options()['seedname']
+        output_file_name = "{}.wout".format(seedname)
+        error_file_name = "{}.werr".format(seedname)
+        nnkp_file_name = "{}.nnkp".format(seedname)
+
         # select the folder object
         # Check that the retrieved folder is there
         try:
-            out_folder = retrieved[self._calc._get_linkname_retrieved()]
-        except KeyError:
-            self.logger.error("No retrieved folder found")
-            successful = False
-            return successful, new_nodes_list
+            out_folder = self.retrieved
+        except exc.NotExistent:
+            return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
 
         # Checks for error output files
-        if self._calc._ERROR_FILE in out_folder.get_folder_list():
+        if error_file_name in out_folder.list_object_names():
             self.logger.error(
                 'Errors were found please check the retrieved '
-                '{} file'.format(self._calc._ERROR_FILE)
+                '{} file'.format(error_file_name)
             )
-            successful = False
-            return successful, new_nodes_list
+            return self.exit_codes.ERROR_WERR_FILE_PRESENT
 
+        exiting_in_stdout = False
         try:
-            filpath = out_folder.get_abs_path(self._calc._OUTPUT_FILE)
-            with open(filpath, 'r') as fil:
-                out_file = fil.readlines()
+            with out_folder.open(output_file_name) as handle:
+                out_file = handle.readlines()
             # Wannier90 doesn't always write the .werr file on error
-            if any('Exiting.......' in line for line in out_file):
-                successful = False
+            if any('Exiting......' in line for line in out_file):
+                exiting_in_stdout = True
         except OSError:
             self.logger.error("Standard output file could not be found.")
-            successful = False
-            return successful, new_nodes_list
+            return self.exit_codes.ERROR_OUTPUT_STDOUT_MISSING
+
+        if temporary_folder is not None:
+            nnkp_temp_path = os.path.join(temporary_folder, nnkp_file_name)
+            if os.path.isfile(nnkp_temp_path):
+                with io.open(nnkp_temp_path, 'rb') as handle:
+                    node = SinglefileData(file=handle)
+                    self.out('nnkp_file', node)            
 
         # Tries to parse the bands
         try:
-            kpoint_path = self._calc.get_inputs_dict()['kpoint_path']
+            kpoint_path = self.node.inputs.kpoint_path
             special_points = kpoint_path.get_dict()
-            band_dat_path = out_folder.get_abs_path(
-                '{}_band.dat'.format(self._calc._SEEDNAME)
-            )
-            with open(band_dat_path, 'r') as fil:
+            with out_folder.open('{}_band.dat'.format(seedname)) as fil:
                 band_dat_file = fil.readlines()
-            band_kpt_path = out_folder.get_abs_path(
-                '{}_band.kpt'.format(self._calc._SEEDNAME)
-            )
-            with open(band_kpt_path, 'r') as fil:
+            with out_folder.open('{}_band.kpt'.format(seedname)) as fil:
                 band_kpt_file = fil.readlines()
-            structure = self._calc.get_inputs_dict()['structure']
+        except (AttributeError, KeyError, FileNotFoundError):
+            # AttributeError: no input kpoint_path
+            # KeyError: no get_dict()
+            # FileNotFoundError: _band.* files not present
+            pass
+        else:            
+            structure = self.node.inputs.structure
+            ## TODO: should we catch exceptions here?
             output_bandsdata = band_parser(
                 band_dat_file, band_kpt_file, special_points, structure
             )
-            new_nodes_list += [('interpolated_bands', output_bandsdata)]
-        except (OSError, KeyError):
-            pass
-        # save the arrays
+            self.out('interpolated_bands', output_bandsdata)
+
+        # Parse the stdout an return the parsed data
         wout_dictionary = raw_wout_parser(out_file)
         output_data = Dict(dict=wout_dictionary)
-        linkname = 'output_parameters'
-        new_nodes_list += [(linkname, output_data)]
+        self.out('output_parameters', output_data)
 
-        return successful, new_nodes_list
+        if exiting_in_stdout:
+            return self.exit_codes.ERROR_EXITING_MESSAGE_IN_STDOUT
 
 
 def raw_wout_parser(wann_out_file):

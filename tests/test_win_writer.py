@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import absolute_import
 from aiida.manage.fixtures import PluginTestCase
 from gaas_sample import create_gaas_win_params

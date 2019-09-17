@@ -4,13 +4,16 @@ from __future__ import absolute_import
 from __future__ import print_function
 import sys
 import os
-from aiida.orm import DataFactory, CalculationFactory
-from aiida.common.example_helpers import test_and_get_code
+
 import pymatgen
-from aiida.orm.data.base import List
+
+from aiida.plugins import DataFactory, CalculationFactory
+from aiida.common import exceptions as exc
+from aiida.engine import run, submit
+from aiida.orm import List, load_node, Code
 from aiida_wannier90.orbitals import generate_projections
 
-ParameterData = DataFactory('dict')
+Dict = DataFactory('dict')
 StructureData = DataFactory('structure')
 KpointsData = DataFactory('array.kpoints')
 
@@ -43,9 +46,7 @@ except IndexError:
 
 try:
     input_folder_pk = int(sys.argv[3])
-    #calc.use_parent_calculation(parent_calc)
     input_folder = load_node(input_folder_pk)
-
 except (IndexError, ValueError):
     print((
         "Must provide as third parameter the pk of the {} input folder node".
@@ -55,6 +56,10 @@ except (IndexError, ValueError):
         "If you don't have it, run the script 'create_local_input_folder.py' and then use that pk with the 'local' option"
     ), file=sys.stderr)
     sys.exit(1)
+except exc.NotExistent:
+    print((
+        "A node with pk={} does not exist".format(input_folder_pk)), file=sys.stderr)
+    sys.exit(1)
 
 try:
     codename = sys.argv[4]
@@ -62,14 +67,18 @@ except IndexError:
     print(("Must provide as fourth parameter the main code"), file=sys.stderr)
     sys.exit(1)
 
-code = test_and_get_code(codename, expected_code_type='wannier90.wannier90')
+# We should catch exceptions also here...
+code = Code.get_from_string(codename)
+if code.get_input_plugin_name() != 'wannier90.wannier90':
+    print((
+        "Code with pk={} is not a Wannier90 code".format(code.pk)), file=sys.stderr)
+    sys.exit(1)
 
-#parent_calc = Calculation.get_subclass_from_pk(parent_id)
 
 ###############SETTING UP WANNIER PARAMETERS ###################################
 
 #exclude_bands = []
-parameter = ParameterData(
+parameter = Dict(
     dict={
         'bands_plot': False,
         'num_iter': 12,
@@ -81,32 +90,40 @@ parameter = ParameterData(
     }
 )
 
-a = 5.367 * pymatgen.core.units.bohr_to_ang
-structure_pmg = pymatgen.Structure(
-    lattice=[[-a, 0, a], [0, a, a], [-a, a, 0]],
-    species=['Ga', 'As'],
-    coords=[[0] * 3, [0.25] * 3]
-)
-structure = StructureData()
-structure.set_pymatgen_structure(structure_pmg)
+# in angstrom; it was 5.367 * 2 bohr; this is the lattice parameter
+a = 5.68018817933178
+structure = StructureData(cell = [[-a/2., 0, a/2.], [0, a/2., a/2.], [-a/2., a/2., 0]])
+structure.append_atom(symbols=['Ga'], position=(0., 0., 0.))
+structure.append_atom(symbols=['As'], position=(-a/4., a/4., a/4.))
 
 kpoints = KpointsData()
 kpoints.set_kpoints_mesh([2, 2, 2])
 
-kpoints_path_tmp = KpointsData()
-kpoints_path_tmp.set_cell_from_structure(structure)
-kpoints_path_tmp.set_kpoints_path()
-point_coords, path = kpoints_path_tmp.get_special_points()
-kpoints_path = ParameterData(
-    dict={
-        'path': path,
-        'point_coords': point_coords,
+kpoint_path = Dict(dict={
+    'point_coords': {
+        'G': [0.0, 0.0, 0.0],
+        'K': [0.375, 0.375, 0.75],
+        'L': [0.5, 0.5, 0.5],
+        'U': [0.625, 0.25, 0.625],
+        'W': [0.5, 0.25, 0.75],
+        'X': [0.5, 0.0, 0.5]},
+    'path': [
+        ('G', 'X'),
+        ('X', 'W'),
+        ('W', 'K'),
+        ('K', 'G'),
+        ('G', 'L'),
+        ('L', 'U'),
+        ('U', 'W'),
+        ('W', 'L'),
+        ('L', 'K'),
+        ('U', 'X')]
     }
 )
 
-calc = code.new_calc()
-calc.set_max_wallclock_seconds(30 * 60)  # 30 min
-calc.set_resources({"num_machines": 1})
+builder = code.get_builder()
+builder.metadata.options.max_wallclock_seconds = 30 * 60 # 30 min
+builder.metadata.options.resources = {"num_machines": 1}
 
 #Two methods to define projections are available
 #Method 1
@@ -129,7 +146,7 @@ projections = generate_projections(
 ## This converts instead the 'projections' OrbitalData object to a list of strings, and passes
 ## directly to Wannier90. DISCOURAGED: better to pass the OrbitalData object,
 ## that contains 'parsed' information and is easier to query, and set
-## random_projections = True in the input 'settings' ParameterData node.
+## random_projections = True in the input 'settings' Dict node.
 #from aiida_wannier90.io._write_win import _format_all_projections
 #projections_list = List()
 #projections_list.extend(_format_all_projections(projections, random_projections=True))
@@ -141,35 +158,29 @@ projections = generate_projections(
 #projections.extend(['random','As:s'])
 
 if local_input:
-    calc.use_local_input_folder(input_folder)
+    builder.local_input_folder = input_folder
 else:
-    calc.use_remote_input_folder(input_folder)
-calc.use_structure(structure)
-calc.use_projections(projections)
-calc.use_parameters(parameter)
-calc.use_kpoints(kpoints)
-calc.use_kpoint_path(kpoints_path)
+    builder.remote_input_folder = input_folder
+builder.structure = structure
+builder.projections = projections
+builder.parameters = parameter
+builder.kpoints = kpoints
+builder.kpoint_path = kpoint_path
 
 # settings that can only be enabled if parent is nscf
 settings_dict = {'seedname': 'gaas', 'random_projections': True}
-# settings_dict.update({'INIT_ONLY':True}) # for setup calculation
-
+settings_dict.update({'postproc_setup':True}) # for setup calculation (preprocessing, -pp flag)
 if settings_dict:
-    settings = ParameterData(dict=settings_dict)
-    calc.use_settings(settings)
+    settings = Dict(dict=settings_dict)
+    builder.settings = settings
 
 if submit_test:
-    subfolder, script_filename = calc.submit_test()
-    print("Test_submit for calculation (uuid='{}')".format(calc.uuid))
-    print("Submit file in {}".format(
-        os.path.join(os.path.relpath(subfolder.abspath), script_filename)
-    ))
+    builder.metadata.dry_run = True
+    builder.metadata.store_provenance = False
+    run(builder)
+    print("dry-run executed, submit files in subfolder")
 else:
-    calc.store_all()
-    print("created calculation; calc=Calculation(uuid='{}') # ID={}".format(
-        calc.uuid, calc.dbnode.pk
-    ))
-    calc.submit()
+    calc = submit(builder)
     print("submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
-        calc.uuid, calc.dbnode.pk
+        calc.uuid, calc.pk
     ))

@@ -283,7 +283,7 @@ def _format_kpoint_path(kpoint_path):
     Prepare the lines for the Wannier90 input file related to
     the kpoint_path.
 
-    :param kpoint_path_info: a ParameterData containing two entries:
+    :param kpoint_path: a ParameterData containing two entries:
         a 'path' list with the labels of the endpoints of each
         path segment, and a dictionary called "point_coords" that gives the
         three (fractional) coordinates for each label.
@@ -295,7 +295,7 @@ def _format_kpoint_path(kpoint_path):
     point_coords = kinfo.pop('point_coords')
     if kinfo:
         raise InputValidationError(
-            'kpoint_path_info must be contain only a '
+            'kpoint_path must be contain only a '
             'list called "path" with the labels of the endpoints of each '
             'path segment, and a dictionary called "point_coords". It contains '
             'instead also other keys: {}'.format(", ".join(list(kinfo.keys())))
