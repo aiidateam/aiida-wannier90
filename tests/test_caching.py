@@ -5,22 +5,19 @@ import os
 
 import pytest
 
-from gaas_sample import *
+from gaas_sample import *  # pylint: disable=unused-wildcard-import
 
 
 def test_caching(create_gaas_calc, configure_with_daemon, assert_finished):
-    from aiida.engine import run
+    from aiida.engine import run_get_pk
     from aiida.orm import load_node
-    from aiida.common.hashing import make_hash
-    try:
-        from aiida.common import caching
-    except ImportError:
-        pytest.skip("The used version of aiida-core does not support caching.")
-    process, inputs = create_gaas_calc()
-    output, pid = run(process, _return_pid=True, **inputs)
-    output2, pid2 = run(process, _use_cache=True, _return_pid=True, **inputs)
-    assert '_aiida_cached_from' in load_node(pid2).extras()
+    from aiida.manage.caching import enable_caching
+    builder = create_gaas_calc()
+    output, pk = run_get_pk(builder)
+    with enable_caching():
+        output2, pk2 = run_get_pk(builder)
+    assert '_aiida_cached_from' in load_node(pk2).extras
     assert all(key in output for key in ['retrieved', 'output_parameters'])
     assert all(key in output2 for key in ['retrieved', 'output_parameters'])
-    assert_finished(pid)
-    assert_finished(pid2)
+    assert_finished(pk)
+    assert_finished(pk2)
