@@ -29,31 +29,31 @@ def test_changed_seedname(
 def test_changed_seedname_wrong_settings(
     create_gaas_calc, configure_with_daemon, assert_state
 ):
-    from aiida.engine import run_get_pk
+    from aiida.engine import run
     from aiida.plugins import DataFactory
     from aiida.common import InputValidationError
     # from aiida.common import calc_states
     builder = create_gaas_calc(seedname='wannier90')
-    builder.settings = DataFactory('dict')(dict=dict(seedname='aiida'))
+    builder.metadata.options['seedname'] = 'aiida'
     with pytest.raises(InputValidationError):
-        run_get_pk(builder)
+        run(builder)
 
 
-def test_changed_seedname_no_settings(
+def test_changed_seedname_not_set(
     create_gaas_calc, configure_with_daemon, assert_state
 ):
-    from aiida.engine import run_get_pk
-    from aiida.orm import Dict
+    from aiida.engine import run
+    from aiida.common import InputValidationError
     builder = create_gaas_calc(seedname='wannier90')
-    builder.settings = Dict()
-    with pytest.raises(KeyError):
-        run_get_pk(builder)
+    del builder.metadata.options['seedname']
+    with pytest.raises(InputValidationError):
+        run(builder)
 
 
 def test_duplicate_exclude_bands(
     create_gaas_calc, configure_with_daemon, assert_state
 ):
-    from aiida.engine import run_get_pk
+    from aiida.engine import run_get_node
     from aiida.plugins import DataFactory
     from aiida.common import OutputParsingError
     # from aiida.common import calc_states
@@ -71,18 +71,18 @@ def test_duplicate_exclude_bands(
             exclude_bands=[1] * 2 + [2, 3]
         )
     )
-    with pytest.raises(OutputParsingError):
-        run_get_pk(builder)
+    _, node = run_get_node(builder)
+    assert node.exit_status == 400
 
 
-def test_duplicate_settings_key(create_gaas_calc, configure_with_daemon):
+def test_mixed_case_settings_key(create_gaas_calc, configure_with_daemon):
     from aiida.engine import run
     from aiida.plugins import DataFactory
     from aiida.common import InputValidationError
 
     builder = create_gaas_calc()
     builder.settings = DataFactory('dict')(
-        dict=dict(seedname='aiida', SeeDname='AiiDA')
+        dict=dict(PostpROc_SeTup=True)
     )
     with pytest.raises(InputValidationError):
         run(builder)

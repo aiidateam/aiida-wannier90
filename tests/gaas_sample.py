@@ -77,7 +77,7 @@ def create_gaas_calc(
         builder.local_input_folder = local_input_folder
 
         if seedname != 'aiida':
-            builder.settings = Dict(dict=dict(seedname=seedname))
+            builder.metadata.options['seedname'] = seedname
 
         return builder
 
