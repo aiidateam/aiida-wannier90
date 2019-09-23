@@ -72,7 +72,7 @@ We can then setup the parameters using ParameterData, this syntax is very simila
 input the parameters to be used in the calculation like how it is shown below::
 
     from aiida.orm import DataFactory
-    ParameterData = DataFactory('parameter')
+    ParameterData = DataFactory('dict')
     parameter = ParameterData(dict={'bands_plot':True,
                                     'num_iter': 100,
                                     'dis_num_iter': 200,

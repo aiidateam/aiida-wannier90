@@ -3,6 +3,7 @@
 Usage: python configure.py travis_data_folder test_folder
 """
 
+from __future__ import absolute_import
 import sys
 from os.path import join
 

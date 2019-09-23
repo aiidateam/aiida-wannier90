@@ -1,225 +1,122 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, division
 import os
-from collections import Counter
 
 import numpy as np
+import six
 
-from aiida.common.utils import classproperty
-from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
-from aiida.common.datastructures import CalcInfo, CodeInfo, code_run_modes
-from aiida.orm import JobCalculation
-from aiida.orm.code import Code
-from aiida.orm.data.base import List
-from aiida.orm.data.array.kpoints import KpointsData
-from aiida.orm.data.orbital import OrbitalData, OrbitalFactory
-from aiida.orm.data.parameter import ParameterData
-from aiida.orm.data.remote import RemoteData
-from aiida.orm.data.structure import StructureData
-from aiida.orm.data.folder import FolderData
-from aiida.orm.data.singlefile import SinglefileData
+from aiida.common import datastructures
 
-try:
-    from aiida.backends.utils import get_authinfo
-except ImportError:
-    from aiida.execmanager import get_authinfo
+from aiida.common import exceptions as exc
+from aiida.engine import CalcJob
+from aiida.orm import (
+    AuthInfo, BandsData, Dict, FolderData, KpointsData, List, OrbitalData, RemoteData, 
+    SinglefileData, StructureData)
+from aiida.plugins import OrbitalFactory
 
 from .io import write_win
 
 
-class Wannier90Calculation(JobCalculation):
+class Wannier90Calculation(CalcJob):
     """
-    Plugin for Wannier90, a code for producing maximally localized Wannier
+    Plugin for Wannier90, a code for computing maximally-localized Wannier
     functions. See http://www.wannier.org/ for more details
     """
+    _DEFAULT_SEEDNAME = 'aiida'
+    # The following ones CANNOT be set by the user - in this case an exception will be raised
+    # IMPORTANT: define them here in lower-case
+    _BLOCKED_PARAMETER_KEYS = [
+        'length_unit', 'unit_cell_cart', 'atoms_cart', 'projections', 
+        'postproc_setup' # Pass instead a 'postproc_setup' in the input `settings` node
+    ]
+   
+    @classmethod
+    def define(cls, spec):  # pylint: disable=no-self-argument
+        super(Wannier90Calculation, cls).define(spec)
+        spec.input("structure", valid_type=StructureData,
+                   help="input crystal structure")
+        spec.input("parameters", valid_type=Dict,
+                   help="Input parameters for the Wannier90 code")
+        spec.input("settings", valid_type=Dict, required=False,
+                   help="Additional settings to manage the Wannier90 calculation")
+        spec.input("projections", valid_type=(OrbitalData, Dict, List),
+                   help="Starting projections for the Wannierisation procedure")
+        spec.input("local_input_folder", valid_type=FolderData, required=False,
+                   help="Get input files (.amn, .mmn, ...) from a FolderData stored in the AiiDA repository")
+        spec.input("remote_input_folder", valid_type=RemoteData, required=False,
+                   help="Get input files (.amn, .mmn, ...) from a RemoteData possibly stored in a remote computer")
+        spec.input("kpoints", valid_type=KpointsData,
+                   help="k-point mesh used in the NSCF calculation")
+        spec.input("kpoint_path", valid_type=Dict, required=False,
+                   help=
+                    "Description of the kpoints-path to be used for bands interpolation; "
+                    "it should contain two properties: "
+                    "a list 'path' of length-2 tuples with the labels of the endpoints of the path; and "
+                    "a dictionary 'point_coords' giving the scaled coordinates for each high-symmetry endpoint")
 
-    def _init_internal_params(self):
-        super(Wannier90Calculation, self)._init_internal_params()
+        spec.output('output_parameters', valid_type=Dict,
+            help='The `output_parameters` output node of the successful calculation.')
+        spec.output('interpolated_bands', valid_type=BandsData, required=False,
+            help='The interpolated band structure by Wannier90 (if any).')
+        spec.output('nnkp_file', valid_type=SinglefileData, required=False,
+            help='The SEEDAME.nnkp file, produced only in -pp (postproc) mode.')
 
-        self._DEFAULT_SEEDNAME = 'aiida'
-        self._default_parser = 'wannier90.wannier90'
-        self._blocked_parameter_keys = [
-            'length_unit', 'unit_cell_cart', 'atoms_cart', 'projections'
-        ]
-        #We do not block postproc_setup, but its usage is deprecated
-        #one should use settings instead
-
-    # Needed because the super() call tries to set the properties to None
-    def _property_helper(suffix):
-        def getter(self):
-            return self._SEEDNAME + suffix
-
-        def setter(self, value):
-            if value is None:
-                pass
-            else:
-                raise AttributeError('Cannot set attribute')
-
-        return property(fget=getter, fset=setter)
-
+        # This is used to allow the user to choose the input and output filenames
+        spec.input('metadata.options.seedname', valid_type=six.string_types, default=cls._DEFAULT_SEEDNAME)
+        spec.input('metadata.options.parser_name', valid_type=six.string_types, default='wannier90.wannier90')
+        # withmpi defaults to "False" in aiida-core 1.0. Below, we override to default to withmpi=True
+        spec.input('metadata.options.withmpi', valid_type=bool, default=True)
+        spec.exit_code(200, 'ERROR_NO_RETRIEVED_FOLDER',
+        message='The retrieved folder data node could not be accessed.')
+        spec.exit_code(210, 'ERROR_OUTPUT_STDOUT_MISSING',
+        message='The retrieved folder did not contain the required stdout output file.')
+        spec.exit_code(300, 'ERROR_WERR_FILE_PRESENT',
+        message='A Wannier90 error file (.werr) has been found.')
+        spec.exit_code(400, 'ERROR_EXITING_MESSAGE_IN_STDOUT',
+        message='The string "Exiting..." has been found in the Wannier90 output (some partial output might have been '
+            'parsed).')
+    
     @property
     def _SEEDNAME(self):
-        try:
-            return self.get_inputs_dict()['settings'].get_attr('seedname')
-        except (KeyError, AttributeError):
-            return self._DEFAULT_SEEDNAME
-
-    _INPUT_FILE = _property_helper('.win')
-    _OUTPUT_FILE = _property_helper('.wout')
-    _DEFAULT_INPUT_FILE = _INPUT_FILE
-    _DEFAULT_OUTPUT_FILE = _OUTPUT_FILE
-    _ERROR_FILE = _property_helper('.werr')
-    _CHK_FILE = _property_helper('.chk')
-    _NNKP_FILE = _property_helper('.nnkp')
-
-    @classproperty
-    def _use_methods(cls):
         """
-        Additional use_* methods for the Wannier90 calculation class.
+        Return the default seedname, unless a custom one has been set in the
+        calculation settings
         """
-        retdict = JobCalculation._use_methods
-        retdict.update({
-            "structure": {
-                'valid_types': StructureData,
-                'additional_parameter': None,
-                'linkname': 'structure',
-                'docstring': "Choose the input structure to use",
-            },
-            "settings": {
-                'valid_types': ParameterData,
-                'additional_parameter': None,
-                'linkname': 'settings',
-                'docstring': "Use an additional node for special settings",
-            },
-            "parameters": {
-                'valid_types':
-                ParameterData,
-                'additional_parameter':
-                None,
-                'linkname':
-                'parameters',
-                'docstring': (
-                    "Use a node that specifies the input parameters "
-                    "for the wannier code"
-                ),
-            },
-            "projections": {
-                'valid_types': (OrbitalData, List),
-                'additional_parameter': None,
-                'linkname': 'projections',
-                'docstring': ("Starting projections of class OrbitalData"),
-            },
-            "local_input_folder": {
-                'valid_types':
-                FolderData,
-                'additional_parameter':
-                None,
-                'linkname':
-                'local_input_folder',
-                'docstring': (
-                    "Use a local folder as parent folder (for "
-                    "restarts and similar"
-                ),
-            },
-            "remote_input_folder": {
-                'valid_types': RemoteData,
-                'additional_parameter': None,
-                'linkname': 'remote_input_folder',
-                'docstring': ("Use a remote folder as parent folder"),
-            },
-            "kpoints": {
-                'valid_types': KpointsData,
-                'additional_parameter': None,
-                'linkname': 'kpoints',
-                'docstring':
-                "Use the node defining the kpoint sampling to use",
-            },
-            "kpoint_path": {
-                'valid_types':
-                ParameterData,
-                'additional_parameter':
-                None,
-                'linkname':
-                'kpoint_path',
-                'docstring':
-                "Use the node defining the k-points path for bands interpolation (see documentation for the format)",
-            },
-        })
+        return self.inputs.metadata.options.seedname
 
-        return retdict
-
-    def use_parent_calculation(self, calc):
+    def prepare_for_submission(self, folder):
         """
-        Set the parent calculation, from which it will inherit the output subfolder as remote_input_folder.
+        Routine which creates the input file of Wannier90
+
+        :param folder: a aiida.common.folders.Folder subclass where
+            the plugin should put all its files.
         """
-        try:
-            remote_folder = calc.get_outputs_dict()['remote_folder']
-        except KeyError:
-            raise AttributeError(
-                "No remote_folder found in output to the "
-                "parent calculation set"
-            )
-        self.use_remote_input_folder(remote_folder)
+        param_dict = self.inputs.parameters.get_dict()
+        self._validate_lowercase(param_dict)
+        self._validate_input_parameters(param_dict)
 
-    def _prepare_for_submission(self, tempfolder, inputdict):
-        """
-        Routine, which creates the input and prepares for submission
-
-        :param tempfolder: a aiida.common.folders.Folder subclass where
-                           the plugin should put all its files.
-        :param inputdict: a dictionary with the input nodes, as they would
-                be returned by get_inputdata_dict (without the Code!)
-        """
-        input_validator = self._get_input_validator(inputdict=inputdict)
-        local_input_folder = input_validator(
-            name='local_input_folder', valid_types=FolderData, required=False
-        )
-        remote_input_folder = input_validator(
-            name='remote_input_folder', valid_types=RemoteData, required=False
-        )
-
-        parameters = input_validator(
-            name='parameters', valid_types=ParameterData
-        )
-        param_dict = self._get_validated_parameters_dict(parameters)
-
-        projections = input_validator(
-            name='projections',
-            valid_types=(OrbitalData, List),
-            required=False
-        )
-        kpoints = input_validator(name='kpoints', valid_types=KpointsData)
-        kpoint_path = input_validator(
-            name='kpoint_path', valid_types=ParameterData, required=False
-        )
-        structure = input_validator(
-            name='structure', valid_types=StructureData
-        )
-
-        settings = input_validator(
-            name='settings', valid_types=ParameterData, required=False
-        )
-        if settings is None:
-            settings_dict = {}
+        if 'settings' in self.inputs:
+            settings_dict = self.inputs.settings.get_dict()
         else:
-            settings_dict_raw = settings.get_dict()
-            settings_dict = {
-                key.lower(): val
-                for key, val in settings_dict_raw.items()
-            }
-            if len(settings_dict_raw) != len(settings_dict):
-                raise InputValidationError(
-                    'Input settings contain duplicate keys.'
-                )
+            settings_dict = {}
+        self._validate_lowercase(settings_dict)
+
         pp_setup = settings_dict.pop('postproc_setup', False)
         if pp_setup:
             param_dict.update({'postproc_setup': True})
 
-        if local_input_folder is None and remote_input_folder is None and pp_setup is False:
-            raise InputValidationError(
+        try:
+            local_input_folder = self.inputs.local_input_folder
+        except AttributeError:
+            local_input_folder = None
+
+        # TODO: implement the same pattern above also for remote_input_folder and the other
+        #       similar optional keys, then replace below
+
+        if 'local_input_folder' not in self.inputs and 'remote_input_folder' not in self.inputs and not pp_setup:
+            raise exc.InputValidationError(
                 'Either local_input_folder or remote_input_folder must be set.'
             )
-
-        code = input_validator(name='code', valid_types=Code)
 
         ############################################################
         # End basic check on inputs
@@ -227,30 +124,32 @@ class Wannier90Calculation(JobCalculation):
         random_projections = settings_dict.pop('random_projections', False)
 
         write_win(
-            filename=tempfolder.get_abs_path(self._INPUT_FILE),
+            filename=folder.get_abs_path('{}.win'.format(self._SEEDNAME)),
             parameters=param_dict,
-            structure=structure,
-            kpoints=kpoints,
-            kpoint_path=kpoint_path,
-            projections=projections,
+            structure=self.inputs.structure,
+            kpoints=self.inputs.kpoints,
+            kpoint_path = getattr(self.inputs, 'kpoint_path', None),
+            projections=self.inputs.projections,
             random_projections=random_projections,
         )
 
-        if remote_input_folder is not None:
-            remote_input_folder_uuid = remote_input_folder.get_computer().uuid
-            remote_input_folder_path = remote_input_folder.get_remote_path()
+        #NOTE: remote_input_folder -> parent_calc_folder (for consistency)
+        if 'remote_input_folder' in self.inputs:
+            remote_input_folder_uuid = self.inputs.remote_input_folder.computer.uuid
+            remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path()
 
-            t_dest = get_authinfo(
-                computer=remote_input_folder.get_computer(),
-                aiidauser=remote_input_folder.get_user()
+            # TODO: this .get probably does not work
+            t_dest = AuthInfo.objects.get(
+                computer=self.inputs.remote_input_folder.computer,
+                user=self.inputs.remote_input_folder.user
             ).get_transport()
             with t_dest:
                 remote_folder_content = t_dest.listdir(
                     path=remote_input_folder_path
                 )
 
-        if local_input_folder is not None:
-            local_folder_content = local_input_folder.get_folder_list()
+        if 'local_input_folder' in self.inputs:
+            local_folder_content = self.inputs.local_input_folder.list_object_names()
         if pp_setup:
             required_files = []
         else:
@@ -271,13 +170,13 @@ class Wannier90Calculation(JobCalculation):
             return result
 
         # Local FolderData has precedence over RemoteData
-        if local_input_folder is not None:
+        if 'local_input_folder' in self.inputs:
             found_in_local = files_finder(
                 local_folder_content, input_files, wavefunctions_files
             )
         else:
             found_in_local = []
-        if remote_input_folder is not None:
+        if 'remote_input_folder' in self.inputs:
             found_in_remote = files_finder(
                 remote_folder_content, input_files, wavefunctions_files
             )
@@ -292,8 +191,10 @@ class Wannier90Calculation(JobCalculation):
             if f not in found_in_remote + found_in_local
         ]
         if len(not_found) != 0:
-            raise InputValidationError(
-                "{} necessary input files were not found: {} ".format(
+            raise exc.InputValidationError(
+                "{} necessary input files were not found: {} (NOTE: if you "
+                "wanted to run a preprocess step, remember to pass "
+                "postproc_setup=True in the input settings node)".format(
                     len(not_found), ', '.join(str(nf) for nf in not_found)
                 )
             )
@@ -303,8 +204,10 @@ class Wannier90Calculation(JobCalculation):
         local_copy_list = []
         #Here we enforce that everything except checkpoints are symlinked
         #because in W90 you never modify input files on the run
-        ALWAYS_COPY_FILES = [self._CHK_FILE]
+        ALWAYS_COPY_FILES = ['{}.chk'.format(self._SEEDNAME)]
         for f in found_in_remote:
+            #NOTE: for symlinks this appears wrong (comp_uuid, remote_path, default_calc_fldr)
+            #NOTE: what is self._DEFAULT_PARENT_CALC_FLDR_NAME equivalent to here? 
             file_info = (
                 remote_input_folder_uuid,
                 os.path.join(remote_input_folder_path, f), os.path.basename(f)
@@ -315,7 +218,7 @@ class Wannier90Calculation(JobCalculation):
                 remote_symlink_list.append(file_info)
         for f in found_in_local:
             local_copy_list.append(
-                (local_input_folder.get_abs_path(f), os.path.basename(f))
+                (self.inputs.local_input_folder.uuid, f, f)
             )
 
         # Add any custom copy/sym links
@@ -329,29 +232,27 @@ class Wannier90Calculation(JobCalculation):
 
         #######################################################################
 
-        calcinfo = CalcInfo()
+        calcinfo = datastructures.CalcInfo()
         calcinfo.uuid = self.uuid
         calcinfo.local_copy_list = local_copy_list
         calcinfo.remote_copy_list = remote_copy_list
         calcinfo.remote_symlink_list = remote_symlink_list
 
-        codeinfo = CodeInfo()
-        codeinfo.code_uuid = code.uuid
-        #codeinfo.withmpi = True  # Current version of W90 can be run in parallel
-        codeinfo.cmdline_params = [self._INPUT_FILE]
+        codeinfo = datastructures.CodeInfo()
+        codeinfo.code_uuid = self.inputs.code.uuid
+        codeinfo.cmdline_params = ['{}.win'.format(self._SEEDNAME)]
 
         calcinfo.codes_info = [codeinfo]
-        calcinfo.codes_run_mode = code_run_modes.SERIAL
+        calcinfo.codes_run_mode = datastructures.CodeRunMode.SERIAL
 
         # Retrieve files
         calcinfo.retrieve_list = []
-        calcinfo.retrieve_list.append(self._OUTPUT_FILE)
-        calcinfo.retrieve_list.append(self._ERROR_FILE)
+        calcinfo.retrieve_temporary_list = []
+        calcinfo.retrieve_list.append('{}.wout'.format(self._SEEDNAME))
+        calcinfo.retrieve_list.append('{}.werr'.format(self._SEEDNAME))
         if pp_setup:
-            calcinfo.retrieve_list.append(self._NNKP_FILE)
-            calcinfo.retrieve_singlefile_list = [
-                ('output_nnkp', 'singlefile', self._NNKP_FILE)
-            ]
+            # The parser will then put this in a SinglefileData (if present)
+            calcinfo.retrieve_temporary_list.append('{}.nnkp'.format(self._SEEDNAME))
 
         calcinfo.retrieve_list += [
             '{}_band.dat'.format(self._SEEDNAME),
@@ -374,67 +275,49 @@ class Wannier90Calculation(JobCalculation):
         # pop input keys not used here
         settings_dict.pop('seedname', None)
         if settings_dict:
-            raise InputValidationError(
+            raise exc.InputValidationError(
                 "The following keys in settings are unrecognized: {}".format(
-                    settings_dict.keys()
+                    list(settings_dict.keys())
                 )
             )
 
         return calcinfo
 
     @staticmethod
-    def _get_input_validator(inputdict):
-        def _validate_input(name, valid_types, required=True, default=None):
-            try:
-                value = inputdict.pop(name)
-            except KeyError:
-                if required:
-                    raise InputValidationError(
-                        "Missing required input parameter '{}'".format(name)
-                    )
-                else:
-                    value = default
+    def _validate_lowercase(dictionary):
+        """
+        This function gets a dictionary and checks that all keys are lower-case.
+        
+        :param dict_node: a dictionary
+        :raises InputValidationError: if any of the keys is not lower-case
+        :return: ``None`` if validation passes
+        """
+        non_lowercase = []
+        for key in dictionary:
+            if key != key.lower():
+                non_lowercase.append(key)
+        if non_lowercase:
+            raise exc.InputValidationError(
+                "input keys to the Wannier90 plugin must be all lower-case, but the following aren't : {}".format(
+                    ", ".join(non_lowercase)))
 
-            if not isinstance(valid_types, (list, tuple)):
-                valid_types = [valid_types]
-            if not required:
-                valid_types = list(valid_types) + [type(default)]
-            valid_types = tuple(valid_types)
-
-            if not isinstance(value, valid_types):
-                raise InputValidationError(
-                    "Input parameter '{}' is of type '{}', but should be of type(s) '{}'".
-                    format(name, type(value), valid_types)
-                )
-            return value
-
-        return _validate_input
-
-    def _get_validated_parameters_dict(self, parameters):
-        param_dict_raw = parameters.get_dict()
-
-        # keys to lowercase, check for duplicates
-        param_dict = {
-            key.lower(): value
-            for key, value in param_dict_raw.items()
-        }
-        if len(param_dict) != len(param_dict_raw):
-            counter = Counter([k.lower() for k in param_dict_raw])
-            counter = {key: val for key, val in counter if val > 1}
-            raise InputValidationError(
-                'The following keys were found more than once in the parameters: {}. Check for duplicates written in upper- / lowercase.'.
-                format(counter)
-            )
-
-        # check for blocked keywords
+    def _validate_input_parameters(self, parameters):
+        """
+        This function gets a dictionary with the content of the parameters Dict passed by the user
+        and performs some validation.
+        
+        In particular, it checks that there are no blocked parameters keys passed.
+        
+        :param dict_node: a dictionary
+        :raises InputValidationError: if any of the validation fails
+        :return: ``None`` if validation passes
+        """
         existing_blocked_keys = []
-        for key in self._blocked_parameter_keys:
-            if key in param_dict:
+        for key in self._BLOCKED_PARAMETER_KEYS:
+            if key in parameters:
                 existing_blocked_keys.append(key)
         if existing_blocked_keys:
-            raise InputValidationError(
+            raise exc.InputValidationError(
                 'The following blocked keys were found in the parameters: {}'.
-                format(existing_blocked_keys)
+                format(", ".join(existing_blocked_keys))
             )
-
-        return param_dict

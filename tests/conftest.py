@@ -1,11 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+
+import os
 import json
+import shutil
 import operator
+import tempfile
 
 import pytest
-from aiida_pytest import *
+
+from aiida.manage.fixtures import fixture_manager
+
+#TODO: try to break dependencies here
+# from aiida_pytest import configure, config_dict
+# All dependent pytest fixtures need to be imported, not only the
+# explicitly used ones.
+from aiida_pytest import *  # pylint: disable=unused-wildcard-import
 
 
 @pytest.fixture
@@ -33,4 +45,7 @@ def compare_data(request, test_name, scope="session"):
 
 @pytest.fixture
 def compare_equal(compare_data):
-    return lambda data, tag=None: compare_data(operator.eq, data, tag)
+    def inner(data, tag=None):
+        return compare_data(operator.eq, data=data, tag=tag)
+
+    return inner

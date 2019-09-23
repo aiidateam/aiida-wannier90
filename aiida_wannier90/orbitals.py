@@ -4,6 +4,9 @@
 Creating OrbitalData instances
 ==============================
 """
+from __future__ import absolute_import
+import six
+from six.moves import range
 __all__ = ['generate_projections']
 
 
@@ -49,8 +52,8 @@ def _generate_wannier_orbitals(
     :param spin_axis: the spin alignment axis, as described in the
                       user guide
     """
-    from aiida.orm import DataFactory
-    from aiida.orm.data.orbital import OrbitalFactory
+    from aiida.plugins import DataFactory
+    from aiida.plugins import OrbitalFactory
 
     def convert_to_list(item):
         """
@@ -107,7 +110,7 @@ def _generate_wannier_orbitals(
                 'Must supply a StructureData as '
                 'structure if using kind_name'
             )
-        if not isinstance(kind_name, basestring):
+        if not isinstance(kind_name, six.string_types):
             raise InputValidationError('kind_name must be a string')
 
     if ang_mtm_name == None and ang_mtm_l == None:
@@ -218,8 +221,7 @@ def _generate_wannier_orbitals(
     # generating and returning a list of all corresponding orbitals
     orbital_out = []
     for projection_dict in projection_dicts:
-        realh = RealhydrogenOrbital()
-        realh.set_orbital_dict(projection_dict)
+        realh = RealhydrogenOrbital(**projection_dict)
         orbital_out.append(realh)
     return orbital_out
 
@@ -273,7 +275,7 @@ def generate_projections(list_of_projection_dicts, structure):
     :param spin_axis: the spin alignment axis, as described in the
                       user guide (spin_orientation)
     """
-    from aiida.orm import DataFactory
+    from aiida.plugins import DataFactory
 
     if not isinstance(list_of_projection_dicts, (list, tuple)):
         list_of_projection_dicts = [list_of_projection_dicts]

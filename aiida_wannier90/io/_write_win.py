@@ -3,12 +3,14 @@
 
 from __future__ import unicode_literals
 
+from __future__ import absolute_import
 import copy
 
-from aiida.common.utils import conv_to_fortran_withlists
-from aiida.common.exceptions import InputValidationError, ModificationNotAllowed
+from aiida_wannier90.utils import conv_to_fortran_withlists
+from aiida.common import InputValidationError, ModificationNotAllowed
 
 from ._group_list import list_to_grouped_string
+import six
 
 __all__ = ['write_win']
 
@@ -67,12 +69,12 @@ def _create_win_string(
     projections=None,
     random_projections=False,
 ):
-    from aiida.orm import DataFactory
-    from aiida.orm.data.base import List
+    from aiida.plugins import DataFactory
+    from aiida.orm import List
 
     # prepare the main input text
     input_file_lines = []
-    if isinstance(parameters, DataFactory('parameter')):
+    if isinstance(parameters, DataFactory('dict')):
         parameters = parameters.get_dict()
     try:
         parameters.setdefault('mp_grid', kpoints.get_kpoints_mesh()[0])
@@ -174,7 +176,7 @@ def _format_single_projection(orbital):
     will raise an exception if the orbital does not contain enough
     information, or the information is badly formated
     """
-    from aiida.common.orbital import OrbitalFactory
+    from aiida.plugins import OrbitalFactory
     RealhydrogenOrbital = OrbitalFactory("realhydrogen")
 
     if not isinstance(orbital, RealhydrogenOrbital):
@@ -227,7 +229,7 @@ def _format_single_projection(orbital):
     # line alone. You must, in addition, apply the appropriate settings:
     # either set spinors=.true. or use spinor_projections, see user guide
     spin = _get_attribute("spin", required=False)
-    if spin is not None:
+    if spin is not None and spin != 0:
         spin_dict = {-1: "d", 1: "u"}
         wann_string += "({})".format(spin_dict[spin])
     spin_orient = _get_attribute("spin_orientation", required=False)
@@ -255,7 +257,7 @@ def _format_atoms_cart(structure):
         Converts an input list item into a str
         '''
         list_item = copy.deepcopy(list_item)
-        if isinstance(list_item, (str, unicode)):
+        if isinstance(list_item, (str, six.text_type)):
             return list_item
         else:
             return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
@@ -281,7 +283,7 @@ def _format_kpoint_path(kpoint_path):
     Prepare the lines for the Wannier90 input file related to
     the kpoint_path.
 
-    :param kpoint_path_info: a ParameterData containing two entries:
+    :param kpoint_path: a ParameterData containing two entries:
         a 'path' list with the labels of the endpoints of each
         path segment, and a dictionary called "point_coords" that gives the
         three (fractional) coordinates for each label.
@@ -291,13 +293,6 @@ def _format_kpoint_path(kpoint_path):
     kinfo = kpoint_path.get_dict()
     path = kinfo.pop('path')
     point_coords = kinfo.pop('point_coords')
-    if kinfo:
-        raise InputValidationError(
-            'kpoint_path_info must be contain only a '
-            'list called "path" with the labels of the endpoints of each '
-            'path segment, and a dictionary called "point_coords". It contains '
-            'instead also other keys: {}'.format(", ".join(kinfo.keys()))
-        )
 
     # In Wannier90 (from the user guide): Values are in
     # fractional coordinates with respect to the primitive
