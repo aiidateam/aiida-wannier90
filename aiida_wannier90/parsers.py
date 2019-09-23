@@ -84,10 +84,10 @@ class Wannier90Parser(Parser):
                 band_dat_file = fil.readlines()
             with out_folder.open('{}_band.kpt'.format(seedname)) as fil:
                 band_kpt_file = fil.readlines()
-        except (AttributeError, KeyError, FileNotFoundError):
+        except (AttributeError, KeyError, IOError):
             # AttributeError: no input kpoint_path
             # KeyError: no get_dict()
-            # FileNotFoundError: _band.* files not present
+            # IOError: _band.* files not present
             pass
         else:            
             structure = self.node.inputs.structure

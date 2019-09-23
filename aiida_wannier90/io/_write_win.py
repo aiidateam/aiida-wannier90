@@ -293,13 +293,6 @@ def _format_kpoint_path(kpoint_path):
     kinfo = kpoint_path.get_dict()
     path = kinfo.pop('path')
     point_coords = kinfo.pop('point_coords')
-    if kinfo:
-        raise InputValidationError(
-            'kpoint_path must be contain only a '
-            'list called "path" with the labels of the endpoints of each '
-            'path segment, and a dictionary called "point_coords". It contains '
-            'instead also other keys: {}'.format(", ".join(list(kinfo.keys())))
-        )
 
     # In Wannier90 (from the user guide): Values are in
     # fractional coordinates with respect to the primitive

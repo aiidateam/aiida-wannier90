@@ -9,9 +9,8 @@ from aiida.common import datastructures
 
 from aiida.common import exceptions as exc
 from aiida.engine import CalcJob
-from aiida.common.lang import classproperty
 from aiida.orm import (
-    AuthInfo, BandsData, Code, Dict, FolderData, KpointsData, List, OrbitalData, RemoteData, 
+    AuthInfo, BandsData, Dict, FolderData, KpointsData, List, OrbitalData, RemoteData, 
     SinglefileData, StructureData)
 from aiida.plugins import OrbitalFactory
 
@@ -129,7 +128,7 @@ class Wannier90Calculation(CalcJob):
             parameters=param_dict,
             structure=self.inputs.structure,
             kpoints=self.inputs.kpoints,
-            kpoint_path=self.inputs.kpoint_path if 'kpoint_path' in self.inputs else None, ### TODO: check if this works, and/or if it's needed for other optional things; maybe better, for all optional, to first get them in a variable
+            kpoint_path = getattr(self.inputs, 'kpoint_path', None),
             projections=self.inputs.projections,
             random_projections=random_projections,
         )
