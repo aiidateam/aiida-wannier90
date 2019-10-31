@@ -11,7 +11,7 @@
   "extras_require": {
     "test": [
       "pytest",
-      "aiida-pytest",
+      "aiida-pytest>=0.1.0a5",
       "pymatgen;python_version>='3'",
       "pymatgen<=2018.12.12;python_version<'3'"
     ],
@@ -29,7 +29,7 @@
   "author": "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi & The AiiDA Team.",
   "author_email": "developers@aiida.net",
   "install_requires": [
-    "aiida-core>=1.0.0b5,<2"
+    "aiida-core>=1.0.0,<2"
   ],
   "version": "2.0.0",
   "keywords": "wannier90 AiiDA workflows plugin",
@@ -43,5 +43,5 @@
     "Topic :: Scientific/Engineering :: Physics",
     "Framework :: AiiDA"
   ],
-  "description": "AiiDA Plugin for tje Wannier90 code"
+  "description": "AiiDA Plugin for the Wannier90 code"
 }
