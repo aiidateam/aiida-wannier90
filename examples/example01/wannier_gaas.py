@@ -33,38 +33,9 @@ except IndexError:
     sys.exit(1)
 
 try:
-    input_mode = sys.argv[2]
-    if input_mode == "local":
-        local_input = True
-    elif input_mode == "remote":
-        local_input = False
-    else:
-        raise IndexError
+    codename = sys.argv[2]
 except IndexError:
-    print(('Must provide the input mode ("local" or "remote")'), file=sys.stderr)
-    sys.exit(1)
-
-try:
-    input_folder_pk = int(sys.argv[3])
-    input_folder = load_node(input_folder_pk)
-except (IndexError, ValueError):
-    print((
-        "Must provide as third parameter the pk of the {} input folder node".
-        format('local' if local_input else 'remote')
-    ), file=sys.stderr)
-    print((
-        "If you don't have it, run the script 'create_local_input_folder.py' and then use that pk with the 'local' option"
-    ), file=sys.stderr)
-    sys.exit(1)
-except exc.NotExistent:
-    print((
-        "A node with pk={} does not exist".format(input_folder_pk)), file=sys.stderr)
-    sys.exit(1)
-
-try:
-    codename = sys.argv[4]
-except IndexError:
-    print(("Must provide as fourth parameter the main code"), file=sys.stderr)
+    print(("Must provide as second parameter the main code"), file=sys.stderr)
     sys.exit(1)
 
 # We should catch exceptions also here...
@@ -75,16 +46,54 @@ if code.get_input_plugin_name() != 'wannier90.wannier90':
     sys.exit(1)
 
 
+do_preprocess = False
+try:
+    input_mode = sys.argv[3]
+    if input_mode == "local":
+        local_input = True
+    elif input_mode == "remote":
+        local_input = False
+    elif input_mode == "preprocess":
+        do_preprocess = True
+    else:
+        raise IndexError
+except IndexError:
+    print(('Must provide as third parameter the input mode ("local" for a FolderData with the .mmn, "remote" for a RemoteData with the .mmn, or "preprocess" for the preprocess step)'), file=sys.stderr)
+    sys.exit(1)
+
+if not do_preprocess:
+    try:
+        input_folder_pk = int(sys.argv[4])
+        input_folder = load_node(input_folder_pk)
+    except (IndexError, ValueError):
+        print((
+            "Must provide as third parameter the pk of the {} input folder node".
+            format('local' if local_input else 'remote')
+        ), file=sys.stderr)
+        print((
+            "If you don't have it, run the script 'create_local_input_folder.py' and then use that pk with the 'local' option"
+        ), file=sys.stderr)
+        sys.exit(1)
+    except exc.NotExistent:
+        print((
+            "A node with pk={} does not exist".format(input_folder_pk)), file=sys.stderr)
+        sys.exit(1)
+
+
+
+
+
+
 ###############SETTING UP WANNIER PARAMETERS ###################################
 
-#exclude_bands = []
+exclude_bands = [1,2,3,4,5]
 parameter = Dict(
     dict={
         'bands_plot': False,
-        'num_iter': 12,
+        'num_iter': 300,
         'guiding_centres': True,
         'num_wann': 4,
-        #'exclude_bands': exclude_bands,
+        'exclude_bands': exclude_bands,
         # 'wannier_plot':True,
         # 'wannier_plot_list':[1]
     }
@@ -157,10 +166,11 @@ projections = generate_projections(
 #projections.extend(['As:s','As:p'])
 #projections.extend(['random','As:s'])
 
-if local_input:
-    builder.local_input_folder = input_folder
-else:
-    builder.remote_input_folder = input_folder
+if not do_preprocess:
+    if local_input:
+        builder.local_input_folder = input_folder
+    else:
+        builder.remote_input_folder = input_folder
 builder.structure = structure
 builder.projections = projections
 builder.parameters = parameter
@@ -169,7 +179,8 @@ builder.kpoint_path = kpoint_path
 
 # settings that can only be enabled if parent is nscf
 settings_dict = {'seedname': 'gaas', 'random_projections': True}
-settings_dict.update({'postproc_setup':True}) # for setup calculation (preprocessing, -pp flag)
+if do_preprocess:
+    settings_dict.update({'postproc_setup':True}) # for setup calculation (preprocessing, -pp flag)
 if settings_dict:
     settings = Dict(dict=settings_dict)
     builder.settings = settings

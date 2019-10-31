@@ -7,6 +7,13 @@ from six.moves import range
 from aiida.parsers import Parser
 from aiida.common import exceptions as exc
 
+#WARNINGS = {
+#    'NUM_ITER_REACHED': {
+#        'help': "Maximum number of ...",
+#    },
+#    ...
+#}
+
 
 class Wannier90Parser(Parser):
     """
@@ -14,8 +21,6 @@ class Wannier90Parser(Parser):
     the centers, spreads and, if possible the Imaginary/Real ratio of the
     wannier functions. Will also check to see if the output converged.
     """
-    _outarray_name = 'output_data'
-
     def __init__(self, calculation):
         from .calculations import Wannier90Calculation
 
@@ -116,6 +121,7 @@ def raw_wout_parser(wann_out_file):
     :param out_file: the .wout file, as a list of strings
     :return out: a dictionary of parameters that can be stored as parameter data
     '''
+    conversion_factor_to_ang = 1.
     w90_conv = False  #Used to assess convergence of MLWF procedure use conv_tol and conv_window>1
     out = {}
     out.update({'warnings': []})
@@ -152,6 +158,8 @@ def raw_wout_parser(wann_out_file):
                             'Units not Ang, '
                             'be sure this is OK!'
                         )
+                # Check if it's ang or bohr, update conversion factor, raise if unknown!
+                
                 if 'Output verbosity (1=low, 5=high)' in line:
                     out.update({'output_verbosity': int(line.split()[-2])})
                     if out['output_verbosity'] != 1:
@@ -249,7 +257,7 @@ def raw_wout_parser(wann_out_file):
             for i in range(i + 2, i + 6):
                 line = wann_out_file[i]
                 if 'Omega I' in line:
-                    out.update({'Omega_I': float(line.split()[-1])})
+                    out.update({'Omega_I': float(line.split()[-1])}) * conversion_factor_to_ang**2
                 if 'Omega D' in line:
                     out.update({'Omega_D': float(line.split()[-1])})
                 if 'Omega OD' in line:
@@ -263,8 +271,10 @@ def raw_wout_parser(wann_out_file):
             wann_function = wann_functions[wann_id - 1]
             wann_function.update({'im_re_ratio': float(line.split()[-1])})
     if not w90_conv:
+        new_warning = 'NUM_ITER_REACHED'
         out['warnings'
-            ].append('Wannierisation finished because num_iter was reached.')
+            ].append(WARNINGS[new_warning]['help']) #Wannierisation finished because num_iter was reached.')
+        out['parsable_warnings'].append(new_warning)
     return out
 
 
