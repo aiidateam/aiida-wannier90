@@ -60,6 +60,7 @@ class Wannier90Calculation(CalcJob):
             help='The interpolated band structure by Wannier90 (if any).')
         spec.output('nnkp_file', valid_type=SinglefileData, required=False,
             help='The SEEDAME.nnkp file, produced only in -pp (postproc) mode.')
+        spec.default_output_node = 'output_parameters'
 
         # This is used to allow the user to choose the input and output filenames
         spec.input('metadata.options.seedname', valid_type=six.string_types, default=cls._DEFAULT_SEEDNAME)
@@ -138,10 +139,10 @@ class Wannier90Calculation(CalcJob):
             remote_input_folder_uuid = self.inputs.remote_input_folder.computer.uuid
             remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path()
 
-            # TODO: this .get probably does not work
+            # TODO: ISSUE 37 G.P N.R
             t_dest = AuthInfo.objects.get(
-                computer=self.inputs.remote_input_folder.computer,
-                user=self.inputs.remote_input_folder.user
+                dbcomputer_id=self.inputs.remote_input_folder.computer.pk,
+                aiidauser_id=self.inputs.remote_input_folder.user.pk
             ).get_transport()
             with t_dest:
                 remote_folder_content = t_dest.listdir(
