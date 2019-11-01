@@ -18,6 +18,7 @@ before_install:
   - sudo service postgresql restart
 install:
   - pip install .[test,dev,docs]
+  - reentry scan
 env:
   - TEST_TYPE="pre-commit"
   - TEST_TYPE="tests"
