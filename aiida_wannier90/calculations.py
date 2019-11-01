@@ -139,7 +139,6 @@ class Wannier90Calculation(CalcJob):
             remote_input_folder_uuid = self.inputs.remote_input_folder.computer.uuid
             remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path()
 
-            # TODO: ISSUE 37 G.P N.R
             t_dest = AuthInfo.objects.get(
                 dbcomputer_id=self.inputs.remote_input_folder.computer.pk,
                 aiidauser_id=self.inputs.remote_input_folder.user.pk
