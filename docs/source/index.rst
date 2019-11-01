@@ -1,7 +1,5 @@
 .. title:: Overview
 
-.. container:: section
-
 .. automodule:: aiida_wannier90
     :members:
 
