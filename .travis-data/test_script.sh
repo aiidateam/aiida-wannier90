@@ -20,6 +20,5 @@ case "$TEST_TYPE" in
         # -n to warn about all missing references
         # -W to convert warnings in errors
         SPHINXOPTS="-nW" make -C docs
-        ;;        
         ;;
 esac
