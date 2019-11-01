@@ -17,8 +17,6 @@ addons:
 before_install:
   - sudo service postgresql restart
 install:
-  - pip install git+https://github.com/aiidateam/aiida_core.git@develop#egg=aiida_core
-  - pip install git+https://github.com/greschd/aiida_pytest@migrate_v1#egg=aiida_pytest
   - pip install .[test,dev,docs]
 env:
   - TEST_TYPE="pre-commit"
