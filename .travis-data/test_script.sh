@@ -5,6 +5,9 @@ set -ev
 
 case "$TEST_TYPE" in
     tests)
+        # I make sure that I can import the module without the need of having the AiiDA environment/profile loaded
+        python -c "import aiida_wannier90"
+
         # Run the AiiDA tests
         cd ${TRAVIS_BUILD_DIR}/.travis-data; ./build_wannier90.sh
         python ${TRAVIS_BUILD_DIR}/.travis-data/configure.py ${TRAVIS_BUILD_DIR}/.travis-data ${TRAVIS_BUILD_DIR}/tests;
