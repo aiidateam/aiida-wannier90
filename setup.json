@@ -11,7 +11,7 @@
   "extras_require": {
     "test": [
       "pytest",
-      "aiida-pytest>=0.1.0a5",
+      "aiida-pytest>=0.1.0a6",
       "pymatgen;python_version>='3'",
       "pymatgen<=2018.12.12;python_version<'3'",
       "monty<3;python_version<'3'"
@@ -41,6 +41,7 @@
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
     "Topic :: Scientific/Engineering :: Physics",
     "Framework :: AiiDA"
   ],

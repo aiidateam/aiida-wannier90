@@ -2,6 +2,7 @@ language: python
 python: 
   - "2.7"
   - "3.6"
+  - "3.7"
 cache: pip
 sudo: true
 services:
@@ -17,9 +18,8 @@ addons:
 before_install:
   - sudo service postgresql restart
 install:
-  - pip install git+https://github.com/aiidateam/aiida_core.git@develop#egg=aiida_core
-  - pip install git+https://github.com/greschd/aiida_pytest@migrate_v1#egg=aiida_pytest
   - pip install .[test,dev,docs]
+  - reentry scan
 env:
   - TEST_TYPE="pre-commit"
   - TEST_TYPE="tests"
