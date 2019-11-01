@@ -24,4 +24,7 @@ env:
   - TEST_TYPE="pre-commit"
   - TEST_TYPE="tests"
 script:
+  # I make sure that I can import the module without the need of having the AiiDA environment/profile loaded
+  - python -c "import aiida_wannier90"
+  # I run all other tests
   - ./.travis-data/test_script.sh
