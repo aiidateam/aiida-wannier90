@@ -13,7 +13,8 @@
       "pytest",
       "aiida-pytest>=0.1.0a5",
       "pymatgen;python_version>='3'",
-      "pymatgen<=2018.12.12;python_version<'3'"
+      "pymatgen<=2018.12.12;python_version<'3'",
+      "monty<3;python_version<'3'"
     ],
     "docs": [
       "sphinx",
