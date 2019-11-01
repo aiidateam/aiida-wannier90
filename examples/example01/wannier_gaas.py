@@ -26,10 +26,9 @@ try:
     else:
         raise IndexError
 except IndexError:
-    print((
-        "The first parameter can only be either "
-        "--send or --dont-send"
-    ), file=sys.stderr)
+    print(("The first parameter can only be either "
+           "--send or --dont-send"),
+          file=sys.stderr)
     sys.exit(1)
 
 try:
@@ -41,10 +40,9 @@ except IndexError:
 # We should catch exceptions also here...
 code = Code.get_from_string(codename)
 if code.get_input_plugin_name() != 'wannier90.wannier90':
-    print((
-        "Code with pk={} is not a Wannier90 code".format(code.pk)), file=sys.stderr)
+    print(("Code with pk={} is not a Wannier90 code".format(code.pk)),
+          file=sys.stderr)
     sys.exit(1)
-
 
 do_preprocess = False
 try:
@@ -58,7 +56,10 @@ try:
     else:
         raise IndexError
 except IndexError:
-    print(('Must provide as third parameter the input mode ("local" for a FolderData with the .mmn, "remote" for a RemoteData with the .mmn, or "preprocess" for the preprocess step)'), file=sys.stderr)
+    print((
+        'Must provide as third parameter the input mode ("local" for a FolderData with the .mmn, "remote" for a RemoteData with the .mmn, or "preprocess" for the preprocess step)'
+    ),
+          file=sys.stderr)
     sys.exit(1)
 
 if not do_preprocess:
@@ -67,26 +68,23 @@ if not do_preprocess:
         input_folder = load_node(input_folder_pk)
     except (IndexError, ValueError):
         print((
-            "Must provide as third parameter the pk of the {} input folder node".
-            format('local' if local_input else 'remote')
-        ), file=sys.stderr)
+            "Must provide as third parameter the pk of the {} input folder node"
+            .format('local' if local_input else 'remote')
+        ),
+              file=sys.stderr)
         print((
             "If you don't have it, run the script 'create_local_input_folder.py' and then use that pk with the 'local' option"
-        ), file=sys.stderr)
+        ),
+              file=sys.stderr)
         sys.exit(1)
     except exc.NotExistent:
-        print((
-            "A node with pk={} does not exist".format(input_folder_pk)), file=sys.stderr)
+        print(("A node with pk={} does not exist".format(input_folder_pk)),
+              file=sys.stderr)
         sys.exit(1)
-
-
-
-
-
 
 ###############SETTING UP WANNIER PARAMETERS ###################################
 
-exclude_bands = [1,2,3,4,5]
+exclude_bands = [1, 2, 3, 4, 5]
 parameter = Dict(
     dict={
         'bands_plot': False,
@@ -101,37 +99,32 @@ parameter = Dict(
 
 # in angstrom; it was 5.367 * 2 bohr; this is the lattice parameter
 a = 5.68018817933178
-structure = StructureData(cell = [[-a/2., 0, a/2.], [0, a/2., a/2.], [-a/2., a/2., 0]])
+structure = StructureData(
+    cell=[[-a / 2., 0, a / 2.], [0, a / 2., a / 2.], [-a / 2., a / 2., 0]]
+)
 structure.append_atom(symbols=['Ga'], position=(0., 0., 0.))
-structure.append_atom(symbols=['As'], position=(-a/4., a/4., a/4.))
+structure.append_atom(symbols=['As'], position=(-a / 4., a / 4., a / 4.))
 
 kpoints = KpointsData()
 kpoints.set_kpoints_mesh([2, 2, 2])
 
-kpoint_path = Dict(dict={
-    'point_coords': {
-        'G': [0.0, 0.0, 0.0],
-        'K': [0.375, 0.375, 0.75],
-        'L': [0.5, 0.5, 0.5],
-        'U': [0.625, 0.25, 0.625],
-        'W': [0.5, 0.25, 0.75],
-        'X': [0.5, 0.0, 0.5]},
-    'path': [
-        ('G', 'X'),
-        ('X', 'W'),
-        ('W', 'K'),
-        ('K', 'G'),
-        ('G', 'L'),
-        ('L', 'U'),
-        ('U', 'W'),
-        ('W', 'L'),
-        ('L', 'K'),
-        ('U', 'X')]
+kpoint_path = Dict(
+    dict={
+        'point_coords': {
+            'G': [0.0, 0.0, 0.0],
+            'K': [0.375, 0.375, 0.75],
+            'L': [0.5, 0.5, 0.5],
+            'U': [0.625, 0.25, 0.625],
+            'W': [0.5, 0.25, 0.75],
+            'X': [0.5, 0.0, 0.5]
+        },
+        'path': [('G', 'X'), ('X', 'W'), ('W', 'K'), ('K', 'G'), ('G', 'L'),
+                 ('L', 'U'), ('U', 'W'), ('W', 'L'), ('L', 'K'), ('U', 'X')]
     }
 )
 
 builder = code.get_builder()
-builder.metadata.options.max_wallclock_seconds = 30 * 60 # 30 min
+builder.metadata.options.max_wallclock_seconds = 30 * 60  # 30 min
 builder.metadata.options.resources = {"num_machines": 1}
 
 #Two methods to define projections are available
@@ -180,7 +173,8 @@ builder.kpoint_path = kpoint_path
 # settings that can only be enabled if parent is nscf
 settings_dict = {'seedname': 'gaas', 'random_projections': True}
 if do_preprocess:
-    settings_dict.update({'postproc_setup':True}) # for setup calculation (preprocessing, -pp flag)
+    settings_dict.update({'postproc_setup': True}
+                         )  # for setup calculation (preprocessing, -pp flag)
 if settings_dict:
     settings = Dict(dict=settings_dict)
     builder.settings = settings
@@ -192,6 +186,8 @@ if submit_test:
     print("dry-run executed, submit files in subfolder")
 else:
     calc = submit(builder)
-    print("submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
-        calc.uuid, calc.pk
-    ))
+    print(
+        "submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
+            calc.uuid, calc.pk
+        )
+    )

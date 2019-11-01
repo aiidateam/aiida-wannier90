@@ -32,7 +32,7 @@
   "install_requires": [
     "aiida-core>=1.0.0,<2"
   ],
-  "version": "2.0.0",
+  "version": "2.0.0a1",
   "keywords": "wannier90 AiiDA workflows plugin",
   "classifiers": [
     "Development Status :: 5 - Production/Stable",

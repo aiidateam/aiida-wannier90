@@ -14,14 +14,21 @@ files_folder = os.path.join(
 
 # Create empty FolderData node
 folder_node = DataFactory('folder')()
-for local_file_name, file_name_in_aiida in [
-        ('gaas.amn', 'aiida.amn'), 
-        ('gaas.mmn', 'aiida.mmn')]:
-    folder_node.put_object_from_file(path=os.path.join(files_folder, local_file_name), key=file_name_in_aiida, encoding=None)
+for local_file_name, file_name_in_aiida in [('gaas.amn', 'aiida.amn'),
+                                            ('gaas.mmn', 'aiida.mmn')]:
+    folder_node.put_object_from_file(
+        path=os.path.join(files_folder, local_file_name),
+        key=file_name_in_aiida,
+        encoding=None
+    )
 
 print("Do you want to store the FolderData node? [CTRL+C to stop]")
 input()
 folder_node.store()
 print("Stored FolderData node pk={}".format(folder_node.pk))
 print("You can now run:")
-print("verdi run wannier_gaas.py --send <WANNIER_CODE_NAME> local {}".format(folder_node.pk))
+print(
+    "verdi run wannier_gaas.py --send <WANNIER_CODE_NAME> local {}".format(
+        folder_node.pk
+    )
+)

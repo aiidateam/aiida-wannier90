@@ -37,8 +37,9 @@ def compare_data(request, test_name, scope="session"):
             request.config.cache.set(full_name, json.loads(json.dumps(data)))
             raise ValueError('Reference data does not exist.')
         else:
-            assert compare_fct(val, json.loads(json.dumps(data))
-                               )  # get rid of json-specific quirks
+            assert compare_fct(
+                val, json.loads(json.dumps(data))
+            )  # get rid of json-specific quirks
 
     return inner
 

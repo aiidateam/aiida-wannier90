@@ -14,7 +14,7 @@ from __future__ import absolute_import
 __authors__ = "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi & The AiiDA Team."
 __license__ = "MIT License, see LICENSE.txt file."
 ## If upgraded, remember to change it also in setup.json (for pip)
-__version__ = "1.0.0"
+__version__ = "2.0.0a1"
 
 from . import io
 from . import parsers
