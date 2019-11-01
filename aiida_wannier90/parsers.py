@@ -14,7 +14,6 @@ class Wannier90Parser(Parser):
     the centers, spreads and, if possible the Imaginary/Real ratio of the
     wannier functions. Will also check to see if the output converged.
     """
-
     def __init__(self, calculation):
         from .calculations import Wannier90Calculation
 

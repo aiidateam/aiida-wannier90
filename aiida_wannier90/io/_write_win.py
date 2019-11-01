@@ -251,7 +251,6 @@ def _format_atoms_cart(structure):
     Generates site locations and cell dimensions
     in a manner that can be used by the wannier90 input script
     """
-
     def list2str(list_item):
         '''
         Converts an input list item into a str
