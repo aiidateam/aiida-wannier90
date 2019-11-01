@@ -10,8 +10,9 @@ from aiida.common import datastructures
 from aiida.common import exceptions as exc
 from aiida.engine import CalcJob
 from aiida.orm import (
-    AuthInfo, BandsData, Dict, FolderData, KpointsData, List, OrbitalData, RemoteData, 
-    SinglefileData, StructureData)
+    AuthInfo, BandsData, Dict, FolderData, KpointsData, List, OrbitalData,
+    RemoteData, SinglefileData, StructureData
+)
 from aiida.plugins import OrbitalFactory
 
 from .io import write_win
@@ -26,57 +27,124 @@ class Wannier90Calculation(CalcJob):
     # The following ones CANNOT be set by the user - in this case an exception will be raised
     # IMPORTANT: define them here in lower-case
     _BLOCKED_PARAMETER_KEYS = [
-        'length_unit', 'unit_cell_cart', 'atoms_cart', 'projections', 
-        'postproc_setup' # Pass instead a 'postproc_setup' in the input `settings` node
+        'length_unit',
+        'unit_cell_cart',
+        'atoms_cart',
+        'projections',
+        'postproc_setup'  # Pass instead a 'postproc_setup' in the input `settings` node
     ]
-   
+
     @classmethod
     def define(cls, spec):  # pylint: disable=no-self-argument
         super(Wannier90Calculation, cls).define(spec)
-        spec.input("structure", valid_type=StructureData,
-                   help="input crystal structure")
-        spec.input("parameters", valid_type=Dict,
-                   help="Input parameters for the Wannier90 code")
-        spec.input("settings", valid_type=Dict, required=False,
-                   help="Additional settings to manage the Wannier90 calculation")
-        spec.input("projections", valid_type=(OrbitalData, Dict, List),
-                   help="Starting projections for the Wannierisation procedure")
-        spec.input("local_input_folder", valid_type=FolderData, required=False,
-                   help="Get input files (.amn, .mmn, ...) from a FolderData stored in the AiiDA repository")
-        spec.input("remote_input_folder", valid_type=RemoteData, required=False,
-                   help="Get input files (.amn, .mmn, ...) from a RemoteData possibly stored in a remote computer")
-        spec.input("kpoints", valid_type=KpointsData,
-                   help="k-point mesh used in the NSCF calculation")
-        spec.input("kpoint_path", valid_type=Dict, required=False,
-                   help=
-                    "Description of the kpoints-path to be used for bands interpolation; "
-                    "it should contain two properties: "
-                    "a list 'path' of length-2 tuples with the labels of the endpoints of the path; and "
-                    "a dictionary 'point_coords' giving the scaled coordinates for each high-symmetry endpoint")
+        spec.input(
+            "structure",
+            valid_type=StructureData,
+            help="input crystal structure"
+        )
+        spec.input(
+            "parameters",
+            valid_type=Dict,
+            help="Input parameters for the Wannier90 code"
+        )
+        spec.input(
+            "settings",
+            valid_type=Dict,
+            required=False,
+            help="Additional settings to manage the Wannier90 calculation"
+        )
+        spec.input(
+            "projections",
+            valid_type=(OrbitalData, Dict, List),
+            help="Starting projections for the Wannierisation procedure"
+        )
+        spec.input(
+            "local_input_folder",
+            valid_type=FolderData,
+            required=False,
+            help=
+            "Get input files (.amn, .mmn, ...) from a FolderData stored in the AiiDA repository"
+        )
+        spec.input(
+            "remote_input_folder",
+            valid_type=RemoteData,
+            required=False,
+            help=
+            "Get input files (.amn, .mmn, ...) from a RemoteData possibly stored in a remote computer"
+        )
+        spec.input(
+            "kpoints",
+            valid_type=KpointsData,
+            help="k-point mesh used in the NSCF calculation"
+        )
+        spec.input(
+            "kpoint_path",
+            valid_type=Dict,
+            required=False,
+            help=
+            "Description of the kpoints-path to be used for bands interpolation; "
+            "it should contain two properties: "
+            "a list 'path' of length-2 tuples with the labels of the endpoints of the path; and "
+            "a dictionary 'point_coords' giving the scaled coordinates for each high-symmetry endpoint"
+        )
 
-        spec.output('output_parameters', valid_type=Dict,
-            help='The `output_parameters` output node of the successful calculation.')
-        spec.output('interpolated_bands', valid_type=BandsData, required=False,
-            help='The interpolated band structure by Wannier90 (if any).')
-        spec.output('nnkp_file', valid_type=SinglefileData, required=False,
-            help='The SEEDAME.nnkp file, produced only in -pp (postproc) mode.')
+        spec.output(
+            'output_parameters',
+            valid_type=Dict,
+            help=
+            'The `output_parameters` output node of the successful calculation.'
+        )
+        spec.output(
+            'interpolated_bands',
+            valid_type=BandsData,
+            required=False,
+            help='The interpolated band structure by Wannier90 (if any).'
+        )
+        spec.output(
+            'nnkp_file',
+            valid_type=SinglefileData,
+            required=False,
+            help='The SEEDAME.nnkp file, produced only in -pp (postproc) mode.'
+        )
         spec.default_output_node = 'output_parameters'
 
         # This is used to allow the user to choose the input and output filenames
-        spec.input('metadata.options.seedname', valid_type=six.string_types, default=cls._DEFAULT_SEEDNAME)
-        spec.input('metadata.options.parser_name', valid_type=six.string_types, default='wannier90.wannier90')
+        spec.input(
+            'metadata.options.seedname',
+            valid_type=six.string_types,
+            default=cls._DEFAULT_SEEDNAME
+        )
+        spec.input(
+            'metadata.options.parser_name',
+            valid_type=six.string_types,
+            default='wannier90.wannier90'
+        )
         # withmpi defaults to "False" in aiida-core 1.0. Below, we override to default to withmpi=True
         spec.input('metadata.options.withmpi', valid_type=bool, default=True)
-        spec.exit_code(200, 'ERROR_NO_RETRIEVED_FOLDER',
-        message='The retrieved folder data node could not be accessed.')
-        spec.exit_code(210, 'ERROR_OUTPUT_STDOUT_MISSING',
-        message='The retrieved folder did not contain the required stdout output file.')
-        spec.exit_code(300, 'ERROR_WERR_FILE_PRESENT',
-        message='A Wannier90 error file (.werr) has been found.')
-        spec.exit_code(400, 'ERROR_EXITING_MESSAGE_IN_STDOUT',
-        message='The string "Exiting..." has been found in the Wannier90 output (some partial output might have been '
-            'parsed).')
-    
+        spec.exit_code(
+            200,
+            'ERROR_NO_RETRIEVED_FOLDER',
+            message='The retrieved folder data node could not be accessed.'
+        )
+        spec.exit_code(
+            210,
+            'ERROR_OUTPUT_STDOUT_MISSING',
+            message=
+            'The retrieved folder did not contain the required stdout output file.'
+        )
+        spec.exit_code(
+            300,
+            'ERROR_WERR_FILE_PRESENT',
+            message='A Wannier90 error file (.werr) has been found.'
+        )
+        spec.exit_code(
+            400,
+            'ERROR_EXITING_MESSAGE_IN_STDOUT',
+            message=
+            'The string "Exiting..." has been found in the Wannier90 output (some partial output might have been '
+            'parsed).'
+        )
+
     @property
     def _SEEDNAME(self):
         """
@@ -129,7 +197,7 @@ class Wannier90Calculation(CalcJob):
             parameters=param_dict,
             structure=self.inputs.structure,
             kpoints=self.inputs.kpoints,
-            kpoint_path = getattr(self.inputs, 'kpoint_path', None),
+            kpoint_path=getattr(self.inputs, 'kpoint_path', None),
             projections=self.inputs.projections,
             random_projections=random_projections,
         )
@@ -137,7 +205,8 @@ class Wannier90Calculation(CalcJob):
         #NOTE: remote_input_folder -> parent_calc_folder (for consistency)
         if 'remote_input_folder' in self.inputs:
             remote_input_folder_uuid = self.inputs.remote_input_folder.computer.uuid
-            remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path()
+            remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path(
+            )
 
             t_dest = AuthInfo.objects.get(
                 dbcomputer_id=self.inputs.remote_input_folder.computer.pk,
@@ -149,7 +218,8 @@ class Wannier90Calculation(CalcJob):
                 )
 
         if 'local_input_folder' in self.inputs:
-            local_folder_content = self.inputs.local_input_folder.list_object_names()
+            local_folder_content = self.inputs.local_input_folder.list_object_names(
+            )
         if pp_setup:
             required_files = []
         else:
@@ -207,7 +277,7 @@ class Wannier90Calculation(CalcJob):
         ALWAYS_COPY_FILES = ['{}.chk'.format(self._SEEDNAME)]
         for f in found_in_remote:
             #NOTE: for symlinks this appears wrong (comp_uuid, remote_path, default_calc_fldr)
-            #NOTE: what is self._DEFAULT_PARENT_CALC_FLDR_NAME equivalent to here? 
+            #NOTE: what is self._DEFAULT_PARENT_CALC_FLDR_NAME equivalent to here?
             file_info = (
                 remote_input_folder_uuid,
                 os.path.join(remote_input_folder_path, f), os.path.basename(f)
@@ -217,9 +287,7 @@ class Wannier90Calculation(CalcJob):
             else:
                 remote_symlink_list.append(file_info)
         for f in found_in_local:
-            local_copy_list.append(
-                (self.inputs.local_input_folder.uuid, f, f)
-            )
+            local_copy_list.append((self.inputs.local_input_folder.uuid, f, f))
 
         # Add any custom copy/sym links
         remote_symlink_list += settings_dict.pop(
@@ -252,7 +320,9 @@ class Wannier90Calculation(CalcJob):
         calcinfo.retrieve_list.append('{}.werr'.format(self._SEEDNAME))
         if pp_setup:
             # The parser will then put this in a SinglefileData (if present)
-            calcinfo.retrieve_temporary_list.append('{}.nnkp'.format(self._SEEDNAME))
+            calcinfo.retrieve_temporary_list.append(
+                '{}.nnkp'.format(self._SEEDNAME)
+            )
 
         calcinfo.retrieve_list += [
             '{}_band.dat'.format(self._SEEDNAME),
@@ -298,8 +368,9 @@ class Wannier90Calculation(CalcJob):
                 non_lowercase.append(key)
         if non_lowercase:
             raise exc.InputValidationError(
-                "input keys to the Wannier90 plugin must be all lower-case, but the following aren't : {}".format(
-                    ", ".join(non_lowercase)))
+                "input keys to the Wannier90 plugin must be all lower-case, but the following aren't : {}"
+                .format(", ".join(non_lowercase))
+            )
 
     def _validate_input_parameters(self, parameters):
         """

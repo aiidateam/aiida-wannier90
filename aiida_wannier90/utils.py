@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import numbers
 import six
 
+
 def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     """
     Plots Wannier function centres in .xsf format
@@ -15,6 +16,7 @@ def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     for c in coords:
         new_a.append(ase.Atom('X', c))
     new_a.write(filename)
+
 
 def conv_to_fortran(val, quote_strings=True):
     """
@@ -39,8 +41,10 @@ def conv_to_fortran(val, quote_strings=True):
         else:
             val_str = "{!s}".format(val)
     else:
-        raise ValueError("Invalid value '{}' of type '{}' passed, accepts only bools, ints, floats and strings".format(
-            val, type(val)))
+        raise ValueError(
+            "Invalid value '{}' of type '{}' passed, accepts only bools, ints, floats and strings"
+            .format(val, type(val))
+        )
 
     return val_str
 
@@ -55,7 +59,10 @@ def conv_to_fortran_withlists(val, quote_strings=True):
     # Note that bool should come before integer, because a boolean matches also
     # isinstance(...,int)
     if isinstance(val, (list, tuple)):
-        val_str = ", ".join(conv_to_fortran(thing, quote_strings=quote_strings) for thing in val)
+        val_str = ", ".join(
+            conv_to_fortran(thing, quote_strings=quote_strings)
+            for thing in val
+        )
         return val_str
 
     if isinstance(val, bool):
@@ -76,4 +83,6 @@ def conv_to_fortran_withlists(val, quote_strings=True):
 
         return "{!s}".format(val)
 
-    raise ValueError("Invalid value passed, accepts only bools, ints, floats and strings")
+    raise ValueError(
+        "Invalid value passed, accepts only bools, ints, floats and strings"
+    )

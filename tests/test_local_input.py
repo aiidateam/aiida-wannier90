@@ -81,8 +81,6 @@ def test_mixed_case_settings_key(create_gaas_calc, configure_with_daemon):
     from aiida.common import InputValidationError
 
     builder = create_gaas_calc()
-    builder.settings = DataFactory('dict')(
-        dict=dict(PostpROc_SeTup=True)
-    )
+    builder.settings = DataFactory('dict')(dict=dict(PostpROc_SeTup=True))
     with pytest.raises(InputValidationError):
         run(builder)

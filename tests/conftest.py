@@ -29,7 +29,6 @@ def test_name(request):
 @pytest.fixture
 def compare_data(request, test_name, scope="session"):
     """Returns a function which either saves some data to a file or (if that file exists already) compares it to pre-existing data using a given comparison function."""
-
     def inner(compare_fct, data, tag=None):
         full_name = test_name + (tag or '')
         val = request.config.cache.get(full_name, None)
@@ -37,8 +36,9 @@ def compare_data(request, test_name, scope="session"):
             request.config.cache.set(full_name, json.loads(json.dumps(data)))
             raise ValueError('Reference data does not exist.')
         else:
-            assert compare_fct(val, json.loads(json.dumps(data))
-                               )  # get rid of json-specific quirks
+            assert compare_fct(
+                val, json.loads(json.dumps(data))
+            )  # get rid of json-specific quirks
 
     return inner
 

@@ -38,9 +38,8 @@ def create_gaas_win_params(configure):
         res['kpoints'] = kpoints
 
         # Using 'legacy' method so that we don't have a depenendency on seekpath.
-        res['kpoint_path'] = get_kpoints_path(
-            structure, method='legacy'
-        )['parameters']
+        res['kpoint_path'] = get_kpoints_path(structure,
+                                              method='legacy')['parameters']
 
         res['parameters'] = Dict(
             dict=dict(num_wann=4, num_iter=12, wvfn_formatted=True)

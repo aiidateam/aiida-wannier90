@@ -21,7 +21,9 @@ class Wannier90Parser(Parser):
         if not issubclass(calculation.process_class, Wannier90Calculation):
             raise exc.OutputParsingError(
                 "Input must calc must be a "
-                "Wannier90Calculation, it is instead {}".format(type(calculation.process_class))
+                "Wannier90Calculation, it is instead {}".format(
+                    type(calculation.process_class)
+                )
             )
         super(Wannier90Parser, self).__init__(calculation)
 
@@ -72,7 +74,7 @@ class Wannier90Parser(Parser):
             if os.path.isfile(nnkp_temp_path):
                 with io.open(nnkp_temp_path, 'rb') as handle:
                     node = SinglefileData(file=handle)
-                    self.out('nnkp_file', node)            
+                    self.out('nnkp_file', node)
 
         # Tries to parse the bands
         try:
@@ -87,7 +89,7 @@ class Wannier90Parser(Parser):
             # KeyError: no get_dict()
             # IOError: _band.* files not present
             pass
-        else:            
+        else:
             structure = self.node.inputs.structure
             ## TODO: should we catch exceptions here?
             output_bandsdata = band_parser(
@@ -150,7 +152,7 @@ def raw_wout_parser(wann_out_file):
                             'Units not Ang, '
                             'be sure this is OK!'
                         )
-                
+
                 if 'Output verbosity (1=low, 5=high)' in line:
                     out.update({'output_verbosity': int(line.split()[-2])})
                     if out['output_verbosity'] != 1:
@@ -262,8 +264,9 @@ def raw_wout_parser(wann_out_file):
             wann_function = wann_functions[wann_id - 1]
             wann_function.update({'im_re_ratio': float(line.split()[-1])})
     if not w90_conv:
-        out['warnings'
-            ].append('Wannierisation finished because num_iter was reached.')
+        out['warnings'].append(
+            'Wannierisation finished because num_iter was reached.'
+        )
     return out
 
 
@@ -302,8 +305,12 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     # finds the special points
     special_points_dict = special_points['point_coords']
     # We set atol to 1e-5 because in the kpt file the coords are printed with fixed precision
-    labels = [(i, k) for k in special_points_dict for i in range(len(out_kpt))
-              if all(np.isclose(special_points_dict[k], out_kpt[i], rtol=0, atol=1.e-5))]    
+    labels = [
+        (i, k) for k in special_points_dict for i in range(len(out_kpt))
+        if all(
+            np.isclose(special_points_dict[k], out_kpt[i], rtol=0, atol=1.e-5)
+        )
+    ]
     labels.sort()
 
     # Checks and appends labels if discontinuity
