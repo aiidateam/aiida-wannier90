@@ -288,10 +288,11 @@ latex_elements = {
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
-## BEFORE STARTING, LET'S LOAD THE CORRECT AIIDA DBENV
+## BEFORE STARTING, LET'S LOAD AN AIIDA PROFILE OR EMULATE ONE ON RTD
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed
 # from docs.readthedocs.org
-# NOTE: it is needed to have these lines before load_dbenv()
+# Moreover, ewe also "fake" this environment variable inside Travis to follow
+# the same code path.
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 # Following 3 lines avoid the need of importing load_dbenv() for compiling the documentation -> works also without verdi install
