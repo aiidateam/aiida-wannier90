@@ -21,7 +21,11 @@ install:
   - pip install .[test,dev,docs]
   - reentry scan
 env:
-  - TEST_TYPE="pre-commit"
+  # The variable READTHEDOCS=True is used to emulate what happens on
+  # ReadTheDocs for what concerns compilation of the docs (see logic inside
+  # docs/source/conf.py)
+  - TEST_TYPE="pre-commit" READTHEDOCS=True
   - TEST_TYPE="tests"
+
 script:
   - ./.travis-data/test_script.sh
