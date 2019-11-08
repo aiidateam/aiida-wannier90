@@ -14,7 +14,8 @@
       "aiida-pytest>=0.1.0a6",
       "pymatgen;python_version>='3'",
       "pymatgen<=2018.12.12;python_version<'3'",
-      "monty<3;python_version<'3'"
+      "monty<3;python_version<'3'",
+      "pytest-regressions==1.0.6"
     ],
     "docs": [
       "sphinx",

@@ -198,7 +198,9 @@ def _format_single_projection(orbital):
             return ''
         if not isinstance(value, (tuple, list)):
             value = [value]
-        return '{}={}'.format(name, ','.join(str(x) for x in value))
+        return '{}={}'.format(
+            name, ','.join("{:18.10f}".format(x) for x in value)
+        )
 
     # required arguments
     position = _get_attribute("position")
@@ -234,7 +236,9 @@ def _format_single_projection(orbital):
         wann_string += "({})".format(spin_dict[spin])
     spin_orient = _get_attribute("spin_orientation", required=False)
     if spin_orient is not None:
-        wann_string += "[" + ",".join([str(x) for x in spin_orient]) + "]"
+        wann_string += "[" + ",".join([
+            "{:18.10f}".format(x) for x in spin_orient
+        ]) + "]"
 
     return wann_string
 
@@ -251,6 +255,7 @@ def _format_atoms_cart(structure):
     Generates site locations and cell dimensions
     in a manner that can be used by the wannier90 input script
     """
+
     def list2str(list_item):
         '''
         Converts an input list item into a str
@@ -259,7 +264,8 @@ def _format_atoms_cart(structure):
         if isinstance(list_item, (str, six.text_type)):
             return list_item
         else:
-            return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
+            return ' ' + ' '.join(["{:18.10f}".format(_)
+                                   for _ in list_item]) + ' '
 
     return ['ang'] + [
         '{}  {}'.format(site.kind_name, list2str(site.position))
