@@ -5,8 +5,6 @@ from __future__ import print_function
 import sys
 import os
 
-import pymatgen
-
 from aiida.plugins import DataFactory, CalculationFactory
 from aiida.common import exceptions as exc
 from aiida.engine import run, submit

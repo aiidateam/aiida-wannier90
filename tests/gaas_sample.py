@@ -5,9 +5,8 @@ from __future__ import absolute_import
 import os
 
 import pytest
-import pymatgen
 
-PROJECTIONS_DICT = {'kind_name': 'As', 'ang_mtm_name': 'sp3'},
+PROJECTIONS_DICT = {'kind_name': 'As', 'ang_mtm_name': 'sp3'}
 
 
 @pytest.fixture
@@ -19,14 +18,14 @@ def create_gaas_win_params(configure):
 
         res = dict()
 
-        a = 5.367 * pymatgen.core.units.bohr_to_ang
-        structure_pmg = pymatgen.Structure(
-            lattice=[[-a, 0, a], [0, a, a], [-a, a, 0]],
-            species=['Ga', 'As'],
-            coords=[[0] * 3, [0.25] * 3]
+        a = 2.84
+        structure = StructureData(cell=[[-a, 0, a], [0, a, a], [-a, a, 0]])
+
+        structure.append_atom(symbols='Ga', position=[0, 0, 0])
+        structure.append_atom(
+            symbols='As', position=[-0.5 * a, 0.5 * a, 0.5 * a]
         )
-        structure = StructureData()
-        structure.set_pymatgen_structure(structure_pmg)
+
         res['structure'] = structure
 
         res['projections'] = generate_projections(

@@ -5,11 +5,11 @@ Usage: python configure.py travis_data_folder test_folder
 
 from __future__ import absolute_import
 import sys
-from os.path import join
+from os.path import join, realpath
 
 travis_data_folder = sys.argv[1]
 in_file = join(travis_data_folder, 'test_config.yml')
-wannier90_path = join(travis_data_folder, 'wannier90/wannier90.x')
+wannier90_path = realpath(join(travis_data_folder, 'wannier90/wannier90.x'))
 
 out_file = join(sys.argv[2], 'config.yml')
 

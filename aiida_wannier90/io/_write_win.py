@@ -193,21 +193,42 @@ def _format_single_projection(orbital):
             )
         return res
 
-    def _format_projection_values(name, value):
+    def _format_projection_values_float(name, value):
+        """
+        Return a string for a given key-value pair of the projections block, e.g.
+        ``'c=0.132443,1.324823823,0.547423243'``, where we know that values are floats
+        that will be formatted with a specific formatting option.
+        """
         if value is None:
             return ''
         if not isinstance(value, (tuple, list)):
             value = [value]
-        return '{}={}'.format(name, ','.join(str(x) for x in value))
+        return '{}={}'.format(
+            name, ','.join("{:.10f}".format(x) for x in value)
+        )
+
+    def _format_projection_values_generic(name, value):
+        """
+        Return a string for a given key-value pair of the projections block, e.g.
+        ``'l=1'``, where formatting of the values is done without specifying
+        a custom format - this is ok for e.g. integers, while for floats it's
+        better to use :func:`_format_projection_values_float` function that 
+        properly formats floats, avoiding differences between python versions.
+        """
+        if value is None:
+            return ''
+        if not isinstance(value, (tuple, list)):
+            value = [value]
+        return '{}={}'.format(name, ','.join("{}".format(x) for x in value))
 
     # required arguments
     position = _get_attribute("position")
     angular_momentum = _get_attribute("angular_momentum")
     magnetic_number = _get_attribute("magnetic_number")
     wann_string = (
-        _format_projection_values('c', position) + ':' +
-        _format_projection_values('l', angular_momentum) + ',' +
-        _format_projection_values('mr', magnetic_number + 1)
+        _format_projection_values_float('c', position) + ':' +
+        _format_projection_values_generic('l', angular_momentum) + ',' +
+        _format_projection_values_generic('mr', magnetic_number + 1)
     )
 
     # optional, colon-separated arguments
@@ -216,10 +237,10 @@ def _format_single_projection(orbital):
     radial = _get_attribute("radial_nodes", required=False)
     zona = _get_attribute("diffusivity", required=False)
     if any(arg is not None for arg in [zaxis, xaxis, radial, zona]):
-        zaxis_string = _format_projection_values('z', zaxis)
-        xaxis_string = _format_projection_values('x', xaxis)
-        radial_string = _format_projection_values('r', radial + 1)
-        zona_string = _format_projection_values('zona', zona)
+        zaxis_string = _format_projection_values_float('z', zaxis)
+        xaxis_string = _format_projection_values_float('x', xaxis)
+        radial_string = _format_projection_values_generic('r', radial + 1)
+        zona_string = _format_projection_values_float('zona', zona)
         wann_string += ':{}:{}:{}:{}'.format(
             zaxis_string, xaxis_string, radial_string, zona_string
         )
@@ -234,7 +255,9 @@ def _format_single_projection(orbital):
         wann_string += "({})".format(spin_dict[spin])
     spin_orient = _get_attribute("spin_orientation", required=False)
     if spin_orient is not None:
-        wann_string += "[" + ",".join([str(x) for x in spin_orient]) + "]"
+        wann_string += "[" + ",".join([
+            "{:18.10f}".format(x) for x in spin_orient
+        ]) + "]"
 
     return wann_string
 
@@ -259,7 +282,8 @@ def _format_atoms_cart(structure):
         if isinstance(list_item, (str, six.text_type)):
             return list_item
         else:
-            return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
+            return ' ' + ' '.join(["{:18.10f}".format(_)
+                                   for _ in list_item]) + ' '
 
     return ['ang'] + [
         '{}  {}'.format(site.kind_name, list2str(site.position))
