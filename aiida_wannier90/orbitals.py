@@ -201,8 +201,15 @@ def _generate_wannier_orbitals(
         ang_mtm_names = convert_to_list(ang_mtm_name)
         ang_mtm_dicts = []
         for name in ang_mtm_names:
-            ang_mtm_dicts += RealhydrogenOrbital.get_quantum_numbers_from_name(
-                name
+            # get_quantum_numbers_from_name (in AiiDA) might not return
+            # a consistent order since it creates the list from a dictionary
+            # This might be considered a bug in AiiDA, but since AiiDA is going
+            # to drop py2 support soon, this might not be fixed, so we work
+            # around the issue here.
+            ang_mtm_dicts += sorted(
+                RealhydrogenOrbital.get_quantum_numbers_from_name(name),
+                key=lambda qnums:
+                (qnums['angular_momentum'], qnums['magnetic_number'])
             )
     projection_dicts = combine_dictlists(projection_dicts, ang_mtm_dicts)
 

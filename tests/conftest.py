@@ -20,9 +20,3 @@ import pytest
 # All dependent pytest fixtures need to be imported, not only the
 # explicitly used ones.
 from aiida_pytest import *  # pylint: disable=unused-wildcard-import
-
-
-@pytest.fixture
-def test_name(request):
-    """Returns module_name.function_name for a given test"""
-    return request.module.__name__ + '/' + request._parent_request._pyfuncitem.name
