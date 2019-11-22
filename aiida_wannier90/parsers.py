@@ -84,7 +84,7 @@ class Wannier90Parser(Parser):
                 band_dat_file = fil.readlines()
             with out_folder.open('{}_band.kpt'.format(seedname)) as fil:
                 band_kpt_file = fil.readlines()
-        except (AttributeError, KeyError, IOError):
+        except (AttributeError, KeyError, IOError, exc.NotExistent):
             # AttributeError: no input kpoint_path
             # KeyError: no get_dict()
             # IOError: _band.* files not present
