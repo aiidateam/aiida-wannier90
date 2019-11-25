@@ -11,8 +11,8 @@
   "extras_require": {
     "test": [
       "pytest",
-      "aiida-pytest>=0.1.0a6",
-      "pytest-regressions==1.0.6"
+      "pytest-regressions~=1.0.6",
+      "pytest-datadir~=1.3.1"
     ],
     "docs": [
       "sphinx",
