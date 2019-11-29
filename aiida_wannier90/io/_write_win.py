@@ -140,6 +140,10 @@ def _format_parameter_values(parameters_dict):
     for key, value in parameters_dict.items():
         key = key.lower()
         if key == 'exclude_bands':
+            if len(set(value)) < len(value):
+                raise InputValidationError(
+                    "The 'exclude_bands' input contains duplicate entries."
+                )
             result_dict[key] = list_to_grouped_string(value)
         else:
             result_dict[key] = conv_to_fortran_withlists(
@@ -212,7 +216,7 @@ def _format_single_projection(orbital):
         Return a string for a given key-value pair of the projections block, e.g.
         ``'l=1'``, where formatting of the values is done without specifying
         a custom format - this is ok for e.g. integers, while for floats it's
-        better to use :func:`_format_projection_values_float` function that 
+        better to use :func:`_format_projection_values_float` function that
         properly formats floats, avoiding differences between python versions.
         """
         if value is None:

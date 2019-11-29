@@ -52,7 +52,7 @@ def seedname(request):
 
 
 # @pytest.mark.parametrize("seedname", (None, "aiida", "wannier"))
-def test_wannier90_default(
+def test_default(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression, seedname
 ):
@@ -102,14 +102,59 @@ def test_wannier90_default(
     file_regression.check(input_written, encoding='utf-8', extension='.win')
 
 
-def test_wannier90_wrong_seedname(
+def test_wrong_seedname(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas, seedname
 ):
-    """Test a default `Wannier90Calculation` with local input folder."""
+    """
+    Test that an InputValidationError is raised when the given seedname does
+    not match the actual inputs.
+    """
 
     inputs = generate_common_inputs_gaas(inputfolder_seedname='something_else')
     if seedname is not None:
         inputs['metadata']['options']['seedname'] = seedname
+
+    with pytest.raises(InputValidationError):
+        generate_calc_job(
+            folder=fixture_sandbox,
+            entry_point_name=ENTRY_POINT_NAME,
+            inputs=inputs
+        )
+
+
+def test_duplicate_exclude_bands(
+    fixture_sandbox, generate_calc_job, generate_common_inputs_gaas
+):
+    """Test that giving a duplicate band index in 'exclude_bands' raises an error."""
+
+    inputs = generate_common_inputs_gaas(inputfolder_seedname='aiida')
+    # Overwrite the 'parameters' input
+    inputs['parameters'] = orm.Dict(
+        dict=dict(
+            num_wann=1,
+            num_iter=12,
+            wvfn_formatted=True,
+            exclude_bands=[1] * 2 + [2, 3]
+        )
+    )
+
+    with pytest.raises(InputValidationError):
+        generate_calc_job(
+            folder=fixture_sandbox,
+            entry_point_name=ENTRY_POINT_NAME,
+            inputs=inputs
+        )
+
+
+def test_mixed_case_settings_key(
+    fixture_sandbox, generate_calc_job, generate_common_inputs_gaas
+):
+    """
+    Test that using mixed case keys in 'settings' raises an InputValidationError.
+    """
+    inputs = generate_common_inputs_gaas(inputfolder_seedname='aiida')
+    # Add an incorrect 'settings' input.
+    inputs['settings'] = orm.Dict(dict=dict(PostpROc_SeTup=True))
 
     with pytest.raises(InputValidationError):
         generate_calc_job(
