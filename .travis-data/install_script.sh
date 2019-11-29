@@ -20,6 +20,9 @@ case "$INSTALL_TYPE" in
     dev_precommit)
         pip install .[dev_precommit]
         ;;
+    docs)
+        pip install .[docs]
+        ;;
 esac
 
 reentry scan
