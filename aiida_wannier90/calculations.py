@@ -56,7 +56,6 @@ class Wannier90Calculation(CalcJob):
         spec.input(
             "projections",
             valid_type=(OrbitalData, Dict, List),
-            required=False,
             help="Starting projections for the Wannierisation procedure"
         )
         spec.input(
@@ -199,7 +198,7 @@ class Wannier90Calculation(CalcJob):
             structure=self.inputs.structure,
             kpoints=self.inputs.kpoints,
             kpoint_path=getattr(self.inputs, 'kpoint_path', None),
-            projections=getattr(self.inputs, 'projections', None),
+            projections=self.inputs.projections,
             random_projections=random_projections,
         )
 
@@ -309,7 +308,7 @@ class Wannier90Calculation(CalcJob):
 
         codeinfo = datastructures.CodeInfo()
         codeinfo.code_uuid = self.inputs.code.uuid
-        codeinfo.cmdline_params = [self._SEEDNAME]
+        codeinfo.cmdline_params = ['{}.win'.format(self._SEEDNAME)]
 
         calcinfo.codes_info = [codeinfo]
         calcinfo.codes_run_mode = datastructures.CodeRunMode.SERIAL
@@ -358,7 +357,7 @@ class Wannier90Calculation(CalcJob):
     def _validate_lowercase(dictionary):
         """
         This function gets a dictionary and checks that all keys are lower-case.
-
+        
         :param dict_node: a dictionary
         :raises InputValidationError: if any of the keys is not lower-case
         :return: ``None`` if validation passes
@@ -377,9 +376,9 @@ class Wannier90Calculation(CalcJob):
         """
         This function gets a dictionary with the content of the parameters Dict passed by the user
         and performs some validation.
-
+        
         In particular, it checks that there are no blocked parameters keys passed.
-
+        
         :param dict_node: a dictionary
         :raises InputValidationError: if any of the validation fails
         :return: ``None`` if validation passes
