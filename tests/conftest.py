@@ -5,8 +5,8 @@ from __future__ import absolute_import
 
 import io
 import os
-import types
 import collections
+
 import pytest
 import six
 
@@ -49,9 +49,10 @@ def fixture_folderdata():
     mapping of strings to replace in the filenames can be passed. Note that the order
     of replacement is not guaranteed.
     """
-    def _fixture_folderdata(
-        dir_path, replacement_mapping=types.MappingProxyType({})
-    ):
+
+    # TODO: wrap 'replacement_mapping in 'types.MappingProxyType' after Python2 support
+    # is dropped, for immutability.
+    def _fixture_folderdata(dir_path, replacement_mapping={}):
         from aiida.orm import FolderData
         folder = FolderData()
         for file_path in os.listdir(dir_path):
