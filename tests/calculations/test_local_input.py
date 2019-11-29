@@ -10,8 +10,6 @@ from aiida import orm
 from aiida.common import datastructures
 from aiida.common.exceptions import InputValidationError
 
-from aiida_quantumespresso.utils.resources import get_default_options
-
 ENTRY_POINT_NAME = 'wannier90.wannier90'
 
 
@@ -28,7 +26,15 @@ def generate_common_inputs_gaas(
 
         inputs = dict(
             code=fixture_code(ENTRY_POINT_NAME),
-            metadata={'options': get_default_options()},
+            metadata={
+                'options': {
+                    'resources': {
+                        'num_machines': 1
+                    },
+                    'max_wallclock_seconds': 3600,
+                    'withmpi': False,
+                }
+            },
             local_input_folder=fixture_folderdata(
                 shared_datadir / 'gaas', {'gaas': inputfolder_seedname}
             ),

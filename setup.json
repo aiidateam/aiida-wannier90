@@ -9,7 +9,7 @@
     "aiida.data": []
   },
   "extras_require": {
-    "test": [
+    "testing": [
       "pytest",
       "pytest-regressions~=1.0.6",
       "pytest-datadir~=1.3.1"
@@ -18,7 +18,7 @@
       "sphinx",
 	    "sphinx-rtd-theme"
     ],
-    "dev": [
+    "dev_precommit": [
       "pre-commit",
       "yapf==0.28"
     ]
