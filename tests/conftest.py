@@ -53,6 +53,8 @@ def fixture_folderdata():
     # TODO: wrap 'replacement_mapping in 'types.MappingProxyType' after Python2 support
     # is dropped, for immutability.
     def _fixture_folderdata(dir_path, replacement_mapping={}):
+        # TODO: Remove cast to 'str' when Python2 support is dropped.
+        dir_path = str(dir_path)
         from aiida.orm import FolderData
         folder = FolderData()
         for file_path in os.listdir(dir_path):
@@ -168,7 +170,8 @@ def generate_calc_job_node(shared_datadir):
         node.store()
 
         if test_name is not None:
-            filepath = shared_datadir / test_name
+            # TODO: remove cast to 'str' when Python2 support is dropped
+            filepath = str(shared_datadir / test_name)
 
             retrieved = orm.FolderData()
             retrieved.put_object_from_tree(filepath)
