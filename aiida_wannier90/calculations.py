@@ -56,7 +56,8 @@ class Wannier90Calculation(CalcJob):
         spec.input(
             "projections",
             valid_type=(OrbitalData, Dict, List),
-            help="Starting projections for the Wannierisation procedure"
+            help="Starting projections for the Wannierisation procedure",
+            required=False
         )
         spec.input(
             "local_input_folder",
@@ -198,7 +199,7 @@ class Wannier90Calculation(CalcJob):
             structure=self.inputs.structure,
             kpoints=self.inputs.kpoints,
             kpoint_path=getattr(self.inputs, 'kpoint_path', None),
-            projections=self.inputs.projections,
+            projections=getattr(self.inputs, 'projections', None),
             random_projections=random_projections,
         )
 
