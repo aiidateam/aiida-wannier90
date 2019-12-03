@@ -1,5 +1,5 @@
 language: python
-python: 
+python:
   - "2.7"
   - "3.6"
   - "3.7"
@@ -12,20 +12,14 @@ addons:
   apt:
     packages:
       - rabbitmq-server
-      - gfortran
-      - libblas-dev
-      - liblapack-dev
 before_install:
   - sudo service postgresql restart
-install:
-  - pip install .[test,dev,docs]
-  - reentry scan
 env:
-  # The variable READTHEDOCS=True is used to emulate what happens on
-  # ReadTheDocs for what concerns compilation of the docs (see logic inside
-  # docs/source/conf.py)
-  - TEST_TYPE="pre-commit" READTHEDOCS=True
-  - TEST_TYPE="tests"
-
+  - INSTALL_TYPE="docs" TEST_TYPE="docs"
+  - INSTALL_TYPE="dev_precommit" TEST_TYPE="pre-commit"
+  - INSTALL_TYPE="testing" TEST_TYPE="tests"
+  - INSTALL_TYPE="testing_sdist" TEST_TYPE="tests"
+install:
+  - ./.travis-data/install_script.sh
 script:
   - ./.travis-data/test_script.sh
