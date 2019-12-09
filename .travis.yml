@@ -3,6 +3,19 @@ python:
   - "2.7"
   - "3.6"
   - "3.7"
+env:
+  - INSTALL_TYPE="testing" TEST_TYPE="tests"
+  - INSTALL_TYPE="testing_sdist" TEST_TYPE="tests"
+jobs:
+  include:
+  - python: "2.7"
+    env: INSTALL_TYPE="dev_precommit" TEST_TYPE="pre-commit"
+  - python: "3.7"
+    env: INSTALL_TYPE="dev_precommit" TEST_TYPE="pre-commit"
+  - python: "2.7"
+    env: INSTALL_TYPE="docs" TEST_TYPE="docs"
+  - python: "3.7"
+    env: INSTALL_TYPE="docs" TEST_TYPE="docs"
 cache: pip
 sudo: true
 services:
@@ -14,11 +27,6 @@ addons:
       - rabbitmq-server
 before_install:
   - sudo service postgresql restart
-env:
-  - INSTALL_TYPE="docs" TEST_TYPE="docs"
-  - INSTALL_TYPE="dev_precommit" TEST_TYPE="pre-commit"
-  - INSTALL_TYPE="testing" TEST_TYPE="tests"
-  - INSTALL_TYPE="testing_sdist" TEST_TYPE="tests"
 install:
   - ./.travis-data/install_script.sh
 script:
