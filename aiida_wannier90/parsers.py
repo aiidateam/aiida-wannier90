@@ -14,18 +14,18 @@ class Wannier90Parser(Parser):
     the centers, spreads and, if possible the Imaginary/Real ratio of the
     wannier functions. Will also check to see if the output converged.
     """
-    def __init__(self, calculation):
+    def __init__(self, node):
         from .calculations import Wannier90Calculation
 
         # check for valid input
-        if not issubclass(calculation.process_class, Wannier90Calculation):
+        if not issubclass(node.process_class, Wannier90Calculation):
             raise exc.OutputParsingError(
                 "Input must calc must be a "
                 "Wannier90Calculation, it is instead {}".format(
-                    type(calculation.process_class)
+                    type(node.process_class)
                 )
             )
-        super(Wannier90Parser, self).__init__(calculation)
+        super(Wannier90Parser, self).__init__(node)
 
     def parse(self, **kwargs):
         """
