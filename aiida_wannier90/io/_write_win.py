@@ -102,7 +102,7 @@ def _create_win_string(
                 'random_projections cannot be True if with List-type projections.'
                 'Instead, use "random" string as first element of the List.'
             )
-        block_inputs['projections'] = projections.get_attr('list')
+        block_inputs['projections'] = projections.get_list()
     else:
         block_inputs['projections'] = _format_all_projections(
             projections, random_projections=True
