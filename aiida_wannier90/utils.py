@@ -7,7 +7,6 @@ def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     """
     Plots Wannier function centres in .xsf format
     """
-    import sys
     import ase
     a = structure.get_ase()
     new_a = a.copy()

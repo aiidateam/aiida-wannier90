@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import copy
 
 from aiida_wannier90.utils import conv_to_fortran_withlists
-from aiida.common import InputValidationError, ModificationNotAllowed
+from aiida.common import InputValidationError
 
 from ._group_list import list_to_grouped_string
 import six
@@ -15,7 +15,7 @@ import six
 __all__ = ['write_win']
 
 
-def write_win(
+def write_win( # pylint: disable=too-many-arguments
     filename,
     parameters,
     kpoints=None,
@@ -42,7 +42,8 @@ def write_win(
     :param kpoint_path: List of k-points used for band interpolation.
     :type kpoint_path: aiida.orm.nodes.data.dict.Dict
 
-    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, or as a list of strings specifying the projections in Wannier90's format.
+    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, 
+     or as a list of strings specifying the projections in Wannier90's format.
     :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str]
 
     :param random_projections: If OrbitalData is used for projections, enables random projections completion
@@ -61,7 +62,7 @@ def write_win(
         )
 
 
-def _create_win_string(
+def _create_win_string( # pylint: disable=too-many-arguments
     parameters,
     kpoints,
     structure=None,
@@ -174,7 +175,7 @@ def _format_all_projections(projections, random_projections=False):
     return projection_lines
 
 
-def _format_single_projection(orbital):
+def _format_single_projection(orbital):  #pylint: disable=too-many-locals
     """
     Creates an appropriate wannier line from input orbitaldata,
     will raise an exception if the orbital does not contain enough
@@ -285,9 +286,7 @@ def _format_atoms_cart(structure):
         list_item = copy.deepcopy(list_item)
         if isinstance(list_item, (str, six.text_type)):
             return list_item
-        else:
-            return ' ' + ' '.join(["{:18.10f}".format(_)
-                                   for _ in list_item]) + ' '
+        return ' ' + ' '.join(["{:18.10f}".format(_) for _ in list_item]) + ' '
 
     return ['ang'] + [
         '{}  {}'.format(site.kind_name, list2str(site.position))

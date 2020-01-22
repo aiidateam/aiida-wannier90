@@ -58,8 +58,10 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'aiida-wannier90'
-copyright = u'2015-{}, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and ETH Zurich and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland. All rights reserved.'.format(
-    time.localtime().tm_year
+# pylint: disable=redefined-builtin
+copyright = u'2015-{}, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and ETH Zurich\
+    and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland. All rights reserved.'.format(
+    time.localtime().tm_year  # pylint: disable=redefined-builtin
 )
 
 # The version info for the project you're documenting, acts as replacement for
@@ -329,4 +331,4 @@ else:
     load_profile()
 
     # Finally load the database backend but without checking the schema because there is no actual database
-    get_manager()._load_backend(schema_check=False)
+    get_manager()._load_backend(schema_check=False)  # pylint: disable=protected-access

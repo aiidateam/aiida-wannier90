@@ -3,12 +3,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import sys
-import os
 
-from aiida.plugins import DataFactory, CalculationFactory
+from aiida.plugins import DataFactory
 from aiida.common import exceptions as exc
 from aiida.engine import run, submit
-from aiida.orm import List, load_node, Code
+from aiida.orm import load_node, Code
 from aiida_wannier90.orbitals import generate_projections
 
 Dict = DataFactory('dict')
@@ -55,7 +54,8 @@ try:
         raise IndexError
 except IndexError:
     print((
-        'Must provide as third parameter the input mode ("local" for a FolderData with the .mmn, "remote" for a RemoteData with the .mmn, or "preprocess" for the preprocess step)'
+        'Must provide as third parameter the input mode ("local" for a FolderData with the .mmn, "remote" for a RemoteData \
+        with the .mmn, or "preprocess" for the preprocess step)'
     ),
           file=sys.stderr)
     sys.exit(1)
