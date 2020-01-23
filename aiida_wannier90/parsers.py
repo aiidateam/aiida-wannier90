@@ -284,8 +284,8 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     :return: BandsData object constructed from the input params
     """
     import numpy as np
-    from aiida.orm.nodes.array.bands import BandsData
-    from aiida.orm.nodes.array.kpoints import KpointsData
+    from aiida.orm import BandsData
+    from aiida.orm import KpointsData
 
     # imports the data
     out_kpt = np.genfromtxt(band_kpt_path, skip_header=1, usecols=(0, 1, 2))
@@ -293,7 +293,7 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
 
     # reshaps the output bands
     out_dat = out_dat.reshape(
-        len(out_kpt), (len(out_dat) / len(out_kpt)), order="F"
+        len(out_kpt), (len(out_dat) // len(out_kpt)), order="F"
     )
 
     # finds expected points of discontinuity
