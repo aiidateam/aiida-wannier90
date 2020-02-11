@@ -171,14 +171,6 @@ class Wannier90Calculation(CalcJob):
         if pp_setup:
             param_dict.update({'postproc_setup': True})
 
-        try:
-            local_input_folder = self.inputs.local_input_folder  #pylint: disable=unused-variable
-        except AttributeError:
-            local_input_folder = None  # noqa:  disable= F841
-
-        # TODO: implement the same pattern above also for remote_input_folder and the other
-        #       similar optional keys, then replace below
-
         if 'local_input_folder' not in self.inputs and 'remote_input_folder' not in self.inputs and not pp_setup:
             raise exc.InputValidationError(
                 'Either local_input_folder or remote_input_folder must be set.'

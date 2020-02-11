@@ -20,8 +20,8 @@ def group_list(values):
             groups.append(sorted(set([current_start, v1])))
             current_start = v2
         # final group
-        groups.append(sorted(set([current_start, v2])))
-        return groups
+    groups.append(sorted(set([current_start, v2])))  # pylint: disable=undefined-loop-variable
+    return groups
 
 
 def groups_to_string(value_groups):

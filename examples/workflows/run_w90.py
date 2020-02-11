@@ -7,7 +7,7 @@ from aiida.orm import Str
 from aiida.orm import Dict
 from aiida.orm import load_node, Code
 from aiida.orm.nodes.data.array.kpoints import KpointsData
-from aiida.engine import submit  # run unused
+from aiida.engine import submit
 from aiida_wannier90.workflows.W90 import SimpleWannier90WorkChain  # pylint:  disable=import-error
 from aiida.orm import List
 scf_parameters = Dict(
