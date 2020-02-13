@@ -23,6 +23,4 @@ __version__ = "2.0.0a1"
 from . import io  # noqa: disable=F401
 from . import parsers  # noqa: disable=F401
 from . import orbitals  # noqa: disable=F401
-## If this is imported then AiiDA ORM is loaded and this fails if the load_dbenv has not
-## been yet called
 from . import calculations  # noqa: disable=F401

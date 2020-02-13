@@ -52,10 +52,11 @@ def fixture_folderdata():
     # TODO: wrap 'replacement_mapping in 'types.MappingProxyType' after Python2 support
     # is dropped, for immutability.
     def _fixture_folderdata(dir_path, replacement_mapping=None):
-        # TODO: Remove cast to 'str' when Python2 support is dropped.
         if replacement_mapping is None:
             replacement_mapping = {}
-        dir_path = str(dir_path)
+        dir_path = str(
+            dir_path
+        )  # TODO: Remove cast to 'str' when Python2 support is dropped.
         from aiida.orm import FolderData
         folder = FolderData()
         for file_path in os.listdir(dir_path):

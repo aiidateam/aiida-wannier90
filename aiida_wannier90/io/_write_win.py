@@ -49,7 +49,7 @@ def write_win( # pylint: disable=too-many-arguments
     :param random_projections: If OrbitalData is used for projections, enables random projections completion
     :type random_projections: aiida.orm.nodes.data.bool.Bool
     """
-    with open(filename, 'w') as file:
+    with open(filename, 'w') as file:  #pylint: disable= redefined-builtin
         file.write(
             _create_win_string(
                 parameters=parameters,

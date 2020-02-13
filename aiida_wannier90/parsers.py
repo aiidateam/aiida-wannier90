@@ -27,7 +27,7 @@ class Wannier90Parser(Parser):
             )
         super(Wannier90Parser, self).__init__(node)
 
-    def parse(self, **kwargs):  # pylint: disable=too-many-locals
+    def parse(self, **kwargs):  # pylint: disable=too-many-locals,inconsistent-return-statements
         """
         Parses the datafolder, stores results.
         This parser for this simple code does simply store in the DB a node
@@ -104,8 +104,6 @@ class Wannier90Parser(Parser):
 
         if exiting_in_stdout:
             return self.exit_codes.ERROR_EXITING_MESSAGE_IN_STDOUT
-
-        return self.exit_codes.ExitCode(0)
 
 
 def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-statements # noqa:  disable=MC0001
