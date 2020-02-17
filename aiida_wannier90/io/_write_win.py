@@ -144,6 +144,10 @@ def _format_parameter_values(parameters_dict):
                 raise InputValidationError(
                     "The 'exclude_bands' input contains duplicate entries."
                 )
+            if any(val <= 0 for val in value):
+                raise InputValidationError(
+                    "The 'exclude_bands' values must be positive."
+                )
             result_dict[key] = list_to_grouped_string(value)
         else:
             result_dict[key] = conv_to_fortran_withlists(
