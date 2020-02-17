@@ -17,7 +17,8 @@
     ],
     "docs": [
       "sphinx",
-	    "sphinx-rtd-theme"
+      "sphinx-rtd-theme",
+      "aiida-core>=1.1.0,<2"
     ],
     "dev_precommit": [
       "pre-commit",

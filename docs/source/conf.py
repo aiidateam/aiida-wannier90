@@ -12,16 +12,26 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import contextlib
+
 import os
 import sys
 import time
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
+from aiida.manage.configuration import load_documentation_profile
+
 import aiida_wannier90
 
+# Use the AiiDA utility to load a dummy profile (requires version 1.1+)
+load_documentation_profile()
+
 # -- General configuration ------------------------------------------------
+
+if not os.environ.get('READTHEDOCS', None):
+    with contextlib.suppress(ImportError):
+        import sphinx_rtd_theme
+        html_theme = 'sphinx_rtd_theme'
+        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -287,46 +297,3 @@ latex_elements = {
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-
-## BEFORE STARTING, LET'S LOAD AN AIIDA PROFILE OR EMULATE ONE ON RTD
-# on_rtd is whether we are on readthedocs.org, this line of code grabbed
-# from docs.readthedocs.org
-# Moreover, ewe also "fake" this environment variable inside Travis to follow
-# the same code path.
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-# Following 3 lines avoid the need of importing load_dbenv() for compiling the documentation -> works also without verdi install
-sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir, os.pardir))
-sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'rtd_settings'
-
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    try:
-        import sphinx_rtd_theme
-        html_theme = 'sphinx_rtd_theme'
-        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-    except ImportError:
-        # No sphinx_rtd_theme installed
-        pass
-    # Load the database environment by first loading the profile and then loading the backend through the manager
-    from aiida.manage.configuration import get_config, load_profile
-    from aiida.manage.manager import get_manager
-    config = get_config()
-    load_profile(config.default_profile_name)
-    get_manager().get_backend()
-else:
-    from aiida.manage import configuration
-    from aiida.manage.configuration import load_profile, reset_config
-    from aiida.manage.manager import get_manager
-
-    # Set the global variable to trigger shortcut behavior in `aiida.manager.configuration.load_config`
-    configuration.IN_RT_DOC_MODE = True
-
-    # First need to reset the config, because an empty one will have been loaded when `aiida` module got imported
-    reset_config()
-
-    # Load the profile: this will first load the config, which will be the dummy one for RTD purposes
-    load_profile()
-
-    # Finally load the database backend but without checking the schema because there is no actual database
-    get_manager()._load_backend(schema_check=False)
