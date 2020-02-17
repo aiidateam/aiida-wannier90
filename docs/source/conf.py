@@ -18,20 +18,55 @@ import os
 import sys
 import time
 
-from aiida.manage.configuration import load_documentation_profile
-
 import aiida_wannier90
-
-# Use the AiiDA utility to load a dummy profile (requires version 1.1+)
-load_documentation_profile()
 
 # -- General configuration ------------------------------------------------
 
-if not os.environ.get('READTHEDOCS', None):
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if not on_rtd:
     with contextlib.suppress(ImportError):
         import sphinx_rtd_theme
         html_theme = 'sphinx_rtd_theme'
         html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+try:
+    # For AiiDA v1.1+
+    from aiida.manage.configuration import load_documentation_profile
+    load_documentation_profile()
+except ImportError:
+    # AiiDA versions <1.1
+    # This can be removed when python2 support is dropped, because there
+    # will be no need to build the documentation with AiiDA v1.0.
+    sys.path.append(
+        os.path.join(os.path.split(__file__)[0], os.pardir, os.pardir)
+    )
+    sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir))
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'rtd_settings'
+
+    if not on_rtd:  # only import and set the theme if we're building docs locally
+        # Load the database environment by first loading the profile and then loading the backend through the manager
+        from aiida.manage.configuration import get_config, load_profile
+        from aiida.manage.manager import get_manager
+        config = get_config()
+        load_profile(config.default_profile_name)
+        get_manager().get_backend()
+    else:
+        from aiida.manage import configuration
+        from aiida.manage.configuration import load_profile, reset_config
+        from aiida.manage.manager import get_manager
+
+        # Set the global variable to trigger shortcut behavior in `aiida.manager.configuration.load_config`
+        configuration.IN_RT_DOC_MODE = True
+
+        # First need to reset the config, because an empty one will have been loaded when `aiida` module got imported
+        reset_config()
+
+        # Load the profile: this will first load the config, which will be the dummy one for RTD purposes
+        load_profile()
+
+        # Finally load the database backend but without checking the schema because there is no actual database
+        get_manager()._load_backend(schema_check=False)
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
