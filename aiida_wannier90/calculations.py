@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 import os
-
-import numpy as np
 import six
 
 from aiida.common import datastructures
@@ -13,7 +11,6 @@ from aiida.orm import (
     AuthInfo, BandsData, Dict, FolderData, KpointsData, List, OrbitalData,
     RemoteData, SinglefileData, StructureData
 )
-from aiida.plugins import OrbitalFactory
 
 from .io import write_win
 
@@ -154,10 +151,9 @@ class Wannier90Calculation(CalcJob):
         """
         return self.inputs.metadata.options.seedname
 
-    def prepare_for_submission(self, folder):
-        """
+    def prepare_for_submission(self, folder):  #pylint: disable=too-many-locals, too-many-statements # noqa:  disable=MC0001
+        """ 
         Routine which creates the input file of Wannier90
-
         :param folder: a aiida.common.folders.Folder subclass where
             the plugin should put all its files.
         """
@@ -174,14 +170,6 @@ class Wannier90Calculation(CalcJob):
         pp_setup = settings_dict.pop('postproc_setup', False)
         if pp_setup:
             param_dict.update({'postproc_setup': True})
-
-        try:
-            local_input_folder = self.inputs.local_input_folder
-        except AttributeError:
-            local_input_folder = None
-
-        # TODO: implement the same pattern above also for remote_input_folder and the other
-        #       similar optional keys, then replace below
 
         if 'local_input_folder' not in self.inputs and 'remote_input_folder' not in self.inputs and not pp_setup:
             raise exc.InputValidationError(
@@ -261,7 +249,7 @@ class Wannier90Calculation(CalcJob):
             f for f in required_files
             if f not in found_in_remote + found_in_local
         ]
-        if len(not_found) != 0:
+        if not_found:
             raise exc.InputValidationError(
                 "{} necessary input files were not found: {} (NOTE: if you "
                 "wanted to run a preprocess step, remember to pass "

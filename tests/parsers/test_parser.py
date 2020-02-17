@@ -10,7 +10,7 @@ ENTRY_POINT_PARSER = 'wannier90.wannier90'
 
 
 @pytest.mark.parametrize("seedname", ("aiida", "wannier"))
-def test_wannier_default(
+def test_wannier_default(#pylint: disable=too-many-arguments
     fixture_localhost, generate_calc_job_node, generate_parser,
     generate_win_params_gaas, data_regression, seedname
 ):

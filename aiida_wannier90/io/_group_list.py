@@ -8,7 +8,7 @@ from six.moves import zip
 def group_list(values):
     values = sorted(values)
     groups = []
-    if len(values) == 0:
+    if not values:
         return groups
     current_start = values[0]
     for v1, v2 in zip(values, values[1:]):
@@ -19,9 +19,8 @@ def group_list(values):
         else:
             groups.append(sorted(set([current_start, v1])))
             current_start = v2
-    # final group
-    else:
-        groups.append(sorted(set([current_start, v2])))
+        # final group
+    groups.append(sorted(set([current_start, v2])))  # pylint: disable=undefined-loop-variable
     return groups
 
 

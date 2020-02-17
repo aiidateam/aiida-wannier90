@@ -7,8 +7,8 @@ def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     """
     Plots Wannier function centres in .xsf format
     """
-    import sys
-    import ase
+    ##TODO: remove this disbale when issue #67 is solved
+    import ase  #pylint: disable=import-error
     a = structure.get_ase()
     new_a = a.copy()
     out = w90_calc.out.output_parameters.get_dict()['wannier_functions_output']

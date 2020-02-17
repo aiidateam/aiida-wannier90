@@ -21,7 +21,8 @@
     ],
     "dev_precommit": [
       "pre-commit",
-      "yapf==0.28"
+	"yapf==0.28",
+	"prospector==1.1.7"
     ]
   },
   "name": "aiida-wannier90",

@@ -3,7 +3,6 @@
 """Initialise a text database and profile for pytest."""
 from __future__ import absolute_import
 
-import io
 import os
 import collections
 
@@ -52,9 +51,12 @@ def fixture_folderdata():
 
     # TODO: wrap 'replacement_mapping in 'types.MappingProxyType' after Python2 support
     # is dropped, for immutability.
-    def _fixture_folderdata(dir_path, replacement_mapping={}):
-        # TODO: Remove cast to 'str' when Python2 support is dropped.
-        dir_path = str(dir_path)
+    def _fixture_folderdata(dir_path, replacement_mapping=None):
+        if replacement_mapping is None:
+            replacement_mapping = {}
+        dir_path = str(
+            dir_path
+        )  # TODO: Remove cast to 'str' when Python2 support is dropped.
         from aiida.orm import FolderData
         folder = FolderData()
         for file_path in os.listdir(dir_path):
@@ -109,7 +111,7 @@ def generate_calc_job_node(shared_datadir):
                 flat_inputs.append((prefix + key, value))
         return flat_inputs
 
-    def _generate_calc_job_node(
+    def _generate_calc_job_node(  # pylint: disable=too-many-arguments,too-many-locals
         entry_point_name,
         computer,
         seedname=None,
@@ -234,16 +236,12 @@ def generate_structure_gaas():
 def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):
     # TODO: when Python2 support is dropped, wrap 'projections_dict'
     # in 'types.MappingProxyType' for immutability.
-    def _generate_win_params_gaas(
-        projections_dict={
-            'kind_name': 'As',
-            'ang_mtm_name': 'sp3'
-        }
-    ):
+    def _generate_win_params_gaas(projections_dict=None):
         from aiida import orm
         from aiida.tools import get_kpoints_path
         from aiida_wannier90.orbitals import generate_projections
-
+        if projections_dict is None:
+            projections_dict = {'kind_name': 'As', 'ang_mtm_name': 'sp3'}
         structure = generate_structure_gaas()
         inputs = {
             'structure':

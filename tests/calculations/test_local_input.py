@@ -2,8 +2,6 @@
 """Tests for the `PwCalculation` class."""
 from __future__ import absolute_import, print_function
 
-import os
-
 import pytest
 
 from aiida import orm
@@ -48,7 +46,7 @@ def seedname(request):
     return request.param
 
 
-def test_default(
+def test_default(#pylint: disable=too-many-locals
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression, seedname
 ):
@@ -98,7 +96,7 @@ def test_default(
     file_regression.check(input_written, encoding='utf-8', extension='.win')
 
 
-def test_no_projections(
+def test_no_projections( #pylint: disable=too-many-locals
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression
 ):
@@ -144,7 +142,7 @@ def test_no_projections(
     file_regression.check(input_written, encoding='utf-8', extension='.win')
 
 
-def test_list_projections(
+def test_list_projections(#pylint: disable=too-many-locals
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression
 ):

@@ -27,7 +27,7 @@ class Wannier90Parser(Parser):
             )
         super(Wannier90Parser, self).__init__(node)
 
-    def parse(self, **kwargs):
+    def parse(self, **kwargs):  # pylint: disable=too-many-locals,inconsistent-return-statements
         """
         Parses the datafolder, stores results.
         This parser for this simple code does simply store in the DB a node
@@ -106,7 +106,7 @@ class Wannier90Parser(Parser):
             return self.exit_codes.ERROR_EXITING_MESSAGE_IN_STDOUT
 
 
-def raw_wout_parser(wann_out_file):
+def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-statements # noqa:  disable=MC0001
     '''
     This section will parse a .wout file and return certain key
     parameters such as the centers and spreads of the
@@ -119,8 +119,7 @@ def raw_wout_parser(wann_out_file):
     w90_conv = False  #Used to assess convergence of MLWF procedure use conv_tol and conv_window>1
     out = {}
     out.update({'warnings': []})
-    for i in range(len(wann_out_file)):
-        line = wann_out_file[i]
+    for i, line in enumerate(wann_out_file):
         # checks for any warnings
         if 'Warning' in line:
             # Certain warnings get a special flag
@@ -270,7 +269,7 @@ def raw_wout_parser(wann_out_file):
     return out
 
 
-def band_parser(band_dat_path, band_kpt_path, special_points, structure):
+def band_parser(band_dat_path, band_kpt_path, special_points, structure):  # pylint: disable=too-many-locals
     """
     Parsers the bands output data, along with the special points retrieved
     from the input kpoints to construct a BandsData object which is then
@@ -284,6 +283,7 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     :return: BandsData object constructed from the input params
     """
     import numpy as np
+
     from aiida.orm import BandsData
     from aiida.orm import KpointsData
 
@@ -338,8 +338,8 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
                 kpoint = labels[x[0]][0] + 1
                 appends += [[insert_point, new_label, kpoint]]
     appends.sort()
-    for i in range(len(appends)):
-        append = appends[i]
+
+    for i, append in enumerate(appends):
         labels.insert(append[0] + i, (append[2], six.text_type(append[1])))
     bands = BandsData()
     k = KpointsData()

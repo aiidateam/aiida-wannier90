@@ -26,7 +26,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 if not on_rtd:
     with contextlib.suppress(ImportError):
-        import sphinx_rtd_theme
+        import sphinx_rtd_theme  # pylint: disable=import-error
         html_theme = 'sphinx_rtd_theme'
         html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
@@ -66,7 +66,7 @@ except ImportError:
         load_profile()
 
         # Finally load the database backend but without checking the schema because there is no actual database
-        get_manager()._load_backend(schema_check=False)
+        get_manager()._load_backend(schema_check=False)  # pylint: disable=protected-access
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -103,8 +103,10 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'aiida-wannier90'
-copyright = u'2015-{}, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and ETH Zurich and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland. All rights reserved.'.format(
-    time.localtime().tm_year
+# pylint: disable=redefined-builtin
+copyright = u'2015-{}, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and ETH Zurich\
+    and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland. All rights reserved.'.format(
+    time.localtime().tm_year  # pylint: disable=redefined-builtin
 )
 
 # The version info for the project you're documenting, acts as replacement for
