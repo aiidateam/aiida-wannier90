@@ -12,7 +12,7 @@ from aiida.common import InputValidationError
 from ._group_list import list_to_grouped_string
 import six
 
-__all__ = ['write_win']
+__all__ = ('write_win', )
 
 
 def write_win( # pylint: disable=too-many-arguments
@@ -42,7 +42,7 @@ def write_win( # pylint: disable=too-many-arguments
     :param kpoint_path: List of k-points used for band interpolation.
     :type kpoint_path: aiida.orm.nodes.data.dict.Dict
 
-    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, 
+    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData,
      or as a list of strings specifying the projections in Wannier90's format.
     :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str]
 
