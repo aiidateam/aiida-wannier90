@@ -15,6 +15,8 @@ from aiida.orm import (
 
 from .io import write_win
 
+__all__ = ('Wannier90Calculation', )
+
 
 class Wannier90Calculation(CalcJob):
     """
