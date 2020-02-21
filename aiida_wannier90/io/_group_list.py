@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from __future__ import absolute_import
 from six.moves import zip
 
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+__all__ = ('group_list', 'groups_to_string', 'list_to_grouped_string')
 
 
 def group_list(values):

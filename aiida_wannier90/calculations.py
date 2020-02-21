@@ -14,6 +14,8 @@ from aiida.orm import (
 
 from .io import write_win
 
+__all__ = ('Wannier90Calculation', )
+
 
 class Wannier90Calculation(CalcJob):
     """
@@ -152,7 +154,7 @@ class Wannier90Calculation(CalcJob):
         return self.inputs.metadata.options.seedname
 
     def prepare_for_submission(self, folder):  #pylint: disable=too-many-locals, too-many-statements # noqa:  disable=MC0001
-        """ 
+        """
         Routine which creates the input file of Wannier90
         :param folder: a aiida.common.folders.Folder subclass where
             the plugin should put all its files.

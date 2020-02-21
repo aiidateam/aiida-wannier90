@@ -7,7 +7,8 @@ Creating OrbitalData instances
 from __future__ import absolute_import
 import six
 from six.moves import range
-__all__ = ['generate_projections']
+
+__all__ = ('generate_projections', )
 
 
 def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-locals,too-many-statements # noqa:  disable=MC0001

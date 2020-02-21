@@ -7,6 +7,12 @@ from six.moves import range
 from aiida.parsers import Parser
 from aiida.common import exceptions as exc
 
+__all__ = (
+    'Wannier90Parser',
+    'band_parser',
+    'raw_wout_parser',
+)
+
 
 class Wannier90Parser(Parser):
     """
