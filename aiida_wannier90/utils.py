@@ -14,7 +14,7 @@ def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     a = structure.get_ase()
     new_a = a.copy()
     out = w90_calc.out.output_parameters.get_dict()['wannier_functions_output']
-    coords = [i['coordinates'] for i in out]
+    coords = [i['wf_centres'] for i in out]
     for c in coords:
         new_a.append(ase.Atom('X', c))
     new_a.write(filename)

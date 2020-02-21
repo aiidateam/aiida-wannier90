@@ -146,10 +146,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
             while '-----' not in line:
                 line = wann_out_file[i]
                 if 'Number of Wannier Functions' in line:
-                    out.update({
-                        'number_wannier_functions':
-                        int(line.split()[-2])
-                    })
+                    out.update({'number_wfs': int(line.split()[-2])})
                 if 'Length Unit' in line:
                     out.update({'length_units': line.split()[-2]})
                     if (out['length_units'] != 'Ang'):
@@ -177,20 +174,19 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
                 line = wann_out_file[i]
                 if 'Convergence tolerence' in line:
                     out.update({
-                        'wannierise_convergence_tolerance':
-                        float(line.split()[-2])
+                        'convergence_tolerance': float(line.split()[-2])
                     })
                 if 'Write r^2_nm to file' in line:
-                    out.update({'r2_nm_writeout': line.split()[-2]})
-                    if out['r2_nm_writeout'] != 'F':
+                    out.update({'r2mn_writeout': line.split()[-2]})
+                    if out['r2mn_writeout'] != 'F':
                         out['warnings'].append(
                             'The r^2_nm file has been selected '
                             'to be written, but this is not yet supported!'
                         )
 
                 if 'Write xyz WF centres to file' in line:
-                    out.update({'xyz_wf_center_writeout': line.split()[-2]})
-                    if out['xyz_wf_center_writeout'] != 'F':
+                    out.update({'xyz_writeout': line.split()[-2]})
+                    if out['xyz_writeout'] != 'F':
                         out['warnings'].append(
                             'The xyz_WF_center file has '
                             'been selected to be written, but this is not '
@@ -210,25 +206,19 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
             # if  'Wannierisation convergence criteria satisfied' \
             #         not in Final_check_line:
             #     Final_Delta = float(Final_check_line.split()[-3])
-            #     if abs(Final_Delta) > out['wannierise_convergence_tolerance']:
+            #     if abs(Final_Delta) > out['convergence_tolerance']:
             #         out['Warnings'] += ['Wannierization not converged within '
             #         'specified tolerance!']
-            num_wf = out['number_wannier_functions']
+            num_wf = out['number_wfs']
             wf_out = []
             end_wf_loop = i + num_wf + 1
             for i in range(i + 1, end_wf_loop):
                 line = wann_out_file[i]
-                wf_out_i = {
-                    'wannier_function': '',
-                    'coordinates': '',
-                    'spread': ''
-                }
-                #wf_out_i['wannier_function'] = int(line.split()[-7])
-                wf_out_i['wannier_function'] = int(
-                    line.split('(')[0].split()[-1]
-                )
-                wf_out_i['spread'] = float(line.split(')')[1].strip())
-                #wf_out_i['spread'] = float(line.split()[-1])
+                wf_out_i = {'wf_ids': '', 'wf_centres': '', 'wf_spreads': ''}
+                #wf_out_i['wf_ids'] = int(line.split()[-7])
+                wf_out_i['wf_ids'] = int(line.split('(')[0].split()[-1])
+                wf_out_i['wf_spreads'] = float(line.split(')')[1].strip())
+                #wf_out_i['wf_spreads'] = float(line.split()[-1])
                 try:
                     x = float(
                         line.split('(')[1].split(')')[0].split(',')[0].strip()
@@ -249,7 +239,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
                 except (ValueError, IndexError):
                     z = None
                 coord = (x, y, z)
-                wf_out_i['coordinates'] = coord
+                wf_out_i['wf_centres'] = coord
                 wf_out.append(wf_out_i)
             out.update({'wannier_functions_output': wf_out})
             for i in range(i + 2, i + 6):
