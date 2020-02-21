@@ -137,7 +137,7 @@ Outputs
     - wf_ids: numerical index of the wannier function
     - im_re_ratio: if available the Imaginary/Real ratio of the wannier function
 
-  * ``Warnings``: parsed list of warnings
+  * ``warnings``: parsed list of warnings
   * ``output_verbosity``: the output verbosity, throws a warning if any value other than default is used
   * ``preprocess_only``: whether the calc only did the preprocessing step ``wannier90 -pp``
   * ``r2mn_writeout``: whether r^2 mn file was written
