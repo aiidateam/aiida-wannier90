@@ -70,8 +70,13 @@ def test_default(#pylint: disable=too-many-locals
         '{}.mmn'.format(input_seedname), '{}.amn'.format(input_seedname)
     )]
     retrieve_list = [
-        "{}{}".format(input_seedname, suffix)
-        for suffix in ('.wout', '.werr', '_band.dat', '_band.kpt')
+        input_seedname + suffix for suffix in (
+            '.wout', '.werr', '.r2mn', '_band.dat', '_band.dat', '_band.agr',
+            '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz',
+            '_hr.dat', '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat',
+            '_dos.dat', '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw',
+            '_band_proj.dat'
+        )
     ]
     retrieve_temporary_list = []
 
@@ -117,8 +122,13 @@ def test_no_projections( #pylint: disable=too-many-locals
         'UNK00006.1', 'UNK00007.1', 'UNK00008.1', 'aiida.mmn', 'aiida.amn'
     )]
     retrieve_list = [
-        "aiida{}".format(suffix)
-        for suffix in ('.wout', '.werr', '_band.dat', '_band.kpt')
+        "aiida" + suffix for suffix in (
+            '.wout', '.werr', '.r2mn', '_band.dat', '_band.dat', '_band.agr',
+            '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz',
+            '_hr.dat', '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat',
+            '_dos.dat', '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw',
+            '_band_proj.dat'
+        )
     ]
     retrieve_temporary_list = []
 
@@ -163,8 +173,13 @@ def test_list_projections(#pylint: disable=too-many-locals
         'UNK00006.1', 'UNK00007.1', 'UNK00008.1', 'aiida.mmn', 'aiida.amn'
     )]
     retrieve_list = [
-        "aiida{}".format(suffix)
-        for suffix in ('.wout', '.werr', '_band.dat', '_band.kpt')
+        "aiida" + suffix for suffix in (
+            '.wout', '.werr', '.r2mn', '_band.dat', '_band.dat', '_band.agr',
+            '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz',
+            '_hr.dat', '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat',
+            '_dos.dat', '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw',
+            '_band_proj.dat'
+        )
     ]
     retrieve_temporary_list = []
 
