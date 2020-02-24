@@ -2,6 +2,7 @@ output_parameters:
   Omega_D: 0.008029517
   Omega_I: 3.956600819
   Omega_OD: 0.501954713
+  convergence_tolerance: 1.0e-10
   length_units: Ang
   number_wfs: 4
   output_verbosity: 1
@@ -12,27 +13,26 @@ output_parameters:
     - -0.866225
     - 1.973775
     - 1.973775
-    wf_spreads: 1.11664626
     wf_ids: 1
+    wf_spreads: 1.11664626
   - wf_centres:
     - -0.866225
     - 0.866225
     - 0.866225
-    wf_spreads: 1.11664626
     wf_ids: 2
+    wf_spreads: 1.11664626
   - wf_centres:
     - -1.973775
     - 1.973775
     - 0.866225
-    wf_spreads: 1.11664626
     wf_ids: 3
+    wf_spreads: 1.11664626
   - wf_centres:
     - -1.973775
     - 0.866225
     - 1.973775
-    wf_spreads: 1.11664626
     wf_ids: 4
-  convergence_tolerance: 1.0e-10
+    wf_spreads: 1.11664626
   warnings:
   - Wannierisation finished because num_iter was reached.
   xyz_writeout: F
