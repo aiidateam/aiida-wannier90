@@ -2,6 +2,7 @@
 from __future__ import absolute_import, print_function, division
 import os
 import six
+import fnmatch
 
 from aiida.common import datastructures
 
@@ -20,18 +21,28 @@ __all__ = ('Wannier90Calculation', )
 class Wannier90Calculation(CalcJob):
     """
     Plugin for Wannier90, a code for computing maximally-localized Wannier
-    functions. See http://www.wannier.org/ for more details
+    functions. See http://www.wannier.org/ for more details.
     """
     _DEFAULT_SEEDNAME = 'aiida'
     # The following ones CANNOT be set by the user - in this case an exception will be raised
     # IMPORTANT: define them here in lower-case
-    _BLOCKED_PARAMETER_KEYS = [
+    _BLOCKED_PARAMETER_KEYS = (
         'length_unit',
         'unit_cell_cart',
         'atoms_cart',
         'projections',
         'postproc_setup'  # Pass instead a 'postproc_setup' in the input `settings` node
-    ]
+    )
+
+    # By default, retrieve all produced files except .nnkp (which
+    # is handled separately) and .chk (checkpoint files are large,
+    # and usually not needed).
+    _DEFAULT_RETRIEVE_SUFFIXES = (
+        '.wout', '.werr', '.r2mn', '_band.dat', '_band.dat', '_band.agr',
+        '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz', '_hr.dat',
+        '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat', '_dos.dat',
+        '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw', '_band_proj.dat'
+    )
 
     @classmethod
     def define(cls, spec):  # pylint: disable=no-self-argument
@@ -50,7 +61,32 @@ class Wannier90Calculation(CalcJob):
             "settings",
             valid_type=Dict,
             required=False,
-            help="Additional settings to manage the Wannier90 calculation"
+            help="""
+            Additional settings to manage the Wannier90 calculation.
+
+            It can contain the following keys:
+
+            General options:
+
+            - `random_projections`: Enables using random projections if
+                or not enough projections are defined.
+            - `postproc_setup`: Use Wannier90 in 'postproc_setup' mode.
+                This affects which input and output files are expected.
+
+            File handling options:
+
+            - `additional_remote_symlink_list`: List of custom files to
+                link on the remote.
+            - `additional_remote_copy_list`: List of custom files to
+                copy from a source on the remote.
+            - `additional_local_copy_list`: List of custom files to copy
+                from a local source.
+            - `additional_retrieve_list`: List of additional filenames
+                to be retrieved.
+            - `exclude_retrieve_list`: List of filename patterns to
+                exclude from retrieving. Does not affect files listed
+                in `additional_retrieve_list`.
+            """
         )
         spec.input(
             "projections",
@@ -225,7 +261,6 @@ class Wannier90Calculation(CalcJob):
 
         def files_finder(file_list, exact_patterns, glob_patterns):
             result = [f for f in exact_patterns if (f in file_list)]
-            import fnmatch
             for glob_p in glob_patterns:
                 result += fnmatch.filter(file_list, glob_p)
             return result
@@ -304,28 +339,25 @@ class Wannier90Calculation(CalcJob):
         calcinfo.codes_info = [codeinfo]
         calcinfo.codes_run_mode = datastructures.CodeRunMode.SERIAL
 
-        # Retrieve files
-        calcinfo.retrieve_list = []
+        retrieve_list = [
+            self._SEEDNAME + suffix
+            for suffix in self._DEFAULT_RETRIEVE_SUFFIXES
+        ]
+        exclude_retrieve_list = settings_dict.pop("exclude_retrieve_list", [])
+        retrieve_list = [
+            filename for filename in retrieve_list if not any(
+                fnmatch.fnmatch(filename, pattern)
+                for pattern in exclude_retrieve_list
+            )
+        ]
+
+        calcinfo.retrieve_list = retrieve_list
         calcinfo.retrieve_temporary_list = []
-        calcinfo.retrieve_list.append('{}.wout'.format(self._SEEDNAME))
-        calcinfo.retrieve_list.append('{}.werr'.format(self._SEEDNAME))
         if pp_setup:
             # The parser will then put this in a SinglefileData (if present)
             calcinfo.retrieve_temporary_list.append(
                 '{}.nnkp'.format(self._SEEDNAME)
             )
-
-        calcinfo.retrieve_list += [
-            '{}_band.dat'.format(self._SEEDNAME),
-            '{}_band.kpt'.format(self._SEEDNAME)
-        ]
-
-        if settings_dict.pop('retrieve_hoppings', False):
-            calcinfo.retrieve_list += [
-                '{}_wsvec.dat'.format(self._SEEDNAME),
-                '{}_hr.dat'.format(self._SEEDNAME),
-                '{}_centres.xyz'.format(self._SEEDNAME),
-            ]
 
         # Retrieves bands automatically, if they are calculated
 
