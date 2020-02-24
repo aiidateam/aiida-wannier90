@@ -2,37 +2,37 @@ output_parameters:
   Omega_D: 0.008029517
   Omega_I: 3.956600819
   Omega_OD: 0.501954713
+  convergence_tolerance: 1.0e-10
   length_units: Ang
-  number_wannier_functions: 4
+  number_wfs: 4
   output_verbosity: 1
   preprocess_only: F
-  r2_nm_writeout: F
+  r2mn_writeout: F
   wannier_functions_output:
-  - coordinates:
+  - wf_centres:
     - -0.866225
     - 1.973775
     - 1.973775
-    spread: 1.11664626
-    wannier_function: 1
-  - coordinates:
+    wf_ids: 1
+    wf_spreads: 1.11664626
+  - wf_centres:
     - -0.866225
     - 0.866225
     - 0.866225
-    spread: 1.11664626
-    wannier_function: 2
-  - coordinates:
+    wf_ids: 2
+    wf_spreads: 1.11664626
+  - wf_centres:
     - -1.973775
     - 1.973775
     - 0.866225
-    spread: 1.11664626
-    wannier_function: 3
-  - coordinates:
+    wf_ids: 3
+    wf_spreads: 1.11664626
+  - wf_centres:
     - -1.973775
     - 0.866225
     - 1.973775
-    spread: 1.11664626
-    wannier_function: 4
-  wannierise_convergence_tolerance: 1.0e-10
+    wf_ids: 4
+    wf_spreads: 1.11664626
   warnings:
   - Wannierisation finished because num_iter was reached.
-  xyz_wf_center_writeout: F
+  xyz_writeout: F
