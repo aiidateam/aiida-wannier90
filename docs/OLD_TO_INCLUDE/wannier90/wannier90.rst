@@ -127,22 +127,22 @@ Outputs
 -------
 * output_parameters :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` (accessed by ``calculation.res``). Contains the scalar properties. Currently parsed parameters include:
 
-  * ``number_wannier_functions``: the number of wannier functions
+  * ``number_wfs``: the number of wannier functions
   * ``Omega_D``, ``Omega_I``, ``Omega_OD``, ``Omega_total`` wich are: the diagonal :math:`\Omega_D`,
     invariant  :math:`\Omega_I`, offdiagonal :math:`\Omega_{OD}`, and total spread :math:`\Omega_{total}`. Units are always Ang^2
   * ``wannier_functions_output`` a list of dictionaries containing:
 
-    - coordinates: the center of the wannier function
-    - spread: the spread of the wannier function. Units are always Ang^2
-    - wannier_function: numerical index of the wannier function
+    - wf_centres: the center of the wannier function
+    - wf_spreads: the spread of the wannier function. Units are always Ang^2
+    - wf_ids: numerical index of the wannier function
     - im_re_ratio: if available the Imaginary/Real ratio of the wannier function
 
-  * ``Warnings``: parsed list of warnings
+  * ``warnings``: parsed list of warnings
   * ``output_verbosity``: the output verbosity, throws a warning if any value other than default is used
   * ``preprocess_only``: whether the calc only did the preprocessing step ``wannier90 -pp``
-  * ``r2_nm_writeout``: whether r^2 nm file was written
-  * ``wannierise_convergence_tolerence``: the tolerance for convergence, units of Ang^2
-  * ``xyz_wf_center_writeout``: whether xyz_wf_center file was explicitly and independently written
+  * ``r2mn_writeout``: whether r^2 mn file was written
+  * ``convergence_tolerence``: the tolerance for convergence, units of Ang^2
+  * ``xyz_writeout``: whether xyz_wf_center file was explicitly and independently written
   * Other parameters, should match those described in the user guide
     
 * interpolated_bands :py:class:`BandsData <aiida.orm.data.array.bands.BandsData>`
