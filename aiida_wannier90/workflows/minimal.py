@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
-from six.moves import zip
 from aiida import orm
-from aiida.plugins import CalculationFactory, DataFactory
+from aiida.plugins import CalculationFactory
 from aiida.engine import WorkChain, ToContext, calcfunction
 from aiida.orm.nodes.data.upf import get_pseudos_from_structure
-from aiida.orm import Code, Dict, Float, Str, StructureData
-from aiida.plugins import CalculationFactory, DataFactory
-from aiida.engine import run, submit
+from aiida.orm import Dict
 
 
 class MinimalW90WorkChain(WorkChain):
@@ -156,7 +153,8 @@ class MinimalW90WorkChain(WorkChain):
 
         try:
             # Check if it's an explicit list of kpoints; this raises AttributeError if it's a mesh
-            _ = self.inputs.kpoints_nscf.get_kpoints()
+            self.inputs.kpoints_nscf.get_kpoints()
+            # If I am here, this an explicit grid, I stop
             raise ValueError(
                 "You should pass an MP grid; we'll take care of converting to an explicit one"
             )

@@ -3,11 +3,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import click
-import hashlib
 import os
 
 from aiida.engine import run
-from aiida.orm import load_code, Str, Dict, QueryBuilder, Group
+from aiida.orm import Str, Dict, Group
 from aiida.orm.nodes.data import upf
 from aiida.plugins import DataFactory
 from aiida.cmdline.params import options, types
@@ -213,4 +212,4 @@ def run_wf(pwscf_code, pw2wannier90_code, wannier_code):
 
 
 if __name__ == "__main__":
-    run_wf()
+    run_wf()  #  pylint: disable=no-value-for-parameter
