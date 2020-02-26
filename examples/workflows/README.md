@@ -1,90 +1,91 @@
 # GaAs wannierization workchain
 
-This Aiida workchain run a full calculation from scratch ( i.e.Quantum ESPRESSO and Wannier90) to wannierize  the GaAs material without SCDM.
-The workflows provide the parsed information from the standard Wannier90 output (i.e. centres, spreads etc.) and the intrepolated bands.
+This AiiDA workchain runs a full workflow from scratch (i.e., both Quantum ESPRESSO and Wannier90) to wannierise a GaAs crystal using manually-specified projections.
+The workflow returns the parsed information from the standard Wannier90 output (i.e. centres, spreads, etc.) and the interpolated band structure.
 
- We use in the following the  verdi command-line interface (CLI). Reminder for simple command in the updated AiiDA version:
-1. workon aiida  (to enter the AiiDA cirtual environment)
-2. verdi process list -a -pn (to monitor the state of the calculations done in the last n days)
-3. verdi process show \<identifier> (once the calculation is finished: more detailed list of properties, inputs and outputs) 
+We use in the following the `verdi` command-line interface (CLI). 
+
+A reminder of a few useful AiiDA commands:
+1. `verdi process list -a -p <N>` (to monitor the state of the calculations done in the last `<N>` days)
+1. `verdi process show <identifier>` (to list inputs and outputs of a calculation, especially useful after the calculation is finished) 
 
 ## Run your simulation
 
-- Open a terminal (click on the 'Terminal' icon on the left bar, represented  by a black screen with a '>_' symbol inside) and type:
-``` 
-     workon AiiDA
-``` 
+Open a terminal and enter the virtual environment where AiiDA is installed.
 
-  to enter the "virtual environment" where AiiDA is installed.
-
-  - In the workflow folder, run the following script (i.e. the launcher):
-
+Then, enter the `examples/workflows` folder of the `aiida-wannier90` plugin and run the following script to launch a new workflow:
 ```    
-     verdi run ./workflows/launch_w90_minimal.py 
+./launch_w90_minimal.py -h
 ``` 
-- Notes: in this example we use as starting guess for projections atomic orbitals (sp3 centred on As atoms). For more 
-  details about the inputs of QE and Wannier90 calculations you can inspect both the launcher and the workchain script.
+This will show the help of the command. You need to specify three required parameters: a `quantumespresso.pw` code, a `quantumespresso.pw2wannier90` code and a `wannier90.wannier90` code (that you need to setup before).
+An example full command looks like:
+```
+./launch_w90_minimal.py -s pw@computer -p pw2wannier90@computer -w wannier90@computer
+```
 
+This will launch the simple workchain that is provided with `aiida-wannier90`, whose class name is `MinimalW90WorkChain`and that is found in the python module `aiida_wannier90.workflows.minimal`.
+
+*Note*: in this example we use sp3 orbitals centred on As atoms as starting guesses for projections. For more 
+details about the inputs of QE and Wannier90 calculations you can inspect both the launcher and the workchain itself.
 
 ## Check the results
 
-- When you run the *launch_w90_minimal.py* script it will execute the *../example01/minimal.py* script. On screen you will get a output line for each step running (i.e. in order: pw-scf, pw-nscf, pp wannier, pw2wannier, final wannier), reporting the identifier pk of each calculation. You can ispect each calculation node by typing:
+When you run the `launch_w90_minimal.py`, on screen you will get an output line for each step running (i.e. in order: `pw.x` SCF, `pw.x` NSCF, `wannier90.x` preprocessing, `pw2wannier.x`, main `wannier90.x` run), reporting the identifier (PK) of each calculation. You can inspect each calculation node by typing, for instance:
+``` 
+verdi process show <PK>
+```
+to see the inputs and outputs of each calculation, or
+``` 
+verdi data dict show <PK>
+``` 
+to inspect the contect of `Dict` nodes, such as the `output_parameters` of the Wannier90 calculation, containing the parsed information from the output of the code.
 
-``` 
-     verdi process show <PK>
-``` 
-  or
-
-```   
-     verdi node show <PK>
-
-``` 
-  for the specific inputs and outputs node of each calculation, and 
-``` 
-     verdi data dict show <PK>
-``` 
- to inspect the dictionaries such as the *output_parameters* one containing the parsed information from the standard Wannier output.
-
-- As final results you get all the information parsed in AiiDA and saved as outputs, as documented online (https://aiida-core.readthedocs.io/en/v0.7.0/plugins/wannier90/wannier90.html#my-ref-to-wannier90-filescopy-doc).
+As final results you get all the information parsed in AiiDA and saved as outputs, as [documented online](https://aiida-wannier90.readthedocs.io/en/latest/index.html).
 
 ### Band structure
 
-- Something useful is be able to export and/or visualize the resulting interpolated bands using maximally-localised Wannier functions (MLWFs).
-Once the workflow is finished, you can find the ID of the band structure using the command:
+Once the calculation is finished, you export or visualize the resulting bands interpolated using maximally-localised Wannier functions (MLWFs).
+First, find the PK of the `BandStructure` returned by the workflow using the command:
 ```
-     verdi node show <PK>
+verdi node show <PK>
 ```
-and then getting the PK for the row corresponding to the link label "MLWF_interpolated_bands".     
-With this PK, you can show the bands with xmgrace using:
+(passing the workflow PK). The `BandStructure` PK is found by looking for the output node with link label `wannier_bands`.
+
+With this `BandStructure` PK, you can show the bands with xmgrace using:
 ```
-    verdi data bands show -F agr <PK> 
+verdi data bands show -F agr <PK> 
 ```
-or export to file using:
+or export it to file using:
 ```
-   verdi data bands export -F agr <PK> -o file_name.agr
+verdi data bands export -F agr <PK> -o interpolated.agr
 ```
-where *file_name.agr* is the name chosen for the file containing the bands to be plotted.
+where `interpolated.agr` is the output file name where the band structure will be stored.
 
 ### Compare with DFT bands
 
-- If you want to compare the interpolated band structure with the bands obtained directly from DFT (Quantum ESPRESSO),  you can plot together the two executing the following command:
+You can compare the interpolated band structure with the bands obtained directly from DFT (Quantum ESPRESSO).
+You can compute this band structure, but for convenience 
+we provide the `DFT-bands.agr` file in the same folder.
+After having exported the MLWF-interpolated bands as explained above, you can plot together both of them, executing the following command:
 ```
-xmgrace DFT-bands.agr file_name.agr 
+xmgrace DFT-bands.agr interpolated.agr 
 ```
-where the *DFT-bands.agr* has been already provided in this folder.
 
+You should see something like the following plot (where we just changed some graphical aspects):
 
+![Comparison of DFT and Wannier band structures](img/comparison.png "Band structure comparison")
 
-## Visualizing Aiida Provenance Graphs
+## Visualizing AiiDA provenance graphs
 
-- Data provenance is tracked automatically and stored in the form of a directed acyclic graph.  
+As you might have noticed in the sections above, data provenance is tracked automatically and stored in the form of a directed acyclic graph.  
 Each  calculation is represented by a node, that is linked to its input and output data nodes.
-The provenance graph is stored  in a local database that can be queried typing:
+The provenance graph can visualised graphically using the following command:
 ```
-   verdi node graph generate <PK>
+verdi node graph generate <PK>
 ```   
-where the PK is the one identifying teh calculation of interest. Finally, one can easily 
-convert the graph into a pdf format for visualization:
-```
-   evince pk.dot.pdf .
-```
+where you can use the PK of a node for which you want to see the provenance (for instance a calculation, or the final band structure).
+
+This command, by default, generates a PDF file named `<PK>.dot.pdf`, that you can view with your favourite software.
+
+![Example of the provenance graph of the band structure generated by the workflow](img/provenance.png "Band structure provenance graph")
+
