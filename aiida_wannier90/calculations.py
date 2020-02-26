@@ -23,7 +23,11 @@ class Wannier90Calculation(CalcJob):
     Plugin for Wannier90, a code for computing maximally-localized Wannier
     functions. See http://www.wannier.org/ for more details.
     """
-    _DEFAULT_SEEDNAME = 'aiida'
+    # The input filename MUST end with .win. This is validated by the prepare_for_submission
+    _REQUIRED_INPUT_SUFFIX = ".win"
+    _DEFAULT_INPUT_FILE = 'aiida.win'
+    _DEFAULT_OUTPUT_FILE = 'aiida.wout'
+
     # The following ones CANNOT be set by the user - in this case an exception will be raised
     # IMPORTANT: define them here in lower-case
     _BLOCKED_PARAMETER_KEYS = (
@@ -144,11 +148,15 @@ class Wannier90Calculation(CalcJob):
         )
         spec.default_output_node = 'output_parameters'
 
-        # This is used to allow the user to choose the input and output filenames
         spec.input(
-            'metadata.options.seedname',
+            'metadata.options.input_filename',
             valid_type=six.string_types,
-            default=cls._DEFAULT_SEEDNAME
+            default=cls._DEFAULT_INPUT_FILE
+        )
+        spec.input(
+            'metadata.options.output_filename',
+            valid_type=six.string_types,
+            default=cls._DEFAULT_OUTPUT_FILE
         )
         spec.input(
             'metadata.options.parser_name',
@@ -187,7 +195,13 @@ class Wannier90Calculation(CalcJob):
         Return the default seedname, unless a custom one has been set in the
         calculation settings
         """
-        return self.inputs.metadata.options.seedname
+        input_filename = self.inputs.metadata.options.input_filename
+
+        if input_filename.endswith(self._REQUIRED_INPUT_SUFFIX):
+            return input_filename[:-len(self._REQUIRED_INPUT_SUFFIX)]
+        # This would be an invalid input filename. However, I do not raise here since this is a property.
+        # I just return the full input_filename, but there is some validation in prepare_for_submission.
+        return input_filename
 
     def prepare_for_submission(self, folder):  #pylint: disable=too-many-locals, too-many-statements # noqa:  disable=MC0001
         """
@@ -195,6 +209,34 @@ class Wannier90Calculation(CalcJob):
         :param folder: a aiida.common.folders.Folder subclass where
             the plugin should put all its files.
         """
+        # Let's check that the user-specified input filename ends with .win
+        if not self.inputs.metadata.options.input_filename.endswith(
+            self._REQUIRED_INPUT_SUFFIX
+        ):
+            raise exc.InputValidationError(
+                "The input filename for Wannier90 (specified in the metadata.options.input_filename) "
+                "must end with .win, you specified instead '{}'".format(
+                    self.inputs.metadata.options.input_filename
+                )
+            )
+
+        # The output filename is defined by Wannier90 based on the seedname.
+        # In AiiDA, the output_filename needs to be specified as a metadata.option to allow for
+        # `verdi calcjob outputcat` to work correctly. Here we check that, if the users manually changed
+        # the input_filename, they also changed the output_filename accordingly
+        expected_output_filename = self._SEEDNAME + ".wout"
+        if self.inputs.metadata.options.output_filename != expected_output_filename:
+            raise exc.InputValidationError(
+                "The output filename specified is wrong. You probably changed the metadata.options.input_filename "
+                "but you forgot to adapt the metadata.options.output_filename accordingly! Currently, you have: "
+                "input_filename: '{}', output_filename: '{}', while I would expect '{}'"
+                .format(
+                    self.inputs.metadata.options.input_filename,
+                    self.inputs.metadata.options.output_filename,
+                    expected_output_filename
+                )
+            )
+
         param_dict = self.inputs.parameters.get_dict()
         self._validate_lowercase(param_dict)
         self._validate_input_parameters(param_dict)

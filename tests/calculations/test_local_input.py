@@ -55,7 +55,12 @@ def test_default(#pylint: disable=too-many-locals
     input_seedname = seedname or 'aiida'
     inputs = generate_common_inputs_gaas(inputfolder_seedname=input_seedname)
     if seedname is not None:
-        inputs['metadata']['options']['seedname'] = seedname
+        inputs['metadata']['options']['input_filename'] = "{}.win".format(
+            seedname
+        )
+        inputs['metadata']['options']['output_filename'] = "{}.wout".format(
+            seedname
+        )
 
     calc_info = generate_calc_job(
         folder=fixture_sandbox,
@@ -213,7 +218,12 @@ def test_wrong_seedname(
 
     inputs = generate_common_inputs_gaas(inputfolder_seedname='something_else')
     if seedname is not None:
-        inputs['metadata']['options']['seedname'] = seedname
+        inputs['metadata']['options']['input_filename'] = "{}.win".format(
+            seedname
+        )
+        inputs['metadata']['options']['output_filename'] = "{}.wout".format(
+            seedname
+        )
 
     with pytest.raises(InputValidationError):
         generate_calc_job(
