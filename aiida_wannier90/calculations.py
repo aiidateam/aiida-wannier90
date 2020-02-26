@@ -254,7 +254,10 @@ class Wannier90Calculation(CalcJob):
                 self._SEEDNAME + suffix for suffix in ['.mmn', '.amn']
             ]
         optional_files = [
-            self._SEEDNAME + suffix for suffix in ['.eig', '.chk', '.spn']
+            self._SEEDNAME + suffix for suffix in [
+                '.eig', '.chk', '.spn', '.uHu', '_htB.dat', '_htL.dat',
+                '_htR.dat', '_htC.dat', '_htLC.dat', '_htCR.dat', '.unkg'
+            ]
         ]
         input_files = required_files + optional_files
         wavefunctions_files = ['UNK*']
