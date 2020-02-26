@@ -7,3 +7,4 @@ tests/.cache
 .DS_Store
 .vscode
 .pytest_cache
+dist

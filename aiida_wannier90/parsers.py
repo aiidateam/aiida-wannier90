@@ -7,6 +7,12 @@ from six.moves import range
 from aiida.parsers import Parser
 from aiida.common import exceptions as exc
 
+__all__ = (
+    'Wannier90Parser',
+    'band_parser',
+    'raw_wout_parser',
+)
+
 
 class Wannier90Parser(Parser):
     """
@@ -14,20 +20,20 @@ class Wannier90Parser(Parser):
     the centers, spreads and, if possible the Imaginary/Real ratio of the
     wannier functions. Will also check to see if the output converged.
     """
-    def __init__(self, calculation):
+    def __init__(self, node):
         from .calculations import Wannier90Calculation
 
         # check for valid input
-        if not issubclass(calculation.process_class, Wannier90Calculation):
+        if not issubclass(node.process_class, Wannier90Calculation):
             raise exc.OutputParsingError(
                 "Input must calc must be a "
                 "Wannier90Calculation, it is instead {}".format(
-                    type(calculation.process_class)
+                    type(node.process_class)
                 )
             )
-        super(Wannier90Parser, self).__init__(calculation)
+        super(Wannier90Parser, self).__init__(node)
 
-    def parse(self, **kwargs):
+    def parse(self, **kwargs):  # pylint: disable=too-many-locals,inconsistent-return-statements
         """
         Parses the datafolder, stores results.
         This parser for this simple code does simply store in the DB a node
@@ -84,8 +90,8 @@ class Wannier90Parser(Parser):
                 band_dat_file = fil.readlines()
             with out_folder.open('{}_band.kpt'.format(seedname)) as fil:
                 band_kpt_file = fil.readlines()
-        except (AttributeError, KeyError, IOError):
-            # AttributeError: no input kpoint_path
+        except (exc.NotExistent, KeyError, IOError):
+            # exc.NotExistent: no input kpoint_path
             # KeyError: no get_dict()
             # IOError: _band.* files not present
             pass
@@ -106,7 +112,7 @@ class Wannier90Parser(Parser):
             return self.exit_codes.ERROR_EXITING_MESSAGE_IN_STDOUT
 
 
-def raw_wout_parser(wann_out_file):
+def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-statements # noqa:  disable=MC0001
     '''
     This section will parse a .wout file and return certain key
     parameters such as the centers and spreads of the
@@ -119,8 +125,7 @@ def raw_wout_parser(wann_out_file):
     w90_conv = False  #Used to assess convergence of MLWF procedure use conv_tol and conv_window>1
     out = {}
     out.update({'warnings': []})
-    for i in range(len(wann_out_file)):
-        line = wann_out_file[i]
+    for i, line in enumerate(wann_out_file):
         # checks for any warnings
         if 'Warning' in line:
             # Certain warnings get a special flag
@@ -141,10 +146,7 @@ def raw_wout_parser(wann_out_file):
             while '-----' not in line:
                 line = wann_out_file[i]
                 if 'Number of Wannier Functions' in line:
-                    out.update({
-                        'number_wannier_functions':
-                        int(line.split()[-2])
-                    })
+                    out.update({'number_wfs': int(line.split()[-2])})
                 if 'Length Unit' in line:
                     out.update({'length_units': line.split()[-2]})
                     if (out['length_units'] != 'Ang'):
@@ -172,20 +174,19 @@ def raw_wout_parser(wann_out_file):
                 line = wann_out_file[i]
                 if 'Convergence tolerence' in line:
                     out.update({
-                        'wannierise_convergence_tolerance':
-                        float(line.split()[-2])
+                        'convergence_tolerance': float(line.split()[-2])
                     })
                 if 'Write r^2_nm to file' in line:
-                    out.update({'r2_nm_writeout': line.split()[-2]})
-                    if out['r2_nm_writeout'] != 'F':
+                    out.update({'r2mn_writeout': line.split()[-2]})
+                    if out['r2mn_writeout'] != 'F':
                         out['warnings'].append(
                             'The r^2_nm file has been selected '
                             'to be written, but this is not yet supported!'
                         )
 
                 if 'Write xyz WF centres to file' in line:
-                    out.update({'xyz_wf_center_writeout': line.split()[-2]})
-                    if out['xyz_wf_center_writeout'] != 'F':
+                    out.update({'xyz_writeout': line.split()[-2]})
+                    if out['xyz_writeout'] != 'F':
                         out['warnings'].append(
                             'The xyz_WF_center file has '
                             'been selected to be written, but this is not '
@@ -205,25 +206,19 @@ def raw_wout_parser(wann_out_file):
             # if  'Wannierisation convergence criteria satisfied' \
             #         not in Final_check_line:
             #     Final_Delta = float(Final_check_line.split()[-3])
-            #     if abs(Final_Delta) > out['wannierise_convergence_tolerance']:
+            #     if abs(Final_Delta) > out['convergence_tolerance']:
             #         out['Warnings'] += ['Wannierization not converged within '
             #         'specified tolerance!']
-            num_wf = out['number_wannier_functions']
+            num_wf = out['number_wfs']
             wf_out = []
             end_wf_loop = i + num_wf + 1
             for i in range(i + 1, end_wf_loop):
                 line = wann_out_file[i]
-                wf_out_i = {
-                    'wannier_function': '',
-                    'coordinates': '',
-                    'spread': ''
-                }
-                #wf_out_i['wannier_function'] = int(line.split()[-7])
-                wf_out_i['wannier_function'] = int(
-                    line.split('(')[0].split()[-1]
-                )
-                wf_out_i['spread'] = float(line.split(')')[1].strip())
-                #wf_out_i['spread'] = float(line.split()[-1])
+                wf_out_i = {'wf_ids': '', 'wf_centres': '', 'wf_spreads': ''}
+                #wf_out_i['wf_ids'] = int(line.split()[-7])
+                wf_out_i['wf_ids'] = int(line.split('(')[0].split()[-1])
+                wf_out_i['wf_spreads'] = float(line.split(')')[1].strip())
+                #wf_out_i['wf_spreads'] = float(line.split()[-1])
                 try:
                     x = float(
                         line.split('(')[1].split(')')[0].split(',')[0].strip()
@@ -244,7 +239,7 @@ def raw_wout_parser(wann_out_file):
                 except (ValueError, IndexError):
                     z = None
                 coord = (x, y, z)
-                wf_out_i['coordinates'] = coord
+                wf_out_i['wf_centres'] = coord
                 wf_out.append(wf_out_i)
             out.update({'wannier_functions_output': wf_out})
             for i in range(i + 2, i + 6):
@@ -270,7 +265,7 @@ def raw_wout_parser(wann_out_file):
     return out
 
 
-def band_parser(band_dat_path, band_kpt_path, special_points, structure):
+def band_parser(band_dat_path, band_kpt_path, special_points, structure):  # pylint: disable=too-many-locals
     """
     Parsers the bands output data, along with the special points retrieved
     from the input kpoints to construct a BandsData object which is then
@@ -284,6 +279,7 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
     :return: BandsData object constructed from the input params
     """
     import numpy as np
+
     from aiida.orm import BandsData
     from aiida.orm import KpointsData
 
@@ -338,8 +334,8 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):
                 kpoint = labels[x[0]][0] + 1
                 appends += [[insert_point, new_label, kpoint]]
     appends.sort()
-    for i in range(len(appends)):
-        append = appends[i]
+
+    for i, append in enumerate(appends):
         labels.insert(append[0] + i, (append[2], six.text_type(append[1])))
     bands = BandsData()
     k = KpointsData()

@@ -7,15 +7,15 @@ from __future__ import absolute_import
 import copy
 
 from aiida_wannier90.utils import conv_to_fortran_withlists
-from aiida.common import InputValidationError, ModificationNotAllowed
+from aiida.common import InputValidationError
 
 from ._group_list import list_to_grouped_string
 import six
 
-__all__ = ['write_win']
+__all__ = ('write_win', )
 
 
-def write_win(
+def write_win( # pylint: disable=too-many-arguments
     filename,
     parameters,
     kpoints=None,
@@ -42,13 +42,14 @@ def write_win(
     :param kpoint_path: List of k-points used for band interpolation.
     :type kpoint_path: aiida.orm.nodes.data.dict.Dict
 
-    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData, or as a list of strings specifying the projections in Wannier90's format.
+    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData,
+     or as a list of strings specifying the projections in Wannier90's format.
     :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str]
 
     :param random_projections: If OrbitalData is used for projections, enables random projections completion
     :type random_projections: aiida.orm.nodes.data.bool.Bool
     """
-    with open(filename, 'w') as file:
+    with open(filename, 'w') as file:  #pylint: disable= redefined-builtin
         file.write(
             _create_win_string(
                 parameters=parameters,
@@ -61,7 +62,7 @@ def write_win(
         )
 
 
-def _create_win_string(
+def _create_win_string( # pylint: disable=too-many-arguments
     parameters,
     kpoints,
     structure=None,
@@ -102,7 +103,7 @@ def _create_win_string(
                 'random_projections cannot be True if with List-type projections.'
                 'Instead, use "random" string as first element of the List.'
             )
-        block_inputs['projections'] = projections.get_attr('list')
+        block_inputs['projections'] = projections.get_list()
     else:
         block_inputs['projections'] = _format_all_projections(
             projections, random_projections=True
@@ -140,6 +141,10 @@ def _format_parameter_values(parameters_dict):
     for key, value in parameters_dict.items():
         key = key.lower()
         if key == 'exclude_bands':
+            if len(set(value)) < len(value):
+                raise InputValidationError(
+                    "The 'exclude_bands' input contains duplicate entries."
+                )
             result_dict[key] = list_to_grouped_string(value)
         else:
             result_dict[key] = conv_to_fortran_withlists(
@@ -170,7 +175,7 @@ def _format_all_projections(projections, random_projections=False):
     return projection_lines
 
 
-def _format_single_projection(orbital):
+def _format_single_projection(orbital):  #pylint: disable=too-many-locals
     """
     Creates an appropriate wannier line from input orbitaldata,
     will raise an exception if the orbital does not contain enough
@@ -193,21 +198,42 @@ def _format_single_projection(orbital):
             )
         return res
 
-    def _format_projection_values(name, value):
+    def _format_projection_values_float(name, value):
+        """
+        Return a string for a given key-value pair of the projections block, e.g.
+        ``'c=0.132443,1.324823823,0.547423243'``, where we know that values are floats
+        that will be formatted with a specific formatting option.
+        """
         if value is None:
             return ''
         if not isinstance(value, (tuple, list)):
             value = [value]
-        return '{}={}'.format(name, ','.join(str(x) for x in value))
+        return '{}={}'.format(
+            name, ','.join("{:.10f}".format(x) for x in value)
+        )
+
+    def _format_projection_values_generic(name, value):
+        """
+        Return a string for a given key-value pair of the projections block, e.g.
+        ``'l=1'``, where formatting of the values is done without specifying
+        a custom format - this is ok for e.g. integers, while for floats it's
+        better to use :func:`_format_projection_values_float` function that
+        properly formats floats, avoiding differences between python versions.
+        """
+        if value is None:
+            return ''
+        if not isinstance(value, (tuple, list)):
+            value = [value]
+        return '{}={}'.format(name, ','.join("{}".format(x) for x in value))
 
     # required arguments
     position = _get_attribute("position")
     angular_momentum = _get_attribute("angular_momentum")
     magnetic_number = _get_attribute("magnetic_number")
     wann_string = (
-        _format_projection_values('c', position) + ':' +
-        _format_projection_values('l', angular_momentum) + ',' +
-        _format_projection_values('mr', magnetic_number + 1)
+        _format_projection_values_float('c', position) + ':' +
+        _format_projection_values_generic('l', angular_momentum) + ',' +
+        _format_projection_values_generic('mr', magnetic_number + 1)
     )
 
     # optional, colon-separated arguments
@@ -216,10 +242,10 @@ def _format_single_projection(orbital):
     radial = _get_attribute("radial_nodes", required=False)
     zona = _get_attribute("diffusivity", required=False)
     if any(arg is not None for arg in [zaxis, xaxis, radial, zona]):
-        zaxis_string = _format_projection_values('z', zaxis)
-        xaxis_string = _format_projection_values('x', xaxis)
-        radial_string = _format_projection_values('r', radial + 1)
-        zona_string = _format_projection_values('zona', zona)
+        zaxis_string = _format_projection_values_float('z', zaxis)
+        xaxis_string = _format_projection_values_float('x', xaxis)
+        radial_string = _format_projection_values_generic('r', radial + 1)
+        zona_string = _format_projection_values_float('zona', zona)
         wann_string += ':{}:{}:{}:{}'.format(
             zaxis_string, xaxis_string, radial_string, zona_string
         )
@@ -234,7 +260,9 @@ def _format_single_projection(orbital):
         wann_string += "({})".format(spin_dict[spin])
     spin_orient = _get_attribute("spin_orientation", required=False)
     if spin_orient is not None:
-        wann_string += "[" + ",".join([str(x) for x in spin_orient]) + "]"
+        wann_string += "[" + ",".join([
+            "{:18.10f}".format(x) for x in spin_orient
+        ]) + "]"
 
     return wann_string
 
@@ -258,8 +286,7 @@ def _format_atoms_cart(structure):
         list_item = copy.deepcopy(list_item)
         if isinstance(list_item, (str, six.text_type)):
             return list_item
-        else:
-            return ' ' + ' '.join([str(_) for _ in list_item]) + ' '
+        return ' ' + ' '.join(["{:18.10f}".format(_) for _ in list_item]) + ' '
 
     return ['ang'] + [
         '{}  {}'.format(site.kind_name, list2str(site.position))

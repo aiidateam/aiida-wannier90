@@ -8,3 +8,5 @@ This submodule contains helper functions to create input files.
 """
 
 from ._write_win import write_win
+
+__all__ = ('write_win', )

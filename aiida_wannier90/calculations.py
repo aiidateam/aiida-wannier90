@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 import os
-
-import numpy as np
 import six
+import fnmatch
 
 from aiida.common import datastructures
 
@@ -13,26 +12,37 @@ from aiida.orm import (
     AuthInfo, BandsData, Dict, FolderData, KpointsData, List, OrbitalData,
     RemoteData, SinglefileData, StructureData
 )
-from aiida.plugins import OrbitalFactory
 
 from .io import write_win
+
+__all__ = ('Wannier90Calculation', )
 
 
 class Wannier90Calculation(CalcJob):
     """
     Plugin for Wannier90, a code for computing maximally-localized Wannier
-    functions. See http://www.wannier.org/ for more details
+    functions. See http://www.wannier.org/ for more details.
     """
     _DEFAULT_SEEDNAME = 'aiida'
     # The following ones CANNOT be set by the user - in this case an exception will be raised
     # IMPORTANT: define them here in lower-case
-    _BLOCKED_PARAMETER_KEYS = [
+    _BLOCKED_PARAMETER_KEYS = (
         'length_unit',
         'unit_cell_cart',
         'atoms_cart',
         'projections',
         'postproc_setup'  # Pass instead a 'postproc_setup' in the input `settings` node
-    ]
+    )
+
+    # By default, retrieve all produced files except .nnkp (which
+    # is handled separately) and .chk (checkpoint files are large,
+    # and usually not needed).
+    _DEFAULT_RETRIEVE_SUFFIXES = (
+        '.wout', '.werr', '.r2mn', '_band.dat', '_band.dat', '_band.agr',
+        '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz', '_hr.dat',
+        '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat', '_dos.dat',
+        '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw', '_band_proj.dat'
+    )
 
     @classmethod
     def define(cls, spec):  # pylint: disable=no-self-argument
@@ -51,12 +61,38 @@ class Wannier90Calculation(CalcJob):
             "settings",
             valid_type=Dict,
             required=False,
-            help="Additional settings to manage the Wannier90 calculation"
+            help="""
+            Additional settings to manage the Wannier90 calculation.
+
+            It can contain the following keys:
+
+            General options:
+
+            - `random_projections`: Enables using random projections if
+                or not enough projections are defined.
+            - `postproc_setup`: Use Wannier90 in 'postproc_setup' mode.
+                This affects which input and output files are expected.
+
+            File handling options:
+
+            - `additional_remote_symlink_list`: List of custom files to
+                link on the remote.
+            - `additional_remote_copy_list`: List of custom files to
+                copy from a source on the remote.
+            - `additional_local_copy_list`: List of custom files to copy
+                from a local source.
+            - `additional_retrieve_list`: List of additional filenames
+                to be retrieved.
+            - `exclude_retrieve_list`: List of filename patterns to
+                exclude from retrieving. Does not affect files listed
+                in `additional_retrieve_list`.
+            """
         )
         spec.input(
             "projections",
             valid_type=(OrbitalData, Dict, List),
-            help="Starting projections for the Wannierisation procedure"
+            help="Starting projections for the Wannierisation procedure",
+            required=False
         )
         spec.input(
             "local_input_folder",
@@ -153,10 +189,9 @@ class Wannier90Calculation(CalcJob):
         """
         return self.inputs.metadata.options.seedname
 
-    def prepare_for_submission(self, folder):
+    def prepare_for_submission(self, folder):  #pylint: disable=too-many-locals, too-many-statements # noqa:  disable=MC0001
         """
         Routine which creates the input file of Wannier90
-
         :param folder: a aiida.common.folders.Folder subclass where
             the plugin should put all its files.
         """
@@ -174,14 +209,6 @@ class Wannier90Calculation(CalcJob):
         if pp_setup:
             param_dict.update({'postproc_setup': True})
 
-        try:
-            local_input_folder = self.inputs.local_input_folder
-        except AttributeError:
-            local_input_folder = None
-
-        # TODO: implement the same pattern above also for remote_input_folder and the other
-        #       similar optional keys, then replace below
-
         if 'local_input_folder' not in self.inputs and 'remote_input_folder' not in self.inputs and not pp_setup:
             raise exc.InputValidationError(
                 'Either local_input_folder or remote_input_folder must be set.'
@@ -198,7 +225,7 @@ class Wannier90Calculation(CalcJob):
             structure=self.inputs.structure,
             kpoints=self.inputs.kpoints,
             kpoint_path=getattr(self.inputs, 'kpoint_path', None),
-            projections=self.inputs.projections,
+            projections=getattr(self.inputs, 'projections', None),
             random_projections=random_projections,
         )
 
@@ -234,7 +261,6 @@ class Wannier90Calculation(CalcJob):
 
         def files_finder(file_list, exact_patterns, glob_patterns):
             result = [f for f in exact_patterns if (f in file_list)]
-            import fnmatch
             for glob_p in glob_patterns:
                 result += fnmatch.filter(file_list, glob_p)
             return result
@@ -260,7 +286,7 @@ class Wannier90Calculation(CalcJob):
             f for f in required_files
             if f not in found_in_remote + found_in_local
         ]
-        if len(not_found) != 0:
+        if not_found:
             raise exc.InputValidationError(
                 "{} necessary input files were not found: {} (NOTE: if you "
                 "wanted to run a preprocess step, remember to pass "
@@ -308,33 +334,30 @@ class Wannier90Calculation(CalcJob):
 
         codeinfo = datastructures.CodeInfo()
         codeinfo.code_uuid = self.inputs.code.uuid
-        codeinfo.cmdline_params = ['{}.win'.format(self._SEEDNAME)]
+        codeinfo.cmdline_params = [self._SEEDNAME]
 
         calcinfo.codes_info = [codeinfo]
         calcinfo.codes_run_mode = datastructures.CodeRunMode.SERIAL
 
-        # Retrieve files
-        calcinfo.retrieve_list = []
+        retrieve_list = [
+            self._SEEDNAME + suffix
+            for suffix in self._DEFAULT_RETRIEVE_SUFFIXES
+        ]
+        exclude_retrieve_list = settings_dict.pop("exclude_retrieve_list", [])
+        retrieve_list = [
+            filename for filename in retrieve_list if not any(
+                fnmatch.fnmatch(filename, pattern)
+                for pattern in exclude_retrieve_list
+            )
+        ]
+
+        calcinfo.retrieve_list = retrieve_list
         calcinfo.retrieve_temporary_list = []
-        calcinfo.retrieve_list.append('{}.wout'.format(self._SEEDNAME))
-        calcinfo.retrieve_list.append('{}.werr'.format(self._SEEDNAME))
         if pp_setup:
             # The parser will then put this in a SinglefileData (if present)
             calcinfo.retrieve_temporary_list.append(
                 '{}.nnkp'.format(self._SEEDNAME)
             )
-
-        calcinfo.retrieve_list += [
-            '{}_band.dat'.format(self._SEEDNAME),
-            '{}_band.kpt'.format(self._SEEDNAME)
-        ]
-
-        if settings_dict.pop('retrieve_hoppings', False):
-            calcinfo.retrieve_list += [
-                '{}_wsvec.dat'.format(self._SEEDNAME),
-                '{}_hr.dat'.format(self._SEEDNAME),
-                '{}_centres.xyz'.format(self._SEEDNAME),
-            ]
 
         # Retrieves bands automatically, if they are calculated
 
@@ -357,7 +380,7 @@ class Wannier90Calculation(CalcJob):
     def _validate_lowercase(dictionary):
         """
         This function gets a dictionary and checks that all keys are lower-case.
-        
+
         :param dict_node: a dictionary
         :raises InputValidationError: if any of the keys is not lower-case
         :return: ``None`` if validation passes
@@ -376,9 +399,9 @@ class Wannier90Calculation(CalcJob):
         """
         This function gets a dictionary with the content of the parameters Dict passed by the user
         and performs some validation.
-        
+
         In particular, it checks that there are no blocked parameters keys passed.
-        
+
         :param dict_node: a dictionary
         :raises InputValidationError: if any of the validation fails
         :return: ``None`` if validation passes
