@@ -21,9 +21,11 @@ _InputFileLists = namedtuple(
     '_InputFileLists',
     ('local_copy_list', 'remote_copy_list', 'remote_symlink_list')
 )
+# When support for Python <3.7 is dropped, we can set 'default=(False, False)'
+# here, and remove the extra kwargs in the constructor calls -- or use
+# a dataclass to implement the same.
 _InputFileSuffix = namedtuple(
-    '_InputFileSuffix', ('suffix', 'required', 'always_copy'),
-    defaults=(False, False)
+    '_InputFileSuffix', ('suffix', 'required', 'always_copy')
 )
 
 
@@ -419,14 +421,17 @@ class Wannier90Calculation(CalcJob):
             return _InputFileLists([], [], [])
 
         input_file_suffixes = [
-            _InputFileSuffix(suffix=suffix, required=True)
+            _InputFileSuffix(suffix=suffix, required=True, always_copy=False)
             for suffix in ['.mmn', '.amn']
         ] + [
-            _InputFileSuffix(suffix=suffix) for suffix in [
+            _InputFileSuffix(suffix=suffix, required=False, always_copy=False)
+            for suffix in [
                 '.eig', '.spn', '.uHu', '_htB.dat', '_htL.dat', '_htR.dat',
                 '_htC.dat', '_htLC.dat', '_htCR.dat', '.unkg'
             ]
-        ] + [_InputFileSuffix(suffix='.chk', always_copy=True)]
+        ] + [
+            _InputFileSuffix(suffix='.chk', required=False, always_copy=True)
+        ]
 
         optional_file_globs = ['UNK*']
 
