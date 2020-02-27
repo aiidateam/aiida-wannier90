@@ -58,6 +58,9 @@ def fixture_remotedata(fixture_localhost, shared_datadir):
         shared_datadir / 'gaas'
     )  # TODO: Remove cast to 'str' when Python2 support is dropped.
 
+    # TODO: replace with tempfile.TemporaryDirectory when Python2 support is
+    # dropped. Note that some things will change, e.g. sandbox.abspath
+    # becomes tempdir.name, or similary `insert_path` needs to be changed.
     with SandboxFolder() as sandbox:
         remote = RemoteData(
             remote_path=sandbox.abspath, computer=fixture_localhost
