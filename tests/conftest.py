@@ -41,6 +41,41 @@ def fixture_code(fixture_localhost):
     return _fixture_code
 
 
+@pytest.yield_fixture
+def fixture_remotedata(fixture_localhost, shared_datadir):
+    """
+    Return a `RemoteData` with contents from the specified directory. Optionally a
+    mapping of strings to replace in the filenames can be passed. Note that the order
+    of replacement is not guaranteed.
+    
+    The RemoteData node is yielded and points to a folder in /tmp, and is removed at the end
+    """
+    from aiida.orm import RemoteData
+    from aiida.common.folders import SandboxFolder
+
+    replacement_mapping = {'gaas': 'aiida'}
+    dir_path = str(
+        shared_datadir / 'gaas'
+    )  # TODO: Remove cast to 'str' when Python2 support is dropped.
+
+    # TODO: replace with tempfile.TemporaryDirectory when Python2 support is
+    # dropped. Note that some things will change, e.g. sandbox.abspath
+    # becomes tempdir.name, or similary `insert_path` needs to be changed.
+    with SandboxFolder() as sandbox:
+        remote = RemoteData(
+            remote_path=sandbox.abspath, computer=fixture_localhost
+        )
+        for file_path in os.listdir(dir_path):
+            abs_path = os.path.abspath(os.path.join(dir_path, file_path))
+            res_file_path = file_path
+            for old, new in replacement_mapping.items():
+                res_file_path = res_file_path.replace(
+                    old, new
+                )  # put using correct method
+            sandbox.insert_path(abs_path, res_file_path)
+        yield remote
+
+
 @pytest.fixture
 def fixture_folderdata():
     """

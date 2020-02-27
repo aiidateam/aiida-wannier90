@@ -55,7 +55,12 @@ def test_default(#pylint: disable=too-many-locals
     input_seedname = seedname or 'aiida'
     inputs = generate_common_inputs_gaas(inputfolder_seedname=input_seedname)
     if seedname is not None:
-        inputs['metadata']['options']['seedname'] = seedname
+        inputs['metadata']['options']['input_filename'] = "{}.win".format(
+            seedname
+        )
+        inputs['metadata']['options']['output_filename'] = "{}.wout".format(
+            seedname
+        )
 
     calc_info = generate_calc_job(
         folder=fixture_sandbox,
@@ -100,6 +105,56 @@ def test_default(#pylint: disable=too-many-locals
                   ) == sorted(['{}.win'.format(input_seedname)])
     file_regression.check(input_written, encoding='utf-8', extension='.win')
 
+
+def test_wrong_input_filename(#pylint: disable=too-many-locals
+    fixture_sandbox, generate_calc_job, generate_common_inputs_gaas
+):
+    """Test that passing an input filename that does not end in .win fails."""
+
+    inputs = generate_common_inputs_gaas(inputfolder_seedname='test')
+    inputs['metadata']['options']['input_filename'
+                                  ] = "does_not_end_in_dot_win.txt"
+    inputs['metadata']['options']['output_filename'] = "test.wout"
+
+    with pytest.raises(InputValidationError):
+        generate_calc_job(
+            folder=fixture_sandbox,
+            entry_point_name=ENTRY_POINT_NAME,
+            inputs=inputs
+        )
+
+def test_mismatch_input_output_filename(#pylint: disable=too-many-locals
+    fixture_sandbox, generate_calc_job, generate_common_inputs_gaas
+):
+    """Test that passing an input and output filenames check the consistency and raise error if not"""
+
+    inputs = generate_common_inputs_gaas(inputfolder_seedname='test')
+    inputs['metadata']['options']['input_filename'] = "test1.win"
+    inputs['metadata']['options']['output_filename'] = "test2.wout"
+
+    with pytest.raises(InputValidationError):
+        generate_calc_job(
+            folder=fixture_sandbox,
+            entry_point_name=ENTRY_POINT_NAME,
+            inputs=inputs
+        )
+
+def test_werr_retrieved_with_custom_seedname(#pylint: disable=too-many-locals
+    fixture_sandbox, generate_calc_job, generate_common_inputs_gaas
+):
+    """Test the file seedname.werr is produced if the inputs are correct"""
+
+    inputs = generate_common_inputs_gaas(inputfolder_seedname='test3')
+    inputs['metadata']['options']['input_filename'] = "test3.win"
+    inputs['metadata']['options']['output_filename'] = "test3.wout"
+
+    calc_info = generate_calc_job(
+        folder=fixture_sandbox,
+        entry_point_name=ENTRY_POINT_NAME,
+        inputs=inputs
+    )
+
+    assert "test3.werr" in calc_info.retrieve_list
 
 def test_no_projections( #pylint: disable=too-many-locals
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
@@ -213,7 +268,12 @@ def test_wrong_seedname(
 
     inputs = generate_common_inputs_gaas(inputfolder_seedname='something_else')
     if seedname is not None:
-        inputs['metadata']['options']['seedname'] = seedname
+        inputs['metadata']['options']['input_filename'] = "{}.win".format(
+            seedname
+        )
+        inputs['metadata']['options']['output_filename'] = "{}.wout".format(
+            seedname
+        )
 
     with pytest.raises(InputValidationError):
         generate_calc_job(

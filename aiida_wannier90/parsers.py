@@ -33,6 +33,22 @@ class Wannier90Parser(Parser):
             )
         super(Wannier90Parser, self).__init__(node)
 
+    @staticmethod
+    def _get_seedname_from_input_filename(input_filename):
+        """
+        Return the seedname given the input filename
+
+        Raises a ValueError if the input filename does not end with .win.
+        """
+        input_suffix = '.win'
+        if input_filename.endswith(input_suffix):
+            return input_filename[:-len(input_suffix)]
+
+        raise ValueError(
+            "The input filename '{}' does not end with '{}', so I don't know how to get the seedname"
+            .format(input_filename, input_suffix)
+        )
+
     def parse(self, **kwargs):  # pylint: disable=too-many-locals,inconsistent-return-statements
         """
         Parses the datafolder, stores results.
@@ -44,7 +60,9 @@ class Wannier90Parser(Parser):
         # None if unset
         temporary_folder = kwargs.get('retrieved_temporary_folder')
 
-        seedname = self.node.get_options()['seedname']
+        seedname = self._get_seedname_from_input_filename(
+            self.node.get_options()['input_filename']
+        )
         output_file_name = "{}.wout".format(seedname)
         error_file_name = "{}.werr".format(seedname)
         nnkp_file_name = "{}.nnkp".format(seedname)
