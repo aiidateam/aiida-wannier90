@@ -37,7 +37,7 @@ if __name__ == "__main__":
     print("Stored FolderData node pk={}".format(folder_node.pk))
     print("You can now run:")
     print(
-        "verdi run wannier_gaas.py --send <WANNIER_CODE_NAME> local {}".format(
+        "verdi run wannier_gaas.py --send <WANNIER_CODE_NAME> main {}".format(
             folder_node.pk
         )
     )
