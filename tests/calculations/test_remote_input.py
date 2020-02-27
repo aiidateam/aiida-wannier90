@@ -1,4 +1,7 @@
 from __future__ import absolute_import
+
+import os
+
 import pytest
 from aiida.common import datastructures
 
@@ -53,10 +56,11 @@ def test_default_remote(#pylint: disable=too-many-locals
     cmdline_params = [seedname]
     local_copy_list = []
     remote_symlink_list_files = [
-        'UNK00001.1', 'UNK00002.1', 'UNK00003.1', 'UNK00004.1', 'UNK00005.1',
-        'UNK00006.1', 'UNK00007.1', 'UNK00008.1', '{}.mmn'.format(seedname),
-        '{}.amn'.format(seedname)
+        'UNK*', '*.mmn', '*.amn', '*.eig', '*.spn', '*.uHu', '*_htB.dat',
+        '*_htL.dat', '*_htR.dat', '*_htC.dat', '*_htLC.dat', '*_htCR.dat',
+        '*.unkg'
     ]
+    remote_copy_list_files = ['*.chk']
     retrieve_list = [
         seedname + suffix for suffix in (
             '.wout', '.werr', '.r2mn', '_band.dat', '_band.dat', '_band.agr',
@@ -78,8 +82,12 @@ def test_default_remote(#pylint: disable=too-many-locals
     assert sorted(calc_info.retrieve_list) == sorted(retrieve_list)
     assert sorted(calc_info.retrieve_temporary_list
                   ) == sorted(retrieve_temporary_list)
-    assert sorted([elem[2] for elem in calc_info.remote_symlink_list]
-                  ) == sorted(remote_symlink_list_files)
+    assert sorted([
+        os.path.basename(elem[1]) for elem in calc_info.remote_symlink_list
+    ]) == sorted(remote_symlink_list_files)
+    assert sorted([
+        os.path.basename(elem[1]) for elem in calc_info.remote_copy_list
+    ]) == sorted(remote_copy_list_files)
 
     with fixture_sandbox.open('{}.win'.format(seedname)) as handle:
         input_written = handle.read()

@@ -3,19 +3,28 @@ from __future__ import absolute_import, print_function, division
 import os
 import six
 import fnmatch
+from collections import namedtuple
 
 from aiida.common import datastructures
-
 from aiida.common import exceptions as exc
 from aiida.engine import CalcJob
 from aiida.orm import (
-    AuthInfo, BandsData, Dict, FolderData, KpointsData, List, OrbitalData,
-    RemoteData, SinglefileData, StructureData
+    BandsData, Dict, FolderData, KpointsData, List, OrbitalData, RemoteData,
+    SinglefileData, StructureData
 )
 
 from .io import write_win
 
 __all__ = ('Wannier90Calculation', )
+
+_InputFileLists = namedtuple(
+    '_InputFileLists',
+    ('local_copy_list', 'remote_copy_list', 'remote_symlink_list')
+)
+_InputFileSuffix = namedtuple(
+    '_InputFileSuffix', ('suffix', 'required', 'always_copy'),
+    defaults=(False, False)
+)
 
 
 class Wannier90Calculation(CalcJob):
@@ -215,33 +224,7 @@ class Wannier90Calculation(CalcJob):
         :param folder: a aiida.common.folders.Folder subclass where
             the plugin should put all its files.
         """
-        # Let's check that the user-specified input filename ends with .win
-        if not self.inputs.metadata.options.input_filename.endswith(
-            self._REQUIRED_INPUT_SUFFIX
-        ):
-            raise exc.InputValidationError(
-                "The input filename for Wannier90 (specified in the metadata.options.input_filename) "
-                "must end with .win, you specified instead '{}'".format(
-                    self.inputs.metadata.options.input_filename
-                )
-            )
-
-        # The output filename is defined by Wannier90 based on the seedname.
-        # In AiiDA, the output_filename needs to be specified as a metadata.option to allow for
-        # `verdi calcjob outputcat` to work correctly. Here we check that, if the users manually changed
-        # the input_filename, they also changed the output_filename accordingly
-        expected_output_filename = self._SEEDNAME + ".wout"
-        if self.inputs.metadata.options.output_filename != expected_output_filename:
-            raise exc.InputValidationError(
-                "The output filename specified is wrong. You probably changed the metadata.options.input_filename "
-                "but you forgot to adapt the metadata.options.output_filename accordingly! Currently, you have: "
-                "input_filename: '{}', output_filename: '{}', while I would expect '{}'"
-                .format(
-                    self.inputs.metadata.options.input_filename,
-                    self.inputs.metadata.options.output_filename,
-                    expected_output_filename
-                )
-            )
+        self._validate_input_output_names()
 
         param_dict = self.inputs.parameters.get_dict()
         self._validate_lowercase(param_dict)
@@ -257,10 +240,27 @@ class Wannier90Calculation(CalcJob):
         if pp_setup:
             param_dict.update({'postproc_setup': True})
 
-        if 'local_input_folder' not in self.inputs and 'remote_input_folder' not in self.inputs and not pp_setup:
-            raise exc.InputValidationError(
-                'Either local_input_folder or remote_input_folder must be set.'
-            )
+        has_local_input = 'local_input_folder' in self.inputs
+        has_remote_input = 'remote_input_folder' in self.inputs
+        if pp_setup:
+            if has_local_input or has_local_input:
+                raise exc.InputValidationError(
+                    "Can not set 'local_input_folder' or 'remote_input_folder' "
+                    "with the 'postproc_setup' option."
+                )
+
+        else:
+            if has_local_input and has_remote_input:
+                raise exc.InputValidationError(
+                    "None of the 'local_input_folder' and 'remote_input_folder' "
+                    "inputs is set. Exactly one of the two must be given."
+                )
+            if not (has_local_input or has_remote_input):
+                raise exc.InputValidationError(
+                    "Both the 'local_input_folder' and 'remote_input_folder' "
+                    "inputs are set, but they are exclusive. Exactly one of "
+                    "the two must be given."
+                )
 
         ############################################################
         # End basic check on inputs
@@ -277,111 +277,21 @@ class Wannier90Calculation(CalcJob):
             random_projections=random_projections,
         )
 
-        #NOTE: remote_input_folder -> parent_calc_folder (for consistency)
-        if 'remote_input_folder' in self.inputs:
-            remote_input_folder_uuid = self.inputs.remote_input_folder.computer.uuid
-            remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path(
-            )
-
-            t_dest = AuthInfo.objects.get(
-                dbcomputer_id=self.inputs.remote_input_folder.computer.pk,
-                aiidauser_id=self.inputs.remote_input_folder.user.pk
-            ).get_transport()
-            with t_dest:
-                remote_folder_content = t_dest.listdir(
-                    path=remote_input_folder_path
-                )
-
-        if 'local_input_folder' in self.inputs:
-            local_folder_content = self.inputs.local_input_folder.list_object_names(
-            )
-        if pp_setup:
-            required_files = []
-        else:
-            required_files = [
-                self._SEEDNAME + suffix for suffix in ['.mmn', '.amn']
-            ]
-        optional_files = [
-            self._SEEDNAME + suffix for suffix in [
-                '.eig', '.chk', '.spn', '.uHu', '_htB.dat', '_htL.dat',
-                '_htR.dat', '_htC.dat', '_htLC.dat', '_htCR.dat', '.unkg'
-            ]
-        ]
-        input_files = required_files + optional_files
-        wavefunctions_files = ['UNK*']
-
-        def files_finder(file_list, exact_patterns, glob_patterns):
-            result = [f for f in exact_patterns if (f in file_list)]
-            for glob_p in glob_patterns:
-                result += fnmatch.filter(file_list, glob_p)
-            return result
-
-        # Local FolderData has precedence over RemoteData
-        if 'local_input_folder' in self.inputs:
-            found_in_local = files_finder(
-                local_folder_content, input_files, wavefunctions_files
-            )
-        else:
-            found_in_local = []
-        if 'remote_input_folder' in self.inputs:
-            found_in_remote = files_finder(
-                remote_folder_content, input_files, wavefunctions_files
-            )
-            found_in_remote = [
-                f for f in found_in_remote if f not in found_in_local
-            ]
-        else:
-            found_in_remote = []
-
-        not_found = [
-            f for f in required_files
-            if f not in found_in_remote + found_in_local
-        ]
-        if not_found:
-            raise exc.InputValidationError(
-                "{} necessary input files were not found: {} (NOTE: if you "
-                "wanted to run a preprocess step, remember to pass "
-                "postproc_setup=True in the input settings node)".format(
-                    len(not_found), ', '.join(str(nf) for nf in not_found)
-                )
-            )
-
-        remote_copy_list = []
-        remote_symlink_list = []
-        local_copy_list = []
-        #Here we enforce that everything except checkpoints are symlinked
-        #because in W90 you never modify input files on the run
-        ALWAYS_COPY_FILES = ['{}.chk'.format(self._SEEDNAME)]
-        for f in found_in_remote:
-            #NOTE: for symlinks this appears wrong (comp_uuid, remote_path, default_calc_fldr)
-            #NOTE: what is self._DEFAULT_PARENT_CALC_FLDR_NAME equivalent to here?
-            file_info = (
-                remote_input_folder_uuid,
-                os.path.join(remote_input_folder_path, f), os.path.basename(f)
-            )
-            if f in ALWAYS_COPY_FILES:
-                remote_copy_list.append(file_info)
-            else:
-                remote_symlink_list.append(file_info)
-        for f in found_in_local:
-            local_copy_list.append((self.inputs.local_input_folder.uuid, f, f))
-
-        # Add any custom copy/sym links
-        remote_symlink_list += settings_dict.pop(
-            "additional_remote_symlink_list", []
-        )
-        remote_copy_list += settings_dict.pop(
-            "additional_remote_copy_list", []
-        )
-        local_copy_list += settings_dict.pop("additional_local_copy_list", [])
+        input_file_lists = self._get_input_file_lists(pp_setup=pp_setup)
 
         #######################################################################
 
         calcinfo = datastructures.CalcInfo()
         calcinfo.uuid = self.uuid
-        calcinfo.local_copy_list = local_copy_list
-        calcinfo.remote_copy_list = remote_copy_list
-        calcinfo.remote_symlink_list = remote_symlink_list
+        calcinfo.local_copy_list = input_file_lists.local_copy_list + settings_dict.pop(
+            "additional_local_copy_list", []
+        )
+        calcinfo.remote_copy_list = input_file_lists.remote_copy_list + settings_dict.pop(
+            "additional_remote_copy_list", []
+        )
+        calcinfo.remote_symlink_list = input_file_lists.remote_symlink_list + settings_dict.pop(
+            "additional_remote_symlink_list", []
+        )
 
         codeinfo = datastructures.CodeInfo()
         codeinfo.code_uuid = self.inputs.code.uuid
@@ -427,6 +337,39 @@ class Wannier90Calculation(CalcJob):
 
         return calcinfo
 
+    def _validate_input_output_names(self):
+        """
+        This function validates the input and output file names given in the
+        settings Dict.
+        """
+        # Let's check that the user-specified input filename ends with .win
+        if not self.inputs.metadata.options.input_filename.endswith(
+            self._REQUIRED_INPUT_SUFFIX
+        ):
+            raise exc.InputValidationError(
+                "The input filename for Wannier90 (specified in the metadata.options.input_filename) "
+                "must end with .win, you specified instead '{}'".format(
+                    self.inputs.metadata.options.input_filename
+                )
+            )
+
+        # The output filename is defined by Wannier90 based on the seedname.
+        # In AiiDA, the output_filename needs to be specified as a metadata.option to allow for
+        # `verdi calcjob outputcat` to work correctly. Here we check that, if the users manually changed
+        # the input_filename, they also changed the output_filename accordingly
+        expected_output_filename = self._SEEDNAME + ".wout"
+        if self.inputs.metadata.options.output_filename != expected_output_filename:
+            raise exc.InputValidationError(
+                "The output filename specified is wrong. You probably changed the metadata.options.input_filename "
+                "but you forgot to adapt the metadata.options.output_filename accordingly! Currently, you have: "
+                "input_filename: '{}', output_filename: '{}', while I would expect '{}'"
+                .format(
+                    self.inputs.metadata.options.input_filename,
+                    self.inputs.metadata.options.output_filename,
+                    expected_output_filename
+                )
+            )
+
     @staticmethod
     def _validate_lowercase(dictionary):
         """
@@ -466,3 +409,118 @@ class Wannier90Calculation(CalcJob):
                 'The following blocked keys were found in the parameters: {}'.
                 format(", ".join(existing_blocked_keys))
             )
+
+    def _get_input_file_lists(self, pp_setup):
+        """
+        Generate the lists of files to copy and link from the
+        'local_input_folder' and 'remote_input_folder'.
+        """
+        if pp_setup:
+            return _InputFileLists([], [], [])
+
+        input_file_suffixes = [
+            _InputFileSuffix(suffix=suffix, required=True)
+            for suffix in ['.mmn', '.amn']
+        ] + [
+            _InputFileSuffix(suffix=suffix) for suffix in [
+                '.eig', '.spn', '.uHu', '_htB.dat', '_htL.dat', '_htR.dat',
+                '_htC.dat', '_htLC.dat', '_htCR.dat', '.unkg'
+            ]
+        ] + [_InputFileSuffix(suffix='.chk', always_copy=True)]
+
+        optional_file_globs = ['UNK*']
+
+        # #NOTE: remote_input_folder -> parent_calc_folder (for consistency)
+        if 'remote_input_folder' in self.inputs:
+            return self._get_remote_input_file_lists(
+                input_file_suffixes=input_file_suffixes,
+                optional_file_globs=optional_file_globs
+            )
+        return self._get_local_input_file_lists(
+            input_file_suffixes=input_file_suffixes,
+            optional_file_globs=optional_file_globs
+        )
+
+    def _get_remote_input_file_lists(
+        self, input_file_suffixes, optional_file_globs
+    ):
+        """
+        Generate the lists of input files for the case of a remote input folder.
+        """
+        remote_input_folder_uuid = self.inputs.remote_input_folder.computer.uuid
+        remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path(
+        )
+
+        def _get_remote_file_info(glob_pattern):
+            return (
+                remote_input_folder_uuid,
+                os.path.join(remote_input_folder_path, glob_pattern), '.'
+            )
+
+        remote_copy_list = []
+        remote_symlink_list = [
+            _get_remote_file_info(glob) for glob in optional_file_globs
+        ]
+        for file in input_file_suffixes:
+            glob = '*' + file.suffix
+            if file.always_copy:
+                remote_copy_list.append(_get_remote_file_info(glob))
+            else:
+                remote_symlink_list.append(_get_remote_file_info(glob))
+        return _InputFileLists(
+            local_copy_list=[],
+            remote_copy_list=remote_copy_list,
+            remote_symlink_list=remote_symlink_list
+        )
+
+    def _get_local_input_file_lists(
+        self, input_file_suffixes, optional_file_globs
+    ):
+        """
+        Generate the lists of input files for the case of a local input folder.
+        """
+        # It is possible that the same file is matched multiple times,
+        # for example if a globbing pattern matches an explicit filename.
+        # To avoid copying the same file twice (which could be costly),
+        # we keep track of which local folder content is already in the
+        # list of files to copy.
+        # To avoid false errors, the explicit files (and thus the required
+        # ones) are checked first, before doing pattern-matching.
+        local_folder_content = set(
+            self.inputs.local_input_folder.list_object_names()
+        )
+
+        def _get_local_file_info(filename):
+            return (self.inputs.local_input_folder.uuid, filename, filename)
+
+        local_copy_list = []
+        not_found = []
+        for file in input_file_suffixes:
+            filename = self._SEEDNAME + file.suffix
+            if filename in local_folder_content:
+                local_copy_list.append(_get_local_file_info(filename))
+                local_folder_content.remove(filename)
+            elif file.required:
+                not_found.append(filename)
+
+        if not_found:
+            raise exc.InputValidationError(
+                "{} necessary input files were not found: {} (NOTE: if you "
+                "wanted to run a preprocess step, remember to pass "
+                "postproc_setup=True in the input settings node)".format(
+                    len(not_found), ', '.join(str(nf) for nf in not_found)
+                )
+            )
+
+        for pattern in optional_file_globs:
+            matched_files = fnmatch.filter(local_folder_content, pattern)
+            local_folder_content -= set(matched_files)
+            local_copy_list.extend(
+                _get_local_file_info(filename) for filename in matched_files
+            )
+
+        return _InputFileLists(
+            local_copy_list=local_copy_list,
+            remote_copy_list=[],
+            remote_symlink_list=[]
+        )
