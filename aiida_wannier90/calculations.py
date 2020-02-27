@@ -24,8 +24,8 @@ _InputFileLists = namedtuple(
 # When support for Python <3.7 is dropped, we can set 'default=(False, False)'
 # here, and remove the extra kwargs in the constructor calls -- or use
 # a dataclass to implement the same.
-_InputFileSuffix = namedtuple(
-    '_InputFileSuffix', ('suffix', 'required', 'always_copy')
+_InputFileSpec = namedtuple(
+    '_InputFileSpec', ('suffix', 'required', 'always_copy')
 )
 
 
@@ -420,34 +420,32 @@ class Wannier90Calculation(CalcJob):
         if pp_setup:
             return _InputFileLists([], [], [])
 
-        input_file_suffixes = [
-            _InputFileSuffix(suffix=suffix, required=True, always_copy=False)
+        input_file_specs = [
+            _InputFileSpec(suffix=suffix, required=True, always_copy=False)
             for suffix in ['.mmn', '.amn']
         ] + [
-            _InputFileSuffix(suffix=suffix, required=False, always_copy=False)
+            _InputFileSpec(suffix=suffix, required=False, always_copy=False)
             for suffix in [
                 '.eig', '.spn', '.uHu', '_htB.dat', '_htL.dat', '_htR.dat',
                 '_htC.dat', '_htLC.dat', '_htCR.dat', '.unkg'
             ]
-        ] + [
-            _InputFileSuffix(suffix='.chk', required=False, always_copy=True)
-        ]
+        ] + [_InputFileSpec(suffix='.chk', required=False, always_copy=True)]
 
         optional_file_globs = ['UNK*']
 
         # #NOTE: remote_input_folder -> parent_calc_folder (for consistency)
         if 'remote_input_folder' in self.inputs:
             return self._get_remote_input_file_lists(
-                input_file_suffixes=input_file_suffixes,
+                input_file_specs=input_file_specs,
                 optional_file_globs=optional_file_globs
             )
         return self._get_local_input_file_lists(
-            input_file_suffixes=input_file_suffixes,
+            input_file_specs=input_file_specs,
             optional_file_globs=optional_file_globs
         )
 
     def _get_remote_input_file_lists(
-        self, input_file_suffixes, optional_file_globs
+        self, input_file_specs, optional_file_globs
     ):
         """
         Generate the lists of input files for the case of a remote input folder.
@@ -466,9 +464,9 @@ class Wannier90Calculation(CalcJob):
         remote_symlink_list = [
             _get_remote_file_info(glob) for glob in optional_file_globs
         ]
-        for file in input_file_suffixes:
-            glob = '*' + file.suffix
-            if file.always_copy:
+        for file_spec in input_file_specs:
+            glob = '*' + file_spec.suffix
+            if file_spec.always_copy:
                 remote_copy_list.append(_get_remote_file_info(glob))
             else:
                 remote_symlink_list.append(_get_remote_file_info(glob))
@@ -479,7 +477,7 @@ class Wannier90Calculation(CalcJob):
         )
 
     def _get_local_input_file_lists(
-        self, input_file_suffixes, optional_file_globs
+        self, input_file_specs, optional_file_globs
     ):
         """
         Generate the lists of input files for the case of a local input folder.
@@ -500,12 +498,12 @@ class Wannier90Calculation(CalcJob):
 
         local_copy_list = []
         not_found = []
-        for file in input_file_suffixes:
-            filename = self._SEEDNAME + file.suffix
+        for file_spec in input_file_specs:
+            filename = self._SEEDNAME + file_spec.suffix
             if filename in local_folder_content:
                 local_copy_list.append(_get_local_file_info(filename))
                 local_folder_content.remove(filename)
-            elif file.required:
+            elif file_spec.required:
                 not_found.append(filename)
 
         if not_found:
