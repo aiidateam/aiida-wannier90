@@ -276,7 +276,7 @@ def generate_projections(list_of_projection_dicts, structure):
                  ang_mtm_mr_list is not specified will return all orbitals associated with it
                  (angular_momentum)
     :param ang_mtm_mr_list: magnetic angular momentum number must be specified
-                       along with ang_mtm_l_list (magnetic_number + 1).Note that
+                    along with ang_mtm_l_list (magnetic_number + 1).Note that
                     if this is specified, ang_mtm_l_list must be an integer and not a list
     :param spin: the spin, spin up can be specified with 1,u or U and
                  spin down can be specified using -1,d,D (spin)
