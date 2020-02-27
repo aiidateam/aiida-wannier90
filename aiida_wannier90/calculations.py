@@ -193,15 +193,21 @@ class Wannier90Calculation(CalcJob):
     def _SEEDNAME(self):
         """
         Return the default seedname, unless a custom one has been set in the
-        calculation settings
+        calculation settings.
+
+        :raise ValueError: if the input_filename does not end with ``.win``.
         """
         input_filename = self.inputs.metadata.options.input_filename
 
         if input_filename.endswith(self._REQUIRED_INPUT_SUFFIX):
             return input_filename[:-len(self._REQUIRED_INPUT_SUFFIX)]
-        # This would be an invalid input filename. However, I do not raise here since this is a property.
-        # I just return the full input_filename, but there is some validation in prepare_for_submission.
-        return input_filename
+
+        # If we are here, it's an invalid input filename.
+        raise ValueError(
+            "The input filename '{}' does not end with '{}', so I don't know how to get the seedname. "
+            "You need to change the `metadata.options.input_filename` in the process inputs."
+            .format(input_filename, self._REQUIRED_INPUT_SUFFIX)
+        )
 
     def prepare_for_submission(self, folder):  #pylint: disable=too-many-locals, too-many-statements # noqa:  disable=MC0001
         """
