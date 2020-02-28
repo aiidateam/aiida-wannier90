@@ -323,3 +323,78 @@ def test_mixed_case_settings_key(
             entry_point_name=ENTRY_POINT_NAME,
             inputs=inputs
         )
+
+
+def test_diffusivity( #pylint: disable=too-many-locals
+    fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
+    file_regression
+):
+    """Test a `Wannier90Calculation` with various advanced combinations of the projections.
+    
+    For instance, using both diffusivity and radial_nodes, or diffusivity only, 
+    and in combination with/without zaxis and xaxis."""
+    from aiida_wannier90.orbitals import generate_projections
+
+    seedname = 'aiida'
+    inputs = generate_common_inputs_gaas(inputfolder_seedname=seedname)
+
+    # Replace projections
+    projections_dict_list = [
+        {
+            'kind_name': 'As',
+            'ang_mtm_name': 's'
+        },
+        {
+            'kind_name': 'As',
+            'ang_mtm_name': 's',
+            'zona': 2
+        },  # only diffusivity
+        {
+            'kind_name': 'As',
+            'ang_mtm_name': 's',
+            'radial': 3
+        },  # only radial_nodes
+        {
+            'kind_name': 'As',
+            'ang_mtm_name': 's',
+            'zona': 2,
+            'radial': 3
+        },  # both diffusivity and radial_nodes
+        {
+            'kind_name': 'Ga',
+            'ang_mtm_name': 's',
+            'xaxis': [0, -1, 0]
+        },
+        {
+            'kind_name': 'Ga',
+            'ang_mtm_name': 's',
+            'zaxis': [-1, 0, 0]
+        },  # only diffusivity
+        {
+            'kind_name': 'Ga',
+            'ang_mtm_name': 's',
+            'xaxis': [0, -1, 0],
+            'zaxis': [-1, 0, 0],
+            'zona': 2
+        },  # only radial_nodes
+        {
+            'kind_name': 'Ga',
+            'ang_mtm_name': 's',
+            'zona': 2,
+            'radial': 3
+        },  # both diffusivity and radial_nodes
+    ]
+    inputs['projections'] = generate_projections(
+        projections_dict_list, structure=inputs['structure']
+    )
+
+    generate_calc_job(
+        folder=fixture_sandbox,
+        entry_point_name=ENTRY_POINT_NAME,
+        inputs=inputs
+    )
+
+    with fixture_sandbox.open('{}.win'.format(seedname)) as handle:
+        input_written = handle.read()
+
+    file_regression.check(input_written, encoding='utf-8', extension='.win')
