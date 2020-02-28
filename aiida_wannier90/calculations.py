@@ -455,6 +455,11 @@ class Wannier90Calculation(CalcJob):
         )
 
         remote_copy_list = []
+        # We use globbing for optional input files because the 'copy'
+        # call in the 'upload' step of the calculation does not fail
+        # if a pattern does not match any files. If we were to use the
+        # explicit file name, the 'upload' would fail if the file does
+        # not exist. See also aiida-core issue #3813.
         remote_symlink_list = [(
             remote_input_folder_uuid,
             os.path.join(remote_input_folder_path, pattern), '.'
@@ -467,6 +472,7 @@ class Wannier90Calculation(CalcJob):
                     os.path.join(remote_input_folder_path, filename), filename
                 )
             else:
+                # Use globbing for optional files, see comment above.
                 file_info = (
                     remote_input_folder_uuid,
                     os.path.join(
