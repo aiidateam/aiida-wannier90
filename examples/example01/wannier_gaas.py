@@ -19,7 +19,7 @@ FolderData = DataFactory('folder')
 
 def create_builder(code, input_folder=None, submit_test=False):
     """Return a dictionary of inputs to be passed to `run` or `submit`.
-    
+
     :param code: a `wannier90.wannier90` code.
     :param input_folder: an input folder. It can be `None`, in which case
         this function assumes this is a pre-process step. Or it can be either
