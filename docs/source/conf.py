@@ -75,15 +75,13 @@ except ImportError:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.autodoc', 'sphinx.ext.mathjax', 'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode', 'aiida.sphinxext'
 ]
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/2.7', None),
-    'aiida': ('http://aiida_core.readthedocs.io/en/latest/', None),
+    'python': ('https://docs.python.org/3', None),
+    'aiida': ('https://aiida-core.readthedocs.io/en/latest', None),
 }
 
 nitpick_ignore = [('py:obj', 'module')]
