@@ -433,7 +433,6 @@ class Wannier90Calculation(CalcJob):
 
         optional_file_globs = ['UNK*']
 
-        # #NOTE: remote_input_folder -> parent_calc_folder (for consistency)
         if 'remote_input_folder' in self.inputs:
             return self._get_remote_input_file_lists(
                 input_file_specs=input_file_specs,
