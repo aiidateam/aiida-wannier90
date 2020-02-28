@@ -254,14 +254,14 @@ class Wannier90Calculation(CalcJob):
         else:
             if has_local_input and has_remote_input:
                 raise exc.InputValidationError(
-                    "None of the 'local_input_folder' and 'remote_input_folder' "
-                    "inputs is set. Exactly one of the two must be given."
-                )
-            if not (has_local_input or has_remote_input):
-                raise exc.InputValidationError(
                     "Both the 'local_input_folder' and 'remote_input_folder' "
                     "inputs are set, but they are exclusive. Exactly one of "
                     "the two must be given."
+                )
+            if not (has_local_input or has_remote_input):
+                raise exc.InputValidationError(
+                    "None of the 'local_input_folder' and 'remote_input_folder' "
+                    "inputs is set. Exactly one of the two must be given."
                 )
 
         ############################################################
@@ -454,22 +454,29 @@ class Wannier90Calculation(CalcJob):
         remote_input_folder_path = self.inputs.remote_input_folder.get_remote_path(
         )
 
-        def _get_remote_file_info(glob_pattern):
-            return (
-                remote_input_folder_uuid,
-                os.path.join(remote_input_folder_path, glob_pattern), '.'
-            )
-
         remote_copy_list = []
-        remote_symlink_list = [
-            _get_remote_file_info(glob) for glob in optional_file_globs
-        ]
+        remote_symlink_list = [(
+            remote_input_folder_uuid,
+            os.path.join(remote_input_folder_path, pattern), '.'
+        ) for pattern in optional_file_globs]
         for file_spec in input_file_specs:
-            glob = '*' + file_spec.suffix
-            if file_spec.always_copy:
-                remote_copy_list.append(_get_remote_file_info(glob))
+            if file_spec.required:
+                filename = self._SEEDNAME + file_spec.suffix
+                file_info = (
+                    remote_input_folder_uuid,
+                    os.path.join(remote_input_folder_path, filename), filename
+                )
             else:
-                remote_symlink_list.append(_get_remote_file_info(glob))
+                file_info = (
+                    remote_input_folder_uuid,
+                    os.path.join(
+                        remote_input_folder_path, '*' + file_spec.suffix
+                    ), '.'
+                )
+            if file_spec.always_copy:
+                remote_copy_list.append(file_info)
+            else:
+                remote_symlink_list.append(file_info)
         return _InputFileLists(
             local_copy_list=[],
             remote_copy_list=remote_copy_list,

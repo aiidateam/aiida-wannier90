@@ -56,9 +56,9 @@ def test_default_remote(#pylint: disable=too-many-locals
     cmdline_params = [seedname]
     local_copy_list = []
     remote_symlink_list_files = [
-        'UNK*', '*.mmn', '*.amn', '*.eig', '*.spn', '*.uHu', '*_htB.dat',
-        '*_htL.dat', '*_htR.dat', '*_htC.dat', '*_htLC.dat', '*_htCR.dat',
-        '*.unkg'
+        'UNK*', 'aiida.mmn', 'aiida.amn', '*.eig', '*.spn', '*.uHu',
+        '*_htB.dat', '*_htL.dat', '*_htR.dat', '*_htC.dat', '*_htLC.dat',
+        '*_htCR.dat', '*.unkg'
     ]
     remote_copy_list_files = ['*.chk']
     retrieve_list = [
