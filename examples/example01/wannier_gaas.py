@@ -190,7 +190,7 @@ if __name__ == "__main__":  # noqa
             input_folder = load_node(input_folder_pk)
         except (IndexError, ValueError):
             print(
-                "Must provide as third parameter the pk of the FolderData/RemoteData input folder node",
+                "Must provide as fourth parameter the pk of the FolderData/RemoteData input folder node",
                 file=sys.stderr
             )
             print(
