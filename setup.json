@@ -17,7 +17,8 @@
     ],
     "docs": [
       "sphinx",
-      "sphinx-rtd-theme"
+      "sphinx-rtd-theme",
+      "sphinxcontrib-details-directive; python_version>='3.0'"
     ],
     "dev_precommit": [
       "pre-commit",
