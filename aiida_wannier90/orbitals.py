@@ -278,8 +278,8 @@ def generate_projections(list_of_projection_dicts, structure):
     :param ang_mtm_mr_list: magnetic angular momentum number must be specified
                     along with ang_mtm_l_list (magnetic_number + 1).Note that
                     if this is specified, ang_mtm_l_list must be an integer and not a list
-    :param spin: the spin, spin up can be specified with 1,u or U and
-                 spin down can be specified using -1,d,D (spin)
+    :param spin: the spin, spin up can be specified with 1, 'u' or 'U' and
+                 spin down can be specified using -1, 'd' or 'D' (spin)
     :param zona: as specified in user guide, applied to all orbitals
                  (diffusivity)
     :param zaxis: the zaxis, list of three floats
