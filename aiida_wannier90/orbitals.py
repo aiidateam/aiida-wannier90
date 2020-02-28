@@ -37,12 +37,13 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
     :param kind_name: kind_name, for use with the structure
     :param radial: number of radial nodes
     :param ang_mtm_name: orbital name or list of orbital names, cannot
-                         be used in conjunction with ang_mtm_l or
-                         ang_mtm_mr
-    :param ang_mtm_l: angular momentum, if ang_mtm_mr is not specified
-                      will return all orbitals associated with it
-    :param ang_mtm_mr: magnetic angular momentum number must be specified
-                       along with ang_mtm_l
+                         be used in conjunction with ang_mtm_l_list or
+                         ang_mtm_mr_list
+    :param ang_mtm_l_list: angular momentum (either an integer or a list), if 
+                 ang_mtm_mr_list is not specified will return all orbitals associated with it
+    :param ang_mtm_mr_list: magnetic angular momentum number must be specified
+                       along with ang_mtm_l_list. Note that if this is specified,
+                       ang_mtm_l_list must be an integer and not a list
     :param spin: the spin, spin up can be specified with 1,u or U and
                  spin down can be specified using -1,d,D
     :param zona: as specified in user guide, applied to all orbitals
@@ -115,7 +116,9 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
             raise InputValidationError('kind_name must be a string')
 
     if ang_mtm_name is None and ang_mtm_l_list is None:
-        raise InputValidationError("Must supply ang_mtm_name or ang_mtm_l")
+        raise InputValidationError(
+            "Must supply ang_mtm_name or ang_mtm_l_list"
+        )
     if ang_mtm_name is not None and (
         ang_mtm_l_list is not None or ang_mtm_mr_list is not None
     ):
@@ -246,7 +249,7 @@ def generate_projections(list_of_projection_dicts, structure):
     dictionary correspond to those below. Also that *radial*,
     and *ang_mtm_mr_list* both use 0 indexing as opposed to 1 indexing,
     effectively meaning that both should be offset by 1. E.g. an orbital
-    with ang_mtm_l radial node would use radial=2 (wannier90 syntax), and then
+    with ang_mtm_l_list radial node would use radial=2 (wannier90 syntax), and then
     be converted to radial_nodes=1 (AiiDa plugin syntax)
     inside the stored orbital.
 
@@ -267,13 +270,14 @@ def generate_projections(list_of_projection_dicts, structure):
     :param kind_name: kind_name, for use with the structure (kind_name)
     :param radial: number of radial nodes (radial_nodes + 1)
     :param ang_mtm_name: orbital name or list of orbital names, cannot
-                         be used in conjunction with ang_mtm_l or
-                         ang_mtm_mr_list (See ang_mtm_l and ang_mtm_mr_list)
-    :param ang_mtm_l: angular momentum, if ang_mtm_mr_list is not specified
-                      will return all orbitals associated with it
-                      (angular_momentum)
+                         be used in conjunction with ang_mtm_l_list or
+                         ang_mtm_mr_list (See ang_mtm_l_list and ang_mtm_mr_list)
+    :param ang_mtm_l_list: angular momentum (either an integer or a list), if 
+                 ang_mtm_mr_list is not specified will return all orbitals associated with it
+                 (angular_momentum)
     :param ang_mtm_mr_list: magnetic angular momentum number must be specified
-                       along with ang_mtm_l (magnetic_number + 1)
+                    along with ang_mtm_l_list (magnetic_number + 1).Note that
+                    if this is specified, ang_mtm_l_list must be an integer and not a list
     :param spin: the spin, spin up can be specified with 1,u or U and
                  spin down can be specified using -1,d,D (spin)
     :param zona: as specified in user guide, applied to all orbitals
