@@ -85,24 +85,47 @@ class Wannier90Parser(Parser):
         # Tries to parse the bands
         try:
             with out_folder.open('{}_band.dat'.format(seedname)) as fil:
-                band_dat_file = fil.readlines()
+                band_dat = fil.readlines()
             with out_folder.open('{}_band.kpt'.format(seedname)) as fil:
-                band_kpt_file = fil.readlines()
-            with out_folder.open('{}_band.labelinfo.dat'.format(seedname)) as fil:
-                band_labelinfo_file = fil.readlines()
+                band_kpt = fil.readlines()
         except IOError:
             # IOError: _band.* files not present
             pass
         else:
             structure = self.node.inputs.structure
             ## TODO: should we catch exceptions here?
-            output_bandsdata = band_parser(
-                band_dat_file, band_kpt_file, band_labelinfo_file, structure
-            )
-            self.out('interpolated_bands', output_bandsdata)
+            try:
+                with out_folder.open(
+                    '{}_band.labelinfo.dat'.format(seedname)
+                ) as fil:
+                    band_labelinfo = fil.readlines()
+            except IOError:  # use legacy parser for wannier90 < 3.0
+                try:
+                    kpoint_path = self.node.inputs.kpoint_path
+                    special_points = kpoint_path.get_dict()
+                except (exc.NotExistent, KeyError):
+                    # exc.NotExistent: no input kpoint_path
+                    # KeyError: no get_dict()
+                    pass
+                else:
+                    output_bandsdata, band_warnings = band_parser_legacy(
+                        band_dat, band_kpt, special_points, structure
+                    )
+                    self.out('interpolated_bands', output_bandsdata)
+            else:
+                output_bandsdata, band_warnings = band_parser(
+                    band_dat, band_kpt, band_labelinfo, structure
+                )
+                self.out('interpolated_bands', output_bandsdata)
 
         # Parse the stdout an return the parsed data
         wout_dictionary = raw_wout_parser(out_file)
+        try:
+            wout_dictionary['warnings'].extend(band_warnings)
+        except (KeyError, NameError):
+            # KeyError: wout_dictionary does not contain warnings
+            # NameError: no band_warnings
+            pass
         output_data = Dict(dict=wout_dictionary)
         self.out('output_parameters', output_data)
 
@@ -263,14 +286,14 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
     return out
 
 
-def band_parser(band_dat_file, band_kpt_file, band_labelinfo_file, structure):  # pylint: disable=too-many-locals
+def band_parser(band_dat, band_kpt, band_labelinfo, structure):  # pylint: disable=too-many-locals
     """
     Parsers the bands output data to construct a BandsData object which is then
-    returned.
+    returned. Used for wannier90 >= 3.0
 
-    :param band_dat_file: list of str, file content of the aiida_band.dat file
-    :param band_kpt_file: list of str, file content of the aiida_band.kpt file
-    :param band_labelinfo_file: list of str, file content of the aiida_band.labelinfo.dat file
+    :param band_dat: list of str with each str stores one line of aiida_band.dat file
+    :param band_kpt: list of str with each str stores one line of aiida_band.kpt file
+    :param band_labelinfo: list of str with each str stores one line in aiida_band.labelinfo.dat file
     :return: BandsData object constructed from the input params
     """
     import numpy as np
@@ -278,9 +301,11 @@ def band_parser(band_dat_file, band_kpt_file, band_labelinfo_file, structure):  
     from aiida.orm import BandsData
     from aiida.orm import KpointsData
 
+    warnings = []
+
     # imports the data
-    out_kpt = np.genfromtxt(band_kpt_file, skip_header=1, usecols=(0, 1, 2))
-    out_dat = np.genfromtxt(band_dat_file, usecols=1)
+    out_kpt = np.genfromtxt(band_kpt, skip_header=1, usecols=(0, 1, 2))
+    out_dat = np.genfromtxt(band_dat, usecols=1)
 
     # reshaps the output bands
     out_dat = out_dat.reshape(
@@ -288,16 +313,25 @@ def band_parser(band_dat_file, band_kpt_file, band_labelinfo_file, structure):  
     )
 
     labels_dict = {}
-    for line in band_labelinfo_file:
+    for line_idx, line in enumerate(band_labelinfo, start=1):
         if not line.strip():
             continue
         try:
-            label, idx, xval, kx, ky, kz = line.split()
+            # label, idx, xval, kx, ky, kz = line.split()
+            label, idx, _, _, _, _ = line.split()
         except ValueError:
+            warnings.append((
+                'Wrong number of items in line {} of the labelinfo file - '
+                'I will not assign that label'
+            )).format(line_idx)
             continue
         try:
             idx = int(idx)
         except ValueError:
+            warnings.append((
+                "Invalid value for the index in line {} of the labelinfo file, "
+                "it's not an integer - I will not assign that label"
+            )).format(line_idx)
             continue
 
         # I use a dictionary because there are cases in which there are
@@ -305,9 +339,9 @@ def band_parser(band_dat_file, band_kpt_file, band_labelinfo_file, structure):  
         # from a point to the same point, just to have that value)
         # Note the -1 because in fortran indices are 1-based, in Python are
         # 0-based
-        labels_dict[idx-1] = label
+        labels_dict[idx - 1] = label
     labels = [(key, labels_dict[key]) for key in sorted(labels_dict)]
-    
+
     bands = BandsData()
     k = KpointsData()
     k.set_cell_from_structure(structure)
@@ -315,4 +349,96 @@ def band_parser(band_dat_file, band_kpt_file, band_labelinfo_file, structure):  
     bands.set_kpointsdata(k)
     bands.set_bands(out_dat, units='eV')
     bands.labels = labels
-    return bands
+    return bands, warnings
+
+
+def band_parser_legacy(band_dat, band_kpt, special_points, structure):  # pylint: disable=too-many-locals
+    """
+    Parsers the bands output data, along with the special points retrieved
+    from the input kpoints to construct a BandsData object which is then
+    returned. Cannot handle discontinuities in the kpath, if two points are
+    assigned to same spot only one will be passed. Used for wannier90 < 3.0
+    :param band_dat: list of str with each str stores one line of aiida_band.dat file
+    :param band_kpt: list of str with each str stores one line of aiida_band.kpt file
+    :param special_points: special points to add labels to the bands a dictionary in
+        the form expected in the input as described in the wannier90 documentation
+    :return: BandsData object constructed from the input params,
+        and a list contains warnings.
+    """
+    import numpy as np
+
+    from aiida.orm import BandsData
+    from aiida.orm import KpointsData
+
+    warnings = []
+    warnings.append((
+        "Note: no file named SEEDNAME_band.labelinfo.dat found. "
+        "You are probably using a version of Wannier90 before 3.0. "
+        "There, the labels associated with each k-points were not printed in output "
+        "and there were also cases in which points were not calculated "
+        "(see issue #195 on the Wannier90 GitHub page). "
+        "I will anyway try to do my best to assign labels, "
+        "but the assignment might be wrong "
+        "(especially if there are path discontinuities)."
+    ))
+
+    # imports the data
+    out_kpt = np.genfromtxt(band_kpt, skip_header=1, usecols=(0, 1, 2))
+    out_dat = np.genfromtxt(band_dat, usecols=1)
+
+    # reshaps the output bands
+    out_dat = out_dat.reshape(
+        len(out_kpt), (len(out_dat) // len(out_kpt)), order="F"
+    )
+
+    # finds expected points of discontinuity
+    kpath = special_points['path']
+    cont_break = [(i, (kpath[i - 1][1], kpath[i][0]))
+                  for i in range(1, len(kpath))
+                  if kpath[i - 1][1] != kpath[i][0]]
+
+    # finds the special points
+    special_points_dict = special_points['point_coords']
+    # We set atol to 1e-5 because in the kpt file the coords are printed with fixed precision
+    labels = [
+        (i, k) for k in special_points_dict for i in range(len(out_kpt))
+        if all(
+            np.isclose(special_points_dict[k], out_kpt[i], rtol=0, atol=1.e-5)
+        )
+    ]
+    labels.sort()
+
+    # Checks and appends labels if discontinuity
+    appends = []
+    for x in cont_break:
+        # two cases the break is before or the break is after
+        # if the break is before
+        if labels[x[0]][1] != x[1][0]:
+            # checks to see if the discontinuity was already there
+            if labels[x[0] - 1] == x[1][0]:
+                continue
+            insert_point = x[0]
+            new_label = x[1][0]
+            kpoint = labels[x[0]][0] - 1
+            appends += [[insert_point, new_label, kpoint]]
+        # if the break is after
+        if labels[x[0]][1] != x[1][1]:
+            # checks to see if the discontinuity was already there
+            if labels[x[0] + 1] == x[1][1]:
+                continue
+            insert_point = x[0] + 1
+            new_label = x[1][1]
+            kpoint = labels[x[0]][0] + 1
+            appends += [[insert_point, new_label, kpoint]]
+    appends.sort()
+
+    for i, append in enumerate(appends):
+        labels.insert(append[0] + i, (append[2], six.text_type(append[1])))
+    bands = BandsData()
+    k = KpointsData()
+    k.set_cell_from_structure(structure)
+    k.set_kpoints(out_kpt, cartesian=False)
+    bands.set_kpointsdata(k)
+    bands.set_bands(out_dat, units='eV')
+    bands.labels = labels
+    return bands, warnings
