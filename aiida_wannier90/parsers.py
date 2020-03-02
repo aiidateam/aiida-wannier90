@@ -84,22 +84,20 @@ class Wannier90Parser(Parser):
 
         # Tries to parse the bands
         try:
-            kpoint_path = self.node.inputs.kpoint_path
-            special_points = kpoint_path.get_dict()
             with out_folder.open('{}_band.dat'.format(seedname)) as fil:
                 band_dat_file = fil.readlines()
             with out_folder.open('{}_band.kpt'.format(seedname)) as fil:
                 band_kpt_file = fil.readlines()
-        except (exc.NotExistent, KeyError, IOError):
-            # exc.NotExistent: no input kpoint_path
-            # KeyError: no get_dict()
+            with out_folder.open('{}_band.labelinfo.dat'.format(seedname)) as fil:
+                band_labelinfo_file = fil.readlines()
+        except IOError:
             # IOError: _band.* files not present
             pass
         else:
             structure = self.node.inputs.structure
             ## TODO: should we catch exceptions here?
             output_bandsdata = band_parser(
-                band_dat_file, band_kpt_file, special_points, structure
+                band_dat_file, band_kpt_file, band_labelinfo_file, structure
             )
             self.out('interpolated_bands', output_bandsdata)
 
@@ -265,17 +263,14 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
     return out
 
 
-def band_parser(band_dat_path, band_kpt_path, special_points, structure):  # pylint: disable=too-many-locals
+def band_parser(band_dat_file, band_kpt_file, band_labelinfo_file, structure):  # pylint: disable=too-many-locals
     """
-    Parsers the bands output data, along with the special points retrieved
-    from the input kpoints to construct a BandsData object which is then
-    returned. Cannot handle discontinuities in the kpath, if two points are
-    assigned to same spot only one will be passed.
+    Parsers the bands output data to construct a BandsData object which is then
+    returned.
 
-    :param band_dat_path: file path to the aiida_band.dat file
-    :param band_kpt_path: file path to the aiida_band.kpt file
-    :param special_points: special points to add labels to the bands a dictionary in
-        the form expected in the input as described in the wannier90 documentation
+    :param band_dat_file: list of str, file content of the aiida_band.dat file
+    :param band_kpt_file: list of str, file content of the aiida_band.kpt file
+    :param band_labelinfo_file: list of str, file content of the aiida_band.labelinfo.dat file
     :return: BandsData object constructed from the input params
     """
     import numpy as np
@@ -284,59 +279,35 @@ def band_parser(band_dat_path, band_kpt_path, special_points, structure):  # pyl
     from aiida.orm import KpointsData
 
     # imports the data
-    out_kpt = np.genfromtxt(band_kpt_path, skip_header=1, usecols=(0, 1, 2))
-    out_dat = np.genfromtxt(band_dat_path, usecols=1)
+    out_kpt = np.genfromtxt(band_kpt_file, skip_header=1, usecols=(0, 1, 2))
+    out_dat = np.genfromtxt(band_dat_file, usecols=1)
 
     # reshaps the output bands
     out_dat = out_dat.reshape(
         len(out_kpt), (len(out_dat) // len(out_kpt)), order="F"
     )
 
-    # finds expected points of discontinuity
-    kpath = special_points['path']
-    cont_break = [(i, (kpath[i - 1][1], kpath[i][0]))
-                  for i in range(1, len(kpath))
-                  if kpath[i - 1][1] != kpath[i][0]]
+    labels_dict = {}
+    for line in band_labelinfo_file:
+        if not line.strip():
+            continue
+        try:
+            label, idx, xval, kx, ky, kz = line.split()
+        except ValueError:
+            continue
+        try:
+            idx = int(idx)
+        except ValueError:
+            continue
 
-    # finds the special points
-    special_points_dict = special_points['point_coords']
-    # We set atol to 1e-5 because in the kpt file the coords are printed with fixed precision
-    labels = [
-        (i, k) for k in special_points_dict for i in range(len(out_kpt))
-        if all(
-            np.isclose(special_points_dict[k], out_kpt[i], rtol=0, atol=1.e-5)
-        )
-    ]
-    labels.sort()
-
-    # Checks and appends labels if discontinuity
-    appends = []
-    for x in cont_break:
-        # two cases the break is before or the break is after
-        # if the break is before
-        if labels[x[0]][1] != x[1][0]:
-            # checks to see if the discontinuity was already there
-            if labels[x[0] - 1] == x[1][0]:
-                continue
-            else:
-                insert_point = x[0]
-                new_label = x[1][0]
-                kpoint = labels[x[0]][0] - 1
-                appends += [[insert_point, new_label, kpoint]]
-        # if the break is after
-        if labels[x[0]][1] != x[1][1]:
-            # checks to see if the discontinuity was already there
-            if labels[x[0] + 1] == x[1][1]:
-                continue
-            else:
-                insert_point = x[0] + 1
-                new_label = x[1][1]
-                kpoint = labels[x[0]][0] + 1
-                appends += [[insert_point, new_label, kpoint]]
-    appends.sort()
-
-    for i, append in enumerate(appends):
-        labels.insert(append[0] + i, (append[2], six.text_type(append[1])))
+        # I use a dictionary because there are cases in which there are
+        # two lines for the same point (e.g. when I do a zero-length path,
+        # from a point to the same point, just to have that value)
+        # Note the -1 because in fortran indices are 1-based, in Python are
+        # 0-based
+        labels_dict[idx-1] = label
+    labels = [(key, labels_dict[key]) for key in sorted(labels_dict)]
+    
     bands = BandsData()
     k = KpointsData()
     k.set_cell_from_structure(structure)
