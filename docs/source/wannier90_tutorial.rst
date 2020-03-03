@@ -6,10 +6,8 @@ Wannier90 user-tutorial
 .. note:: The Wannier90 plugin referenced below is available in the EPFL version.
 
 Here we will review an example application of the wannier90 input plugin. In this example we will attempt to
-make MLWF for the oxygen 2p states in BaTiO3. This tutorial assumes that you are already familiar with the
-`wannier90 code`_). You should also finish the :ref:`my-ref-to-pw-tutorial`. This tutorial will make use of parent_calculations
-and therefore it would be helpful, though not necessary, to do :ref:`my-ref-to-ph-tutorial`.
-For more details on the wannier90 plugin consult :ref:`my-ref-to-wannier90-doc`.
+make MLWF for the oxygen 2p states in BaTiO:sub:`3`. This tutorial assumes that you are already familiar with the
+`wannier90 code`_).
 
 
 
