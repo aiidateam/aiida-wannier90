@@ -56,7 +56,8 @@ class Wannier90Calculation(CalcJob):
         '.wout', '.werr', '.r2mn', '_band.dat', '_band.dat', '_band.agr',
         '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz', '_hr.dat',
         '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat', '_dos.dat',
-        '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw', '_band_proj.dat'
+        '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw', '_band_proj.dat',
+        '_band.labelinfo.dat'
     )
 
     @classmethod

@@ -315,3 +315,86 @@ def generate_kpoints_mesh():
         return kpoints
 
     return _generate_kpoints_mesh
+
+
+@pytest.fixture(scope='session')
+def generate_structure_o2sr():
+    """Return a `StructureData` representing bulk O2Sr."""
+    def _generate_structure():
+        """Return a `StructureData` representing bulk O2Sr."""
+
+        from aiida import orm
+
+        structure = orm.StructureData(
+            cell=[[-1.7828864010, 1.7828864010, 3.3905324933],
+                  [1.7828864010, -1.7828864010, 3.3905324933],
+                  [1.7828864010, 1.7828864010, -3.3905324933]]
+        )
+
+        structure.append_atom(symbols='Sr', position=[0, 0, 0])
+        structure.append_atom(
+            symbols='O', position=[1.7828864010, 1.7828864010, 0.7518485043]
+        )
+        structure.append_atom(symbols='O', position=[0, 0, 2.6386839890])
+        return structure
+
+    return _generate_structure
+
+
+@pytest.fixture
+def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):
+    # TODO: when Python2 support is dropped, wrap 'projections_dict'
+    # in 'types.MappingProxyType' for immutability.
+    def _generate_win_params_o2sr():
+        from aiida import orm
+        structure = generate_structure_o2sr()
+        inputs = {
+            'structure':
+            structure,
+            'kpoints':
+            generate_kpoints_mesh(9),
+            'kpoint_path':
+            # To avoid dependency on seekpath, I paste here the result of
+            # get_kpoints_path(structure)['parameters']
+            orm.Dict(
+                dict={
+                    'point_coords': {
+                        'GAMMA': [0.0, 0.0, 0.0],
+                        'M': [0.5, 0.5, -0.5],
+                        'X': [0.0, 0.0, 0.5],
+                        'P': [0.25, 0.25, 0.25],
+                        'N': [0.0, 0.5, 0.0],
+                        'S_0': [
+                            -0.3191276083914903, 0.3191276083914903,
+                            0.3191276083914903
+                        ],
+                        'S': [
+                            0.3191276083914903, 0.6808723916085098,
+                            -0.3191276083914903
+                        ],
+                        'R': [-0.1382552167829806, 0.1382552167829806, 0.5],
+                        'G': [0.5, 0.5, -0.1382552167829806]
+                    },
+                    'path': [('GAMMA', 'X'), ('X', 'P'), ('P',
+                                                          'N'), ('N', 'GAMMA'),
+                             ('GAMMA',
+                              'M'), ('M', 'S'), ('S_0',
+                                                 'GAMMA'), ('X',
+                                                            'R'), ('G', 'M')],
+                }
+            ),
+            'parameters':
+            orm.Dict(
+                dict={
+                    "num_wann": 21,
+                    "num_bands": 31,
+                    "num_iter": 200,
+                    "bands_plot": True,
+                    "auto_projections": True
+                }
+            )
+        }
+
+        return inputs
+
+    return _generate_win_params_o2sr
