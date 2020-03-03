@@ -2,7 +2,6 @@ from __future__ import absolute_import
 import numbers
 
 import six
-import ase
 
 __all__ = ('plot_centres_xsf', 'conv_to_fortran', 'conv_to_fortran_withlists')
 
@@ -11,6 +10,9 @@ def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     """
     Plots Wannier function centres in .xsf format
     """
+    # Disabling the import-error since this is an optional requirement
+    import ase  # pylint: disable=import-error
+
     a = structure.get_ase()
     new_a = a.copy()
     out = w90_calc.out.output_parameters.get_dict()['wannier_functions_output']
