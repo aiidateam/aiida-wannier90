@@ -49,7 +49,7 @@ class Wannier90Parser(Parser):
             .format(input_filename, input_suffix)
         )
 
-    def parse(self, **kwargs):  # pylint: disable=too-many-locals,inconsistent-return-statements
+    def parse(self, **kwargs):  # pylint: disable=too-many-locals,inconsistent-return-statements; # noqa: MC0001
         """
         Parses the datafolder, stores results.
         This parser for this simple code does simply store in the DB a node
