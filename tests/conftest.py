@@ -347,7 +347,6 @@ def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):
     # in 'types.MappingProxyType' for immutability.
     def _generate_win_params_o2sr():
         from aiida import orm
-        from aiida.tools import get_kpoints_path
         structure = generate_structure_o2sr()
         inputs = {
             'structure':
@@ -355,7 +354,35 @@ def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):
             'kpoints':
             generate_kpoints_mesh(9),
             'kpoint_path':
-            get_kpoints_path(structure)['parameters'],
+            # To avoid dependency on seekpath, I paste here the result of
+            # get_kpoints_path(structure)['parameters']
+            orm.Dict(
+                dict={
+                    'point_coords': {
+                        'GAMMA': [0.0, 0.0, 0.0],
+                        'M': [0.5, 0.5, -0.5],
+                        'X': [0.0, 0.0, 0.5],
+                        'P': [0.25, 0.25, 0.25],
+                        'N': [0.0, 0.5, 0.0],
+                        'S_0': [
+                            -0.3191276083914903, 0.3191276083914903,
+                            0.3191276083914903
+                        ],
+                        'S': [
+                            0.3191276083914903, 0.6808723916085098,
+                            -0.3191276083914903
+                        ],
+                        'R': [-0.1382552167829806, 0.1382552167829806, 0.5],
+                        'G': [0.5, 0.5, -0.1382552167829806]
+                    },
+                    'path': [('GAMMA', 'X'), ('X', 'P'), ('P',
+                                                          'N'), ('N', 'GAMMA'),
+                             ('GAMMA',
+                              'M'), ('M', 'S'), ('S_0',
+                                                 'GAMMA'), ('X',
+                                                            'R'), ('G', 'M')],
+                }
+            ),
             'parameters':
             orm.Dict(
                 dict={
