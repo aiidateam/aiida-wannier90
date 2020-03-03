@@ -21,6 +21,14 @@ Example submission file
     inputexample.rst
     wannier90_tutorial.rst
 
+Tutorials
+---------
+.. toctree::
+    :maxdepth: 2
+
+    tutorial_calculation.rst
+    tutorial_minimal_workflow.rst
+
 Reference
 ---------
 
