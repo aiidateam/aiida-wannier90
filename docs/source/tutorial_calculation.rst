@@ -1,31 +1,31 @@
 Running a Wannier90 calculation
 ===============================
 
-Steps to run this example, i.e. GaAs wannierization
-+++++++++++++++++++++++++++++++++++++++++++++++++++
+GaAs wannierization
++++++++++++++++++++
 
-Two possibilities are provided:
+You can check the folder ``examples/example01`` in the source repository for an actual script that you can run.
+In this example, two possibilities are provided:
 
 A) Run a full calculation from scratch QE+Wannier90 (from step 1 to step 5)
 B) Run only the Wannier90 part (step 5 only)
 
-We use in the following the ``verdi`` command-line interface (CLI). A
+We use the ``verdi`` command-line interface (CLI). A
 small reminder of some simple commands:
 
 - Activate your virtual environment, e.g. with ``workon aiida``
 - ``verdi process list -a -p<N>`` (to monitor the state of the
   calculations done in the last ``<N>`` days)
 - ``verdi process show <identifier>`` (once the calculation is finished:
-  more detailed list of properties, inputs and outputs)
+  more detailed list of properties, inputs and outputs).
 
-If following strategy (B) you can directly jump to Section 5 of this
-README file.
+If following strategy (B), you can directly jump to Section 5 of the documentation.
 
 Preliminary
 -----------
 
-We define the starting structure from the verdi shell and we store it in
-the database:
+We define the starting  input structure from the verdi shell and we store it in
+the database in the form of a ``StructureData`` by typing:
 
 .. code:: python
 
@@ -38,7 +38,7 @@ the database:
    structure.store()
    print ( 'Structure stored with pk %d' %structure.pk)  
 
-We will use the following definition of the codes and the pseudo family
+In the following, we will use the following definition of the codes and the pseudo family
 to be used:
 
 1. your pw code –> ``<codename_pw>``
@@ -46,11 +46,11 @@ to be used:
 3. your wannier code –> ``<codename_wannier>``
 4. your pseudo potentials family –> ``<PSEUDO_FAMILY_NAME>``
 
-Run your simulation (*not* in the verdi shell)
-++++++++++++++++++++++++++++++++++++++++++++++
+Run your simulation
+-------------------
 
 1) Run the SCF
---------------
+**************
 
 We specify the pw code to be used, the PK of the structure, the pseudo
 family, serial/parallel mode, type of pw calculation and the daemon:
@@ -72,7 +72,7 @@ and we can check the status of the calculation:
    verdi process list -a -p1
    verdi process show <PK_calculation_scf>
 
-By typing the latter command we get, among the output text:
+By typing the latter command we get among the output text:
 
 ::
 
@@ -81,9 +81,9 @@ By typing the latter command we get, among the output text:
    ...
 
 2) Run the NSCF
----------------
+***************
 
-We specify the pw code to be used, the pk of the structure, the pseudo
+We specify the pw code to be used, the PK of the structure, the pseudo
 family, serial/parallel mode, type of pw calculation, the parent folder
 from the scf step, the mesh of kpoints to be used and the daemon:
 
@@ -103,7 +103,7 @@ We can check the progress and the outputs with:
 
     verdi process show <PK_calculation_nscf>
 
-and, when the calculation is finished, we get among the output text:
+we finally get in the output text:
 
 ::
 
@@ -112,7 +112,7 @@ and, when the calculation is finished, we get among the output text:
    ...
 
 3) Run the Wannier90 preprocessing
-----------------------------------
+**********************************
 
 We specify only the Wannier code and select the ``preprocess`` mode:
 
@@ -133,7 +133,7 @@ By typing the usual commands we check the status of the calculation
    verdi process list -a -p1
    verdi process show <PK_calculation_wannier-pp>
 
-and we get among the outputs the PK of the node containing the .nnkp
+and we get among the outputs the PK of the node containing the ``.nnkp``
 file:
 
 ::
@@ -143,23 +143,23 @@ file:
    ...
 
 4) Run the pw2wannier90 step
-----------------------------
+****************************
 
 We specify the pw2wannier code, the PK of the remote data from the NSCF
-calculation, the PK of the nnkp_file node, and the options to indicate
+calculation, the PK of the ``nnkp_file`` node, and the options to indicate
 we want to run using MPI and via the daemon:
 
 ::
 
    aiida-quantumespresso calculation launch pw2wannier90 -X <codename_pw2wannier> -P <PK_remotedata_nscf> -S <PK_nnkp_file> -i -d
 
-As usual, on the output we see:
+As usual, in the output:
 
 ::
 
    Submitted Pw2wannier90Calculation<PK_calculation_pw2wannier> to the daemon
 
-and in the output of ``verdi process show`` we obtain:
+and by typing ``verdi process show``, we obtain:
 
 ::
 
@@ -169,7 +169,7 @@ and in the output of ``verdi process show`` we obtain:
    ...
 
 5) Run the Wannier90 main step
-------------------------------
+******************************
 
 We eventually can run the main Wannier90 calculation, where we need to
 specify the Wannier code, the mode (``main``, for the main run) and the
@@ -177,7 +177,7 @@ PL of the ``FolderData`` containing the ``.amn`` and ``.mmn`` files.
 This ``FolderData``, if following strategy (A), is the one retrieved
 from the pw2wannier calculation. If instead you are following strategy
 (B), you will need to create this FolderData by running the script
-\`create_local_input_folder.py’ via
+``create_local_input_folder.py`` via
 
 ::
 

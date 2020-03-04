@@ -12,19 +12,30 @@ Wannier90 installation guide and the source can be found `here`_).
 
 
 
-Example submission file
------------------------
+Input description
+-----------------
 
 .. toctree::
     :maxdepth: 3
 
     inputexample.rst
-    wannier90_tutorial.rst
+
+Parsed output description
+-------------------------
+
+.. toctree::
+    :maxdepth: 3
+
+    parser.rst
 
 Tutorials
 ---------
+
+The Wannier90 plugin is provided with two example based on a GaAs crystalline sample. The first example is a simple wannierization step by step, with which we aim to show the format of the inputs expected by the plugin.
+The second case of study aims to provide the user with a practical example of a simple workflow to perform the same wannierization procedure. 
+
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     tutorial_calculation.rst
     tutorial_minimal_workflow.rst
