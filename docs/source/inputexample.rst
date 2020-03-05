@@ -18,8 +18,7 @@ Supported codes
 Inputs
 ------
 * **remote_input_folder**, The remote input folder can either be a PW calculation or Wannier90. See :ref:`my-ref-to-wannier90-filescopy-doc` for more details. #TODO
-
-  .. note:: There are no direct links between calculations. The use_parent_calculation will set a link to the RemoteFolder attached to that calculation. Alternatively, the method **use_parent_folder** can be used to set this link directly.
+  .. note:: As a parent folder for the main Wannier90 calculation one can pass either a **local_input_folder** or a **remote_input_folder**. Currently they are mutually exclusive: the local folder is used to retrieve **.ammn** and **.mmn** files, otherwise the remote mode is useful for restart option. 
 
 * **kpoints**, class :py:class:`KpointsData <aiida.orm.KpointsData>`
   Reciprocal space points on which to build the wannier functions. Note that this must be an evenly spaced grid and must be constructed using an mp_grid kpoint mesh, with `{'FORCE_KPOINTS_LIST': True}` setting in the PW nscf calculation. It is a requirement of Wannier90, though not of this plugin, that symmetry not be used in the parent calculation, that is the setting card ``['SYSTEM'].update({'nosym': True})`` be applied in the parent calculation.
@@ -78,12 +77,13 @@ Inputs
 
     *  **'postproc_setup'**:  Use Wannier90 in preprocessing mode. This affects which input and output files are expected.
 
-
 .. _my-ref-to-wannier90-filescopy-doc:
+
+
 
 Files Copied
 ------------
-All the output files of Wannier90 are retrieved by deafult . #TODO: add and comment onremote/local folder?
+All the output files of Wannier90 are retrieved by deafult . #TODO:symlink?
 
 
 

@@ -32,6 +32,7 @@ Errors
 ------
 Errors of the parsing are reported in the log of the calculation (accessible with the ``verdi calculation logshow`` command). Moreover, they are stored in the Dict under the key ``warnings``, and are accessible with ``calc.res.warnings``.
 Here we report the warnings currently produced by the parser:
+
     - 'Units not Ang, be sure this is OK!': check the units given in input.
     - 'Parsing is only supported directly supported if output verbosity is set to 1': if output verbosity is not 1 the parser complains informing the user that it is disabled.
     - 'The r^2_nm file has been selected to be written, but this is not yet supported!': it complains because the parsing of this file is not yet supported.
