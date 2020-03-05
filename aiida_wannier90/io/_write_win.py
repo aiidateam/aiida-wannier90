@@ -42,11 +42,11 @@ def write_win( # pylint: disable=too-many-arguments
     :param kpoint_path: List of k-points used for band interpolation.
     :type kpoint_path: aiida.orm.nodes.data.dict.Dict
 
-    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData,
+    :param projections: Orbitals used for the projections. Can be specified either as AiiDA  class :py:class:`OrbitalData <aiida.orm.OrbitalData>`,
      or as a list of strings specifying the projections in Wannier90's format.
     :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str]
 
-    :param random_projections: If OrbitalData is used for projections, enables random projections completion
+    :param random_projections: If  class :py:class:`OrbitalData <aiida.orm.OrbitalData>` is used for projections, enables random projections completion
     :type random_projections: aiida.orm.nodes.data.bool.Bool
     """
     with open(filename, 'w') as file:  #pylint: disable= redefined-builtin

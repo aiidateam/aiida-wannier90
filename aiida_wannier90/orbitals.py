@@ -26,10 +26,10 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
     spin_axis=None
 ):
     """
-    Use this method to emulate the input style of wannier90,
+    Use this method to emulate the input style of Wannier90,
     when setting the orbitals (see chapter 3 in the user_guide). Position
-    can be provided either in cartesian coordiantes using position_cart
-    or can be assigned based on an input structure and kind_name.
+    can be provided either in cartesian coordiantes using ``position_cart``
+    or can be assigned based on an input structure and ``kind_name``.
 
     :param position_cart: position in cartesian coordinates or list of
                           positions in cartesian coodriantes
@@ -241,16 +241,16 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
 
 def generate_projections(list_of_projection_dicts, structure):
     """
-    Use this method to emulate the input style of wannier90,
-    when setting the orbitals (see chapter 3 in the wannier90 user guide).
+    Use this method to emulate the input style of Wannier90,
+    when setting the orbitals (see chapter 3 in the Wannier90 user guide).
     Position can be provided either in cartesian coordiantes using
-    position_cart or can be assigned based on an input structure and
-    kind_name. Pass a **list of dictionaries**, in which the keys of each
-    dictionary correspond to those below. Also that *radial*,
-    and *ang_mtm_mr_list* both use 0 indexing as opposed to 1 indexing,
+    ``position_cart`` or can be assigned based on an input structure and
+    ``kind_name``. Pass a **list of dictionaries**, in which the keys of each
+    dictionary correspond to those below. Also that ``radial``,
+    and ``ang_mtm_mr_list`` both use 0 indexing as opposed to 1 indexing,
     effectively meaning that both should be offset by 1. E.g. an orbital
-    with ang_mtm_l_list radial node would use radial=2 (wannier90 syntax), and then
-    be converted to radial_nodes=1 (AiiDa plugin syntax)
+    with ``ang_mtm_l_list`` radial node would use ``radial=2`` (Wannier90 syntax), and then
+    be converted to ``radial_nodes=1`` (AiiDa plugin syntax)
     inside the stored orbital.
 
     .. note:: The key entries used here, may not correspond to the keys used
@@ -259,10 +259,10 @@ def generate_projections(list_of_projection_dicts, structure):
               the value stored in orbital is listed in (braces).
 
     .. note:: To keep in line with python-indexing as much as possible,
-              the values of radial, and ang_mtm_mr_list our out of sync with
-              their radial_nodes, angular_momentum counterparts.
-              Specifically, radial and ang_mtm_mr_list both start at 1 while
-              radial_nodes and angular_momentum both start at 0, thus
+              the values of ``radial``, and ``ang_mtm_mr_list`` our out of sync with
+              their ``radial_nodes``, ``angular_momentum`` counterparts.
+              Specifically, radial and ``ang_mtm_mr_list`` both start at 1 while
+              ``radial_nodes`` and ``angular_momentum`` both start at 0, thus
               making the two off by a factor of 1.
 
     :param position_cart: position in cartesian coordinates or list of
@@ -270,14 +270,14 @@ def generate_projections(list_of_projection_dicts, structure):
     :param kind_name: kind_name, for use with the structure (kind_name)
     :param radial: number of radial nodes (radial_nodes + 1)
     :param ang_mtm_name: orbital name or list of orbital names, cannot
-                         be used in conjunction with ang_mtm_l_list or
-                         ang_mtm_mr_list (See ang_mtm_l_list and ang_mtm_mr_list)
+                         be used in conjunction with ``ang_mtm_l_list`` or
+                         ``ang_mtm_mr_list`` (See ``ang_mtm_l_list`` and ``ang_mtm_mr_list``)
     :param ang_mtm_l_list: angular momentum (either an integer or a list), if 
-                 ang_mtm_mr_list is not specified will return all orbitals associated with it
+                 ``ang_mtm_mr_list`` is not specified will return all orbitals associated with it
                  (angular_momentum)
     :param ang_mtm_mr_list: magnetic angular momentum number must be specified
-                    along with ang_mtm_l_list (magnetic_number + 1).Note that
-                    if this is specified, ang_mtm_l_list must be an integer and not a list
+                    along with ``ang_mtm_l_list`` (magnetic_number + 1).Note that
+                    if this is specified, ``ang_mtm_l_list`` must be an integer and not a list
     :param spin: the spin, spin up can be specified with 1, 'u' or 'U' and
                  spin down can be specified using -1, 'd' or 'D' (spin)
     :param zona: as specified in user guide, applied to all orbitals

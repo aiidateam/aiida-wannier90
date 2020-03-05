@@ -18,7 +18,7 @@ class Wannier90Parser(Parser):
     """
     Wannier90 output parser. Will parse global gauge invarient spread as well as
     the centers, spreads and, if possible the Imaginary/Real ratio of the
-    wannier functions. Will also check to see if the output converged.
+    Wannier functions. Will also check to see if the output converged.
     """
     def __init__(self, node):
         from .calculations import Wannier90Calculation
