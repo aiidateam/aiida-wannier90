@@ -4,7 +4,7 @@ Running a Wannier90 calculation
 GaAs wannierization
 +++++++++++++++++++
 
-You can check the folder ``examples/example01`` in the source repository for an actual script that you can run.
+You can check the folder ``examples/example01`` in the source repository for an actual script (i.e. ``wannier_gaas.py`` that you can run.
 In this example, two possibilities are provided:
 
 A) Run a full calculation from scratch QE+Wannier90 (from step 1 to step 5)
@@ -23,7 +23,6 @@ If following strategy (B), you can directly jump to Section 5 of the documentati
 
 Preliminary
 -----------
-
 We define the starting  input structure from the verdi shell and we store it in
 the database in the form of a ``StructureData`` by typing:
 
@@ -38,7 +37,58 @@ the database in the form of a ``StructureData`` by typing:
    structure.store()
    print ( 'Structure stored with pk %d' %structure.pk)  
 
-In the following, we will use the following definition of the codes and the pseudo family
+In the example  file we also define the kpoints mesh to be used :
+
+.. code:: python
+
+   KpointsData = DataFactory('array.kpoints')
+   kpoints = KpointsData()
+   kpoints.set_kpoints_mesh([2, 2, 2])
+
+and the kpoints path:
+
+.. code:: python
+
+   kpoint_path = Dict(
+      dict={
+         'point_coords': {
+               'G': [0.0, 0.0, 0.0],
+               'K': [0.375, 0.375, 0.75],
+               'L': [0.5, 0.5, 0.5],
+               'U': [0.625, 0.25, 0.625],
+               'W': [0.5, 0.25, 0.75],
+               'X': [0.5, 0.0, 0.5]
+         },
+         'path': [('G', 'X'), ('X', 'W'), ('W', 'K'), ('K',
+                                                         'G'), ('G', 'L'),
+                  ('L', 'U'), ('U', 'W'), ('W', 'L'), ('L',
+                                                         'K'), ('U', 'X')]
+      }
+   )
+
+Eventually, we provide the projections in the following format:
+
+.. code:: python
+
+   from aiida_wannier90.orbitals import generate_projections
+   projections = generate_projections(
+      dict(
+         position_cart=(1, 2, 0.5),
+         radial=2,
+         ang_mtm_l_list=2,
+         ang_mtm_mr_list=5,
+         spin=None,
+         #zona=1.1,
+         zaxis=(0, 1, 0),
+         xaxis=(0, 0, 1),
+         spin_axis=None
+      ),
+      structure=structure
+   )
+
+
+
+In the following, we will use this definition for the codes and the pseudo family
 to be used:
 
 1. your pw code –> ``<codename_pw>``

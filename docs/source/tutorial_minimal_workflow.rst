@@ -74,9 +74,7 @@ to inspect the contect of ``Dict`` nodes, such as the
 ``output_parameters`` of the Wannier90 calculation, containing the
 parsed information from the output of the code.
 
-As final results you get all the information parsed in AiiDA and saved
-as outputs, as `documented
-online <https://aiida-wannier90.readthedocs.io/en/latest/index.html>`__.
+As final results you get all the information parsed in AiiDA and saved as outputs, as documented in the previous sections.
 
 Band structure
 ~~~~~~~~~~~~~~
