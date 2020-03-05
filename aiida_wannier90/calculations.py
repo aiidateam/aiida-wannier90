@@ -77,9 +77,7 @@ class Wannier90Calculation(CalcJob):
             "settings",
             valid_type=Dict,
             required=False,
-            help="""
-            Additional settings to manage the Wannier90 calculation.
-            """
+            help="""Additional settings to manage the Wannier90 calculation."""
         )
         spec.input(
             "projections",
@@ -92,14 +90,14 @@ class Wannier90Calculation(CalcJob):
             valid_type=FolderData,
             required=False,
             help=
-            "Get input files (``.amn``, ``.mmn``, ...) from a class :py:class:`FolderData <aiida.orm.FolderData>` stored in the AiiDA repository."
+            "Get input files (``.amn``, ``.mmn``, ...) from a class ``FolderData`` stored in the AiiDA repository."
         )
         spec.input(
             "remote_input_folder",
             valid_type=RemoteData,
             required=False,
             help=
-            "Get input files (``.amn``, ``.mmn``, ...) from a class :py:class:`RemoteData <aiida.orm.RemoteData>` possibly stored in a remote computer."
+            "Get input files (``.amn``, ``.mmn``, ...) from a class ``RemoteData`` possibly stored in a remote computer."
         )
         spec.input(
             "kpoints",
@@ -111,9 +109,9 @@ class Wannier90Calculation(CalcJob):
             valid_type=Dict,
             required=False,
             help=
-            "Description of the kpoints-path to be used for bands interpolation; "
+            "Description of the k-points path to be used for bands interpolation; "
             "it should contain two properties: "
-            "a list 'path' of length-2 tuples with the labels of the endpoints of the path; and "
+            "a list ``path`` of length-2 tuples with the labels of the endpoints of the path; and "
             "a dictionary ``point_coords`` giving the scaled coordinates for each high-symmetry endpoint."
         )
 
@@ -133,8 +131,7 @@ class Wannier90Calculation(CalcJob):
             'nnkp_file',
             valid_type=SinglefileData,
             required=False,
-            help=
-            'The ``SEEDAME.nnkp file``, produced only in -pp (postproc) mode.'
+            help='The ``.nnkp`` file, produced only in -pp (postproc) mode.'
         )
         spec.default_output_node = 'output_parameters'
 

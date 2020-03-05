@@ -4,7 +4,8 @@ Running a Wannier90 calculation
 GaAs wannierization
 +++++++++++++++++++
 
-You can check the folder ``examples/example01`` in the source repository for an actual script (i.e. ``wannier_gaas.py`` that you can run.
+You can check the folder ``examples/example01`` in the source repository
+for an actual script (``wannier_gaas.py``) that you can run.
 In this example, two possibilities are provided:
 
 A) Run a full calculation from scratch QE+Wannier90 (from step 1 to step 5)
