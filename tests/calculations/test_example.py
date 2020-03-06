@@ -35,7 +35,7 @@ def prepare_for_submission_from_builder():
 
 
 def load_module(module_name, full_path):
-    import importlib.util  # pylint: disable=import-error
+    import importlib.util
     spec = importlib.util.spec_from_file_location(module_name, full_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
