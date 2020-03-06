@@ -143,7 +143,7 @@ def generate_calc_job_node(shared_datadir):
     def flatten_inputs(inputs, prefix=''):
         """Flatten inputs recursively like :meth:`aiida.engine.processes.process::Process._flatten_inputs`."""
         flat_inputs = []
-        for key, value in inputs.iteritems():
+        for key, value in inputs.items():
             if isinstance(value, collections.Mapping):
                 flat_inputs.extend(
                     flatten_inputs(value, prefix=prefix + key + '__')
