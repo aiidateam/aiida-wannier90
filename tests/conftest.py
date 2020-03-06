@@ -65,9 +65,7 @@ def fixture_remotedata(fixture_localhost, shared_datadir):
     dir_path = shared_datadir / 'gaas'
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        remote = RemoteData(
-            remote_path=tmpdir.name, computer=fixture_localhost
-        )
+        remote = RemoteData(remote_path=tmpdir, computer=fixture_localhost)
         for file_path in os.listdir(dir_path):
             abs_path = os.path.abspath(os.path.join(dir_path, file_path))
             res_file_path = file_path
