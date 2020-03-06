@@ -9,7 +9,6 @@
 ################################################################################
 # pylint: disable=redefined-outer-name
 """Initialise a text database and profile for pytest."""
-from __future__ import absolute_import
 
 import os
 import collections
@@ -55,7 +54,7 @@ def fixture_remotedata(fixture_localhost, shared_datadir):
     Return a `RemoteData` with contents from the specified directory. Optionally a
     mapping of strings to replace in the filenames can be passed. Note that the order
     of replacement is not guaranteed.
-    
+
     The RemoteData node is yielded and points to a folder in /tmp, and is removed at the end
     """
     from aiida.orm import RemoteData

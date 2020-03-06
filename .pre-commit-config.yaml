@@ -1,16 +1,6 @@
 # Install pre-commit hooks via
 # pre-commit install
 
-# modernizer: make sure our code-base is Python 3 ready
-- repo: https://github.com/python-modernize/python-modernize.git
-  rev: "0.7"
-  hooks:
-  - id: python-modernize
-    exclude: ^docs/
-    args:
-      - --write
-      - --nobackups
-
 - repo: local
   hooks:
   - id: yapf

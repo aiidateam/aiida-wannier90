@@ -9,9 +9,6 @@
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
 
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 import copy
 
 from aiida_wannier90.utils import conv_to_fortran_withlists

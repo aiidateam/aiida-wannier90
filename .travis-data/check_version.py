@@ -12,8 +12,6 @@
 Check version number in setup.json and aiida_wannier90/__init__.py and make sure
 they match.
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import os
 import json
 import sys

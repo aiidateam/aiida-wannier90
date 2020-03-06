@@ -8,7 +8,6 @@
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
 """Test that the example provided in the top-level `examples` folder works."""
-from __future__ import absolute_import
 import os
 import pytest
 import six
