@@ -16,9 +16,9 @@ __all__ = (
 
 class Wannier90Parser(Parser):
     """
-    Wannier90 output parser. Will parse global gauge invarient spread as well as
-    the centers, spreads and, if possible the Imaginary/Real ratio of the
-    wannier functions. Will also check to see if the output converged.
+    Wannier90 output parser. Will parse the centres, spreads and, if
+    available, the Imaginary/Real ratio of the Wannier functions.
+    Will also check if the output converged.
     """
     def __init__(self, node):
         from .calculations import Wannier90Calculation
@@ -199,7 +199,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
                     if out['output_verbosity'] != 1:
                         out['warnings'].append(
                             'Parsing is only supported '
-                            'directly supported if output verbosity is set to 1'
+                            'if output verbosity is set to 1'
                         )
                 if 'Post-processing' in line:
                     out.update({'preprocess_only': line.split()[-2]})
