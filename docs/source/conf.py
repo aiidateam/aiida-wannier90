@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 #
 # aiida-wannier90 documentation build configuration file, created by
 # sphinx-quickstart on Fri Oct 10 02:14:52 2014.
@@ -12,16 +20,61 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import contextlib
+
 import os
 import sys
 import time
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
 import aiida_wannier90
 
 # -- General configuration ------------------------------------------------
+
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if not on_rtd:
+    with contextlib.suppress(ImportError):
+        import sphinx_rtd_theme  # pylint: disable=import-error
+        html_theme = 'sphinx_rtd_theme'
+        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+try:
+    # For AiiDA v1.1+
+    from aiida.manage.configuration import load_documentation_profile
+    load_documentation_profile()
+except ImportError:
+    # AiiDA versions <1.1
+    # This can be removed when python2 support is dropped, because there
+    # will be no need to build the documentation with AiiDA v1.0.
+    sys.path.append(
+        os.path.join(os.path.split(__file__)[0], os.pardir, os.pardir)
+    )
+    sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir))
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'rtd_settings'
+
+    if not on_rtd:  # only import and set the theme if we're building docs locally
+        # Load the database environment by first loading the profile and then loading the backend through the manager
+        from aiida.manage.configuration import get_config, load_profile
+        from aiida.manage.manager import get_manager
+        config = get_config()
+        load_profile(config.default_profile_name)
+        get_manager().get_backend()
+    else:
+        from aiida.manage import configuration
+        from aiida.manage.configuration import load_profile, reset_config
+        from aiida.manage.manager import get_manager
+
+        # Set the global variable to trigger shortcut behavior in `aiida.manager.configuration.load_config`
+        configuration.IN_RT_DOC_MODE = True
+
+        # First need to reset the config, because an empty one will have been loaded when `aiida` module got imported
+        reset_config()
+
+        # Load the profile: this will first load the config, which will be the dummy one for RTD purposes
+        load_profile()
+
+        # Finally load the database backend but without checking the schema because there is no actual database
+        get_manager()._load_backend(schema_check=False)  # pylint: disable=protected-access
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -30,15 +83,13 @@ import aiida_wannier90
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.autodoc', 'sphinx.ext.mathjax', 'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode', 'aiida.sphinxext'
 ]
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/2.7', None),
-    'aiida': ('http://aiida_core.readthedocs.io/en/latest/', None),
+    'python': ('https://docs.python.org/3', None),
+    'aiida': ('https://aiida-core.readthedocs.io/en/latest', None),
 }
 
 nitpick_ignore = [('py:obj', 'module')]
@@ -58,8 +109,10 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'aiida-wannier90'
-copyright = u'2015-{}, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and ETH Zurich and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland. All rights reserved.'.format(
-    time.localtime().tm_year
+# pylint: disable=redefined-builtin
+copyright = u'2015-{}, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and ETH Zurich\
+    and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland. All rights reserved.'.format(
+    time.localtime().tm_year  # pylint: disable=redefined-builtin
 )
 
 # The version info for the project you're documenting, acts as replacement for
@@ -287,35 +340,3 @@ latex_elements = {
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-
-## BEFORE STARTING, LET'S LOAD THE CORRECT AIIDA DBENV
-# on_rtd is whether we are on readthedocs.org, this line of code grabbed
-# from docs.readthedocs.org
-# NOTE: it is needed to have these lines before load_dbenv()
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir, os.pardir))
-sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir))
-
-os.environ['DJANGO_SETTINGS_MODULE'] = 'rtd_settings'
-
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    try:
-        import sphinx_rtd_theme
-        html_theme = 'sphinx_rtd_theme'
-        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-    except ImportError:
-        # No sphinx_rtd_theme installed
-        pass
-    # Loading the dbenv. The backend should be fixed before compiling the
-    # documentation.
-    from aiida.backends.utils import load_dbenv, is_dbenv_loaded
-    if not is_dbenv_loaded():
-        load_dbenv()
-else:
-    # Back-end settings for readthedocs online documentation -
-    # we don't want to create a profile there
-    from aiida.backends import settings
-    settings.IN_DOC_MODE = True
-    settings.BACKEND = "django"
-    settings.AIIDADB_PROFILE = "default"

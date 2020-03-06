@@ -1,28 +1,33 @@
 language: python
-python: 2.7
+python:
+  - "2.7"
+  - "3.6"
+  - "3.7"
+env:
+  - INSTALL_TYPE="testing" TEST_TYPE="tests"
+  - INSTALL_TYPE="testing_sdist" TEST_TYPE="tests"
+jobs:
+  include:
+  - python: "2.7"
+    env: INSTALL_TYPE="dev_precommit" TEST_TYPE="pre-commit"
+  - python: "3.7"
+    env: INSTALL_TYPE="dev_precommit" TEST_TYPE="pre-commit"
+  - python: "2.7"
+    env: INSTALL_TYPE="docs" TEST_TYPE="docs"
+  - python: "3.7"
+    env: INSTALL_TYPE="docs" TEST_TYPE="docs"
 cache: pip
 sudo: true
 services:
+  - rabbitmq
   - postgresql
 addons:
-  postgresql: "9.5"
-  apt: # copied from wannier90's travis.yml
+  apt:
     packages:
-      - gfortran
-      - libblas-dev
-      - liblapack-dev
-before_install:  # copied from pgtest's travis.yml
-  - sudo apt-get install locate
-  - sudo service postgresql stop
-  - sudo apt-get remove postgresql
-  - sudo apt-get install postgresql
-  - sudo updatedb
+      - rabbitmq-server
+before_install:
+  - sudo service postgresql restart
 install:
-  - pip install git+https://github.com/aiidateam/aiida_core.git#egg=aiida_core
-  - pip install git+https://github.com/greschd/aiida_pytest#egg=aiida_pytest
-  - pip install .[test,dev,docs]
-env:
-  - TEST_TYPE="pre-commit"
-  - TEST_TYPE="tests"
+  - ./.travis-data/install_script.sh
 script:
   - ./.travis-data/test_script.sh

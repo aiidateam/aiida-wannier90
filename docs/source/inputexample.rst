@@ -1,130 +1,259 @@
 Documentation of the inputs of the aiida-wannier90 plugin
 =========================================================
 
-We describe here with an example the format of the inputs expected by the Wannier90 plugin.
+Inputs
+++++++
 
-You can check also the folder ``examples/example01`` in the source repository for an actual script that you can run.
-
-use_parameters
+``parameters``
 --------------
-Pass a :py:class:`~aiida.orm.data.parameter.ParameterData` with the input keys for Wannier90. An example::
+A :py:class:`Dict <aiida.orm.Dict>` node containing the input parameters
+for the Wannier90 calculation to be performed.
+Unlike the Wannier90 code, which does not check capitilization
+(see the Wannier90 documentation for more details),
+this plugin is *case sensitive*.
+All keys **must** be lowercase, e.g. ``num_wann`` is acceptable
+but ``NUM_WANN`` is not.
 
-    parameter = ParameterData(dict={'bands_plot':False,
-                                    'num_iter': 12,
-                                    'guiding_centres': True,
-                                    'num_wann': 4,
-                                    'wannier_plot':True,
-                                    'wannier_plot_list':[1]
-                                    })
-
-use_structure
+``structure``
 -------------
-Pass a :py:class:`~aiida.orm.data.structure.StructureData` for the input structure.
+A :py:class:`StructureData <aiida.orm.StructureData>` node with the
+crystal structure.
 
-use_kpoints
+``kpoints``
 -----------
-Pass a k-points mesh to be used as size of the Monkhorst-Pack grid of the DFT calculation.
-Example::
+A :py:class:`KpointsData <aiida.orm.KpointsData>` node containing the
+reciprocal space k-points used to build the Wannier functions.
+This must be an evenly-spaced grid and must be constructed using an ``mp_grid``
+k-point mesh that should be the same used in the NSCF step of the preliminary
+DFT calculation.
 
-    kpoints = KpointsData()
-    kpoints.set_kpoints_mesh([2, 2, 2])
+If you are using ``aiida-quantumespresso`` for the preliminary DFT
+calculations, you can construct the explicit list of k-points using
+``{'FORCE_KPOINTS_LIST': True}`` in the settings of the calculation.
+In this case, for Quantum ESPRESSO set also ``nosym=True`` in the ``SYSTEM``
+namelist of the NSCF step.
 
-use_kpoint_path
+
+``remote_input_folder``
+-----------------------
+A :py:class:`RemoteData <aiida.orm.RemoteData>`
+node pointing to a folder with the needed preliminary files, stored on a
+remote computer.
+These include both the files created by a DFT post-processing code
+(``.amn``, ``.mmn``, ...) and/or the ``.chk`` checkpoint file created by
+Wannier90 and needed in a restart. This folder must not be specified
+when running Wannier90 in post-processing mode (``-pp`` option).
+See also the option ``postproc_setup`` in the input ``settings`` node.
+
+See :ref:`my-ref-to-wannier90-filescopy-doc` for more details.
+
+``local_input_folder``
+----------------------
+A :py:class:`FolderData <aiida.orm.FolderData>`
+node containing the needed preliminary files (as for the
+``remote_input_folder``).
+
+This folder must not be specified
+when running Wannier90 in post-processing mode (``-pp`` option).
+See also the option ``postproc_setup`` in the input ``settings`` node.
+
+The two inputs ``remote_input_folder`` and ``local_input_folder`` cannot
+be specified at the same time.
+You can choose between them depending on whether you decided to store
+the preliminary files (``.amn``, ``.mmn``, ...) in the AiiDA repository,
+or just on the supercomputer.
+
+See :ref:`my-ref-to-wannier90-filescopy-doc` for more details.
+
+``kpoints_path``
+----------------
+An optional :py:class:`Dict <aiida.orm.Dict>` node,
+specifying a set of pairs of k-points. These define the endpoints
+of each segment along which to plot a band structure.
+I must contain, in particular:
+
+- a list ``path`` of length-2 tuples with the labels of the endpoints of
+  the path;
+- a dictionary ``point_coords`` giving the scaled coordinates for
+  each high-symmetry endpoint.
+
+
+``projections``
 ---------------
-Optional, pass a :py:class:`~aiida.orm.data.parameter.ParameterData` to specify the path to follow for the interpolated band structure.
-The dictionary should *only* have two entries:
+A specification of which projections to use for the Wannierisation. Multiple
+node types are accepted as discussed below.
 
-- ``path``: a list of length-2 lists, with the labels for the extremes of each path
-- ``point_coords``: a dictionary that for each label gives the coordinates (in fractional coordinates
-  with respect to the primitive reciprocal lattice vectors).
+You can construct the projections using the convenience method
+:py:meth:`~aiida_wannier90.orbitals.generate_projections`.
 
-This information can, e.g., be easily obtained from the output of seekpath_.
+This will produce an :py:class:`OrbitalData <aiida.orm.OrbitalData>` node
+startinf from a list of dictionaries specifying the projection-orbital
+symmetries and properties.
 
-Example::
+Some examples, taken directly from the wannier90 user guide:
 
-  {
-    'path': [
-      ['GAMMA', 'X'],
-      ['X', 'U'],
-      ['K', 'GAMMA'],
-      ['GAMMA', 'L'],
-      ['L', 'W'],
-      ['W', 'X']
-    ],
-    'point_coords':
-    {
-      'GAMMA': [0.0, 0.0, 0.0],
-      'K': [0.375, 0.375, 0.75],
-      'L': [0.5, 0.5, 0.5],
-      'U': [0.625, 0.25, 0.625],
-      'W': [0.5, 0.25, 0.75],
-      'W_2': [0.75, 0.25, 0.5],
-      'X': [0.5, 0.0, 0.5]
-    }
-  }
+* Material: CuO. :math:`s`, :math:`p`, and :math:`d` orbitals on all Cu
+  atoms, and :math:`sp^3` hyrbrids on all oxygen atoms.
 
-.. _seekpath: https://github.com/giovannipizzi/seekpath/
+    In Wannier90 one would specify::
 
+      Cu:l=0;l=1;l=2
+      O:l=-3
 
-use_local_input_folder or use_remote_input_folder
--------------------------------------------------
-Pass the parent folder with the .amn, .mmn, ... files. It can either be a :py:class:`~aiida.orm.data.folder.FolderData`
-(for ``use_local_input_folder``)
-containing the files, or a :py:class:`~aiida.orm.data.remote.RemoteData` with the output of e.g. a
-``quantumespresso.pw2wannier90`` calculation.
-If you pass both, files will be taken from both, with precedence from the local folder.
+  (or ``O:sp3``).
 
-use_projections
----------------
-To pass the information on the mesh to use. We provide a helper function to prepare the proper
-:py:class:`~aiida.orm.data.orbital.OrbitalData` class,
-called ``generate_projections``. For instance, the following puts a projection at the given
-Cartesian coordinate ``(1,2,0.5)``, with given properties (radial, angular momentum, ...)::
+  The list of dictionaries to provide to
+  :py:meth:`~aiida_wannier90.orbitals.generate_projections`
+  is::
 
-    from aiida_wannier90.orbitals import generate_projections
-    projections = generate_projections(dict(position_cart=(1,2,0.5),
-                             radial=2,
-                             ang_mtm_l=2,
-                             ang_mtm_mr=5, spin=None,
-                             #zona=1.1,
-                             zaxis=(0,1,0),xaxis=(0,0,1), spin_axis=None),structure=structure)
+    [
+      {
+        'kind_name': 'Cu',
+        'ang_mtm_name': ['SP','P','D']
+      },
+      {
+        'kind_name': 'O',
+        'ang_mtm_l_list':-3
+      }
+    ]
 
-As a second option, you can pass directly a :py:class:`~aiida.orm.data.base.List` object, with
-a list of strings that will be put in the input file of Wannier90.
-Note, however, that this format is **discouraged**: better to pass the :py:class:`~aiida.orm.data.orbital.OrbitalData` object,
-that contains 'parsed' information and is easier to query, and set
-``random_projections = True`` in the input 'settings' :py:class:`~aiida.orm.data.parameter.ParameterData` node.
-For instance::
+  (or equivalently ``{..., 'ang_mtm_name': ['SP3']}``).
 
-    from aiida.orm.data.base import List
-    projections = List()
-    projections.extend(['As:s','As:p'])
-    projections.extend(['random','As:s'])
+* A single projection onto a :math:`p_z` orbital orientated in the (1, 1, 1)
+  direction.
 
-If really needed (but strongly discouraged for the reason explained above), if you have a
-:py:class:`~aiida.orm.data.orbital.OrbitalData` as in the first
-example, you can convert to an explicit list as in the second example with the following snippet
-(the optional ``random_projections`` additional flag adds a ``random`` string in the flag,
-to tell Wannier90 that missing projections should be selected randomly)::
+  In Wannier90::
 
-    from aiida_wannier90.io._write_win import _format_all_projections
-    projections_list = List()
-    projections_list.extend(_format_all_projections(projections, random_projections=True))
-    projections = projections_list
+    c=0,0,0:l=1:z=1,1,1
 
+  or ``c=0,0,0:pz:z=1,1,1``.
 
-use_settings
+  The list of dictionaries to provide to
+  :py:meth:`~aiida_wannier90.orbitals.generate_projections`
+  is::
+
+    [
+      {
+        'position_cart': (0,0,0)
+        'ang_mtm_l_list': 1,
+        'zaxis':(1,1,1)
+      }
+    ]
+
+  or ``{... , 'ang_mtm_name':'PZ',...}``.
+
+* Project onto :math:`s`, :math:`p`, and :math:`d` orbitals
+  (with no radial nodes), and :math:`s` and :math:`p` (with one radial node)
+  in silicon.
+
+  In Wannier90::
+
+    Si:l=0;l=1;l=2
+    Si:l=0;l=1;r=2
+
+  The list of dictionaries to provide to
+  :py:meth:`~aiida_wannier90.orbitals.generate_projections`
+  is::
+
+    [
+      {
+        'kind_name': 'Si',
+        'ang_mtm_l_list': [0,1,2]
+      },
+      {
+        'kind_name': 'Si',
+        'ang_mtm_l_list': [0,1],
+        'radial_nodes':2
+      }
+    ]
+
+``settings``
 ------------
-An optional :py:class:`~aiida.orm.data.parameter.ParameterData` with additional settings.
-The possible values are:
+A :py:class:`Dict <aiida.orm.Dict>` node with additional settings to control
+the Wannier90 calculation.
+It can contain the following file handling options:
 
-- ``seedname``: pass a string if the seedname is not the default ``aiida`` (e.g. if you run the calculation
-  manually and the ``.mmn``, ``.amn``, ... files use a different seedname
-- ``random_projections``: if ``True``, adds the string ``random`` to the projections, needed in case you
-  are specifying less projections than Wannier functions
-- ``postproc_setup``: if ``True``, run just with the ``-pp`` options (preprocessing, to generate the ``.nnkp`` file).
-- ``retrieve_hoppings``: if ``True``, retrieve also hopping files needed to obtain the Hamiltonian
-  (``<seedname>_hr.dat``, ``<seedname>_centres.xyz``, ``<seedname>_wsvec.dat``).
+*  ``additional_retrieve_list``: List of additional filenames to be retrieved.
+
+*  ``additional_remote_symlink_list``:  List of custom files to link on the
+   remote.
+
+*  ``additional_remote_copy_list``: List of custom files to copy from a
+   different folder on the remote.
+
+*  ``additional_local_copy_list``: List of custom files to copy from
+   a local source (a folder in the AiiDA repository).
+
+*  ``exclude_retrieve_list``:  List of filename patterns to exclude when
+   retrieving. It does not affect files listed in ``additional_retrieve_list``.
+
+Besides, the following general options are available:
+
+*  ``random_projections``: Enables using random projections if not enough
+   projections are defined.
+
+*  ``postproc_setup``: Use Wannier90 in preprocessing mode.
+   This affects which input and output files are expected (see .
+
+.. _my-ref-to-wannier90-filescopy-doc:
+
+Files Copied
+++++++++++++
+
+Uploaded files
+--------------
+Which files are copied and which are symlinked during the upload phase (or a
+calculation having a ``remote_input_folder`` or a ``folder_input_folder``
+depends on the startup settings used, and what the parent calculation was.
+
+The goal is to copy the minimum number of files. However, we do not
+symlink files that are rewritten during the run (e.g. the ``.chk`` file), as
+in this case multiple runs (restarts) could try to change the same file.
+
+The list of files to copy or symlink is generated from the content of the
+``local_input_folder`` or ``remote_input_folder``,
+which are mutually exclusive.
+The following operations will be performed on the files:
+
+* *copy*: the file, if present, is copied from the parent;
+* *symlink*: the file, if present, is symlinked to the parent;
+* *nothing*: the file will neither be copied nor symlinked.
+
+In particular, the files ``.amn`` and ``.mmn`` are always required and
+are symlinked.
+Additional input files (that are not required, as they are needed only for
+some types of calculations) are symlinked, if present:
+``.eig``, ``.spn``, ``.uHu``, ``_htB.dat``, ``_htL.dat``, ``_htR.dat``,
+``_htC.dat``, ``_htLC.dat``, ``_htCR.dat``, ``.unkg``.
+
+To add some files in the list to copy or symlink on the remote, or
+to copy from the AiiDA repository, the user can modify the corresponding file
+list in the ``settings`` node: ``additional_remote_symlink_list``,
+``additional_remote_copy_list`` and ``additional_local_copy_list``.
+
+At variance, the file ``.chk`` is not required ,but if present is always
+copied by default (since this can be overwritten).
+
+Retrieved files
+---------------
+
+All the output files of Wannier90 are retrieved by default, if present,
+except the ``.nnkp`` file (which is handled separately and stored as a
+:py:class:`~aiida.orm.SinglefileData` node for a ``postproc_setup``
+calculation) and the ``.chk`` file (checkpoint files are large and usually
+not needed, so by default they are not retrieved.
+
+Here is the complete list of suffixes of the files to retrieve:
+``.wout``, ``.werr``, ``.r2mn``, ``_band.dat``, ``_band.agr``,
+``_band.kpt``, ``.bxsf``, ``_w.xsf``, ``_w.cube``,
+``_centres.xyz``, ``_hr.dat``, ``_tb.dat``, ``_r.dat``,
+``.bvec``, ``_wsvec.dat``, ``_qc.dat``, ``_dos.dat``, ``_htB.dat``,
+``_u.mat``, ``_u_dis.mat``, ``.vdw``, ``_band_proj.dat``,
+``_band.labelinfo.dat``.
+
+To exclude or include specific files from the retrieved list, one can
+respectively use the ``exclude_retrieve_list`` and
+``additional_retrieve_list`` settings described above.
 
 
 

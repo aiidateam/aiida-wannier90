@@ -1,1 +1,4 @@
 .aiida~
+.coverage
+htmlcov
+config.yml
