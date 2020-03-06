@@ -8,7 +8,6 @@
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
 import os
-import six
 import fnmatch
 from collections import namedtuple
 
@@ -144,17 +143,17 @@ class Wannier90Calculation(CalcJob):
 
         spec.input(
             'metadata.options.input_filename',
-            valid_type=six.string_types,
+            valid_type=str,
             default=cls._DEFAULT_INPUT_FILE
         )
         spec.input(
             'metadata.options.output_filename',
-            valid_type=six.string_types,
+            valid_type=str,
             default=cls._DEFAULT_OUTPUT_FILE
         )
         spec.input(
             'metadata.options.parser_name',
-            valid_type=six.string_types,
+            valid_type=str,
             default='wannier90.wannier90'
         )
         # withmpi defaults to "False" in aiida-core 1.0. Below, we override to default to withmpi=True

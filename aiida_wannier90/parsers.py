@@ -7,7 +7,6 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
-import io
 import os
 from aiida.parsers import Parser
 from aiida.common import exceptions as exc
@@ -101,7 +100,7 @@ class Wannier90Parser(Parser):
         if temporary_folder is not None:
             nnkp_temp_path = os.path.join(temporary_folder, nnkp_file_name)
             if os.path.isfile(nnkp_temp_path):
-                with io.open(nnkp_temp_path, 'rb') as handle:
+                with open(nnkp_temp_path, 'rb') as handle:
                     node = SinglefileData(file=handle)
                     self.out('nnkp_file', node)
 
