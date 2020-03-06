@@ -12,8 +12,6 @@
 Creating OrbitalData instances
 ==============================
 """
-import six
-from six.moves import range
 
 __all__ = ('generate_projections', )
 
@@ -119,7 +117,7 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
                 'Must supply a StructureData as '
                 'structure if using kind_name'
             )
-        if not isinstance(kind_name, six.string_types):
+        if not isinstance(kind_name, str):
             raise InputValidationError('kind_name must be a string')
 
     if ang_mtm_name is None and ang_mtm_l_list is None:

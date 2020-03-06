@@ -10,7 +10,6 @@
 ################################################################################
 
 import os
-from six.moves import input
 
 from aiida.plugins import DataFactory
 

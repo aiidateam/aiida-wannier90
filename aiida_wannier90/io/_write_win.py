@@ -15,7 +15,6 @@ from aiida_wannier90.utils import conv_to_fortran_withlists
 from aiida.common import InputValidationError
 
 from ._group_list import list_to_grouped_string
-import six
 
 __all__ = ('write_win', )
 
@@ -289,7 +288,7 @@ def _format_atoms_cart(structure):
         Converts an input list item into a str
         '''
         list_item = copy.deepcopy(list_item)
-        if isinstance(list_item, (str, six.text_type)):
+        if isinstance(list_item, str):
             return list_item
         return ' ' + ' '.join(["{:18.10f}".format(_) for _ in list_item]) + ' '
 

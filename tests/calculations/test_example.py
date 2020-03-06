@@ -10,7 +10,6 @@
 """Test that the example provided in the top-level `examples` folder works."""
 import os
 import pytest
-import six
 
 ENTRY_POINT_NAME = 'wannier90.wannier90'
 
@@ -36,14 +35,10 @@ def prepare_for_submission_from_builder():
 
 
 def load_module(module_name, full_path):
-    if six.PY2:
-        import imp
-        module = imp.load_source(module_name, full_path)
-    else:
-        import importlib.util  # pylint: disable=import-error
-        spec = importlib.util.spec_from_file_location(module_name, full_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+    import importlib.util  # pylint: disable=import-error
+    spec = importlib.util.spec_from_file_location(module_name, full_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
 
     return module
 

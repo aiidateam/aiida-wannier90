@@ -9,8 +9,6 @@
 ################################################################################
 import io
 import os
-import six
-from six.moves import range
 from aiida.parsers import Parser
 from aiida.common import exceptions as exc
 
@@ -458,7 +456,7 @@ def band_parser_legacy(band_dat, band_kpt, special_points, structure):  # pylint
     appends.sort()
 
     for i, append in enumerate(appends):
-        labels.insert(append[0] + i, (append[2], six.text_type(append[1])))
+        labels.insert(append[0] + i, (append[2], str(append[1])))
     bands = BandsData()
     k = KpointsData()
     k.set_cell_from_structure(structure)

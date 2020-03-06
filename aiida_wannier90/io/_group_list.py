@@ -9,8 +9,6 @@
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
 
-from six.moves import zip
-
 __all__ = ('group_list', 'groups_to_string', 'list_to_grouped_string')
 
 
