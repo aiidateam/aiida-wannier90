@@ -66,13 +66,11 @@ def fixture_remotedata(fixture_localhost, shared_datadir):
 
     with tempfile.TemporaryDirectory() as tmpdir:
         remote = RemoteData(remote_path=tmpdir, computer=fixture_localhost)
-        for file_path in os.listdir(dir_path):
-            abs_path = os.path.abspath(os.path.join(dir_path, file_path))
-            res_file_path = file_path
+        for file_path in dir_path.iterdir():
+            abs_path = str(file_path.resolve())
+            res_file_path = os.path.join(tmpdir, file_path.name)
             for old, new in replacement_mapping.items():
-                res_file_path = res_file_path.replace(
-                    old, new
-                )  # put using correct method
+                res_file_path = res_file_path.replace(old, new)
             shutil.copyfile(src=abs_path, dst=res_file_path)
         yield remote
 
@@ -273,6 +271,7 @@ def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):
         from aiida import orm
         from aiida.tools import get_kpoints_path
         from aiida_wannier90.orbitals import generate_projections
+        projections_dict_mutable = {**projections_dict}
         structure = generate_structure_gaas()
         inputs = {
             'structure':
@@ -290,7 +289,9 @@ def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):
                 }
             ),
             'projections':
-            generate_projections(projections_dict, structure=structure)
+            generate_projections(
+                projections_dict_mutable, structure=structure
+            )
         }
 
         return inputs
