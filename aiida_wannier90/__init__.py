@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 """
 AiiDA Wannier90 plugin
 ======================
@@ -25,10 +33,10 @@ This is a plugin for running `Wannier90 <http://wannier.org>`_ calculations on t
 
 from __future__ import absolute_import
 
-__authors__ = "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi & The AiiDA Team."
+__authors__ = "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi, Junfeng Qiao, Norma Rivano, and the AiiDA team."
 __license__ = "MIT License, see LICENSE.txt file."
 ## If upgraded, remember to change it also in setup.json (for pip)
-__version__ = "2.0.0a1"
+__version__ = "2.0.0"
 
 from . import io
 from . import parsers
