@@ -31,8 +31,6 @@ This is a plugin for running `Wannier90 <http://wannier.org>`_ calculations on t
    `[arXiv link] <https://arxiv.org/abs/1504.01163>`_
 """
 
-from __future__ import absolute_import
-
 __authors__ = "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi, Junfeng Qiao, Norma Rivano, and the AiiDA team."
 __license__ = "MIT License, see LICENSE.txt file."
 ## If upgraded, remember to change it also in setup.json (for pip)

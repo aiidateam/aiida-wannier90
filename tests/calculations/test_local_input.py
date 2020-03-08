@@ -8,7 +8,6 @@
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
 """Tests for the `PwCalculation` class."""
-from __future__ import absolute_import, print_function
 
 import pytest
 
@@ -338,8 +337,8 @@ def test_diffusivity( #pylint: disable=too-many-locals
     file_regression
 ):
     """Test a `Wannier90Calculation` with various advanced combinations of the projections.
-    
-    For instance, using both diffusivity and radial_nodes, or diffusivity only, 
+
+    For instance, using both diffusivity and radial_nodes, or diffusivity only,
     and in combination with/without zaxis and xaxis."""
     from aiida_wannier90.orbitals import generate_projections
 
@@ -414,8 +413,8 @@ def test_spin_projections( #pylint: disable=too-many-locals
 ):
     """Test a `Wannier90Calculation` with various advanced combinations of the projections
     when using also spin.
-    
-    For instance, using both diffusivity and radial_nodes, or diffusivity only, 
+
+    For instance, using both diffusivity and radial_nodes, or diffusivity only,
     and in combination with/without zaxis and xaxis."""
     from aiida.orm import Dict
     from aiida_wannier90.orbitals import generate_projections

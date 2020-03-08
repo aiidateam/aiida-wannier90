@@ -8,7 +8,6 @@
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
 
-from __future__ import absolute_import
 import pytest
 
 from aiida import orm

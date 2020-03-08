@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ################################################################################
 # Copyright (c), AiiDA team and individual contributors.                       #
@@ -8,9 +7,6 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
-
-from __future__ import absolute_import
-from six.moves import zip
 
 __all__ = ('group_list', 'groups_to_string', 'list_to_grouped_string')
 
