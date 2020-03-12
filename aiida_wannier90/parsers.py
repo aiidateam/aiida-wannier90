@@ -170,13 +170,28 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
         if 'Warning' in line:
             # Certain warnings get a special flag
             out['warnings'].append(line)
-        
+
         # append everything after Exiting to error_msg
         if 'Exiting......' in line:
             while i < len(wann_out_file):
                 line = wann_out_file[i].strip()
                 out['error_msg'].append(line)
                 i += 1
+
+        # Wannier90 error message:
+        #   Unable to satisfy B1 with any of the first  36 shells
+        #   Your cell might be very long, or you may have an irregular MP grid
+        #   Try increasing the parameter search_shells in the win file (default=12)
+        #
+        #   Exiting.......
+        #   kmesh_get_automatic
+        if 'Unable to satisfy B1' in line:
+            error_msg = ""
+            for j in range(3):
+                line = wann_out_file[i + j].strip()
+                error_msg += line + '\n'
+            i += 3
+            out['error_msg'].append(error_msg)
 
         # From the 'initial' part of the output, only sections which indicate
         # whether certain files have been written, e.g. 'Write r^2_nm to file'
