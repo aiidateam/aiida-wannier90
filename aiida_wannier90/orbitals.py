@@ -1,12 +1,16 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 """
 Creating OrbitalData instances
 ==============================
 """
-from __future__ import absolute_import
-import six
-from six.moves import range
 
 __all__ = ('generate_projections', )
 
@@ -26,20 +30,20 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
     spin_axis=None
 ):
     """
-    Use this method to emulate the input style of wannier90,
+    Use this method to emulate the input style of Wannier90,
     when setting the orbitals (see chapter 3 in the user_guide). Position
-    can be provided either in cartesian coordiantes using position_cart
-    or can be assigned based on an input structure and kind_name.
+    can be provided either in Cartesian coordiantes using ``position_cart``
+    or can be assigned based on an input structure and ``kind_name``.
 
-    :param position_cart: position in cartesian coordinates or list of
-                          positions in cartesian coodriantes
+    :param position_cart: position in Cartesian coordinates or list of
+                          positions in Cartesian coodriantes
     :param structure: input structure for use with kind_names
     :param kind_name: kind_name, for use with the structure
     :param radial: number of radial nodes
     :param ang_mtm_name: orbital name or list of orbital names, cannot
                          be used in conjunction with ang_mtm_l_list or
                          ang_mtm_mr_list
-    :param ang_mtm_l_list: angular momentum (either an integer or a list), if 
+    :param ang_mtm_l_list: angular momentum (either an integer or a list), if
                  ang_mtm_mr_list is not specified will return all orbitals associated with it
     :param ang_mtm_mr_list: magnetic angular momentum number must be specified
                        along with ang_mtm_l_list. Note that if this is specified,
@@ -112,7 +116,7 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
                 'Must supply a StructureData as '
                 'structure if using kind_name'
             )
-        if not isinstance(kind_name, six.string_types):
+        if not isinstance(kind_name, str):
             raise InputValidationError('kind_name must be a string')
 
     if ang_mtm_name is None and ang_mtm_l_list is None:
@@ -241,53 +245,51 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
 
 def generate_projections(list_of_projection_dicts, structure):
     """
-    Use this method to emulate the input style of wannier90,
-    when setting the orbitals (see chapter 3 in the wannier90 user guide).
-    Position can be provided either in cartesian coordiantes using
-    position_cart or can be assigned based on an input structure and
-    kind_name. Pass a **list of dictionaries**, in which the keys of each
-    dictionary correspond to those below. Also that *radial*,
-    and *ang_mtm_mr_list* both use 0 indexing as opposed to 1 indexing,
-    effectively meaning that both should be offset by 1. E.g. an orbital
-    with ang_mtm_l_list radial node would use radial=2 (wannier90 syntax), and then
-    be converted to radial_nodes=1 (AiiDa plugin syntax)
-    inside the stored orbital.
+    Use this method to emulate the input style of Wannier90,
+    when setting the orbitals (see chapter 3 in the Wannier90 user guide).
+    Position can be provided either in Cartesian coordinates using
+    ``position_cart`` or can be assigned based on an input structure and
+    ``kind_name``. Pass a list of dictionaries, in which the keys of each
+    dictionary correspond to those below. Also note that ``radial``
+    and ``ang_mtm_mr_list`` both use 0-based indexing as opposed to 1-based
+    indexing, effectively meaning that both should be offset by 1.
+    E.g., an orbital with two radial nodes would use ``radial=2``
+    (Wannier90 syntax), and then be converted to ``radial_nodes=1``
+    (AiiDA plugin syntax) inside the stored orbital.
 
-    .. note:: The key entries used here, may not correspond to the keys used
-              internally by the orbital objects, for example, ``ang_mtm_mr_list``
-              will be converted to ``magnetic_number`` in the orbital object
-              the value stored in orbital is listed in (braces).
+    .. note:: The key entries used here do not correspond to the keys used
+        internally by the orbital objects.
+        For example, ``ang_mtm_mr_list``
+        will be converted to ``magnetic_number`` in the
+        :py:class:`~aiida.orm.OrbitalData` node
+        (the internal key is mentioned in brackets).
 
-    .. note:: To keep in line with python-indexing as much as possible,
-              the values of radial, and ang_mtm_mr_list our out of sync with
-              their radial_nodes, angular_momentum counterparts.
-              Specifically, radial and ang_mtm_mr_list both start at 1 while
-              radial_nodes and angular_momentum both start at 0, thus
-              making the two off by a factor of 1.
-
-    :param position_cart: position in cartesian coordinates or list of
-                          positions in cartesian coordinates (position)
-    :param kind_name: kind_name, for use with the structure (kind_name)
-    :param radial: number of radial nodes (radial_nodes + 1)
+    :param position_cart: position in Cartesian coordinates or list of
+        positions in Cartesian coordinates (``position``)
+    :param kind_name: kind name in the input
+        :py:class:`~aiida.orm.StructureData` node (``kind_name``)
+    :param radial: number of radial nodes (``radial_nodes + 1``)
     :param ang_mtm_name: orbital name or list of orbital names, cannot
-                         be used in conjunction with ang_mtm_l_list or
-                         ang_mtm_mr_list (See ang_mtm_l_list and ang_mtm_mr_list)
-    :param ang_mtm_l_list: angular momentum (either an integer or a list), if 
-                 ang_mtm_mr_list is not specified will return all orbitals associated with it
-                 (angular_momentum)
+        be used in conjunction with ``ang_mtm_l_list`` or ``ang_mtm_mr_list``
+        (see ``ang_mtm_l_list`` and ``ang_mtm_mr_list``).
+    :param ang_mtm_l_list: angular momentum (either an integer or a list), if
+        ``ang_mtm_mr_list`` is not specified will return all orbitals
+        associated with it (``angular_momentum``).
     :param ang_mtm_mr_list: magnetic angular momentum number must be specified
-                    along with ang_mtm_l_list (magnetic_number + 1).Note that
-                    if this is specified, ang_mtm_l_list must be an integer and not a list
-    :param spin: the spin, spin up can be specified with 1, 'u' or 'U' and
-                 spin down can be specified using -1, 'd' or 'D' (spin)
+        along with ``ang_mtm_l_list`` (``magnetic_number + 1``). Note that
+        if this is specified, ``ang_mtm_l_list`` must be an
+        integer and not a list.
+    :param spin: the spin, spin up can be specified with ``1``, ``'u'`` or
+        ``'U'`` and spin down can be specified using ``-1``, ``'d'``
+        or ``'D'`` (``spin``)
     :param zona: as specified in user guide, applied to all orbitals
-                 (diffusivity)
-    :param zaxis: the zaxis, list of three floats
-                  as described in wannier user guide (z_orientation)
-    :param xaxis: the xaxis, list of three floats as described in the
-                  wannier user guide (x_orientation)
+        (``diffusivity``)
+    :param zaxis: the z-axis of the orbital, a list of three floats
+        as described in wannier user guide (``z_orientation``)
+    :param xaxis: the x-axis of the orbital, a list of three floats as
+        described in the Wannier user guide (``x_orientation``)
     :param spin_axis: the spin alignment axis, as described in the
-                      user guide (spin_orientation)
+        user guide (``spin_orientation``)
     """
     from aiida.plugins import DataFactory
 

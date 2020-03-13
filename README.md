@@ -1,10 +1,12 @@
 # aiida-wannier90
-AiiDA plugin for the Wannier90 code. This plugin was originally part of the ``aiida-quantumespresso`` package. The purpose of this separate plugin is to allow running Wannier90 independent of the DFT code being used.
-
-# Documentation
-The documentation of this package is available on [read the docs](http://aiida-wannier90.readthedocs.io/en/latest/).
+AiiDA plugin for the [Wannier90](http://www.wannier.org) code. 
+This plugin allows to run Wannier90 calculations.
+Examples are provided to show the integration with [Quantum ESPRESSO](https://www.quantum-espresso.org) via the [aiida-quantumespresso](https://github.com/aiidateam/aiida-quantumespresso) plugin.
 
 [![Build Status](https://travis-ci.org/aiidateam/aiida-wannier90.svg?branch=master)](https://travis-ci.org/aiidateam/aiida-wannier90)
+
+# Documentation
+The documentation on how to use this plugin package is available on [Read the Docs](http://aiida-wannier90.readthedocs.io/).
 
 # Acknowledgements
 

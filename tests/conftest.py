@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 # pylint: disable=redefined-outer-name
 """Initialise a text database and profile for pytest."""
-from __future__ import absolute_import
 
 import os
+import types
+import shutil
+import tempfile
 import collections
 
 import pytest
-import six
 
 pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
 
@@ -47,32 +56,22 @@ def fixture_remotedata(fixture_localhost, shared_datadir):
     Return a `RemoteData` with contents from the specified directory. Optionally a
     mapping of strings to replace in the filenames can be passed. Note that the order
     of replacement is not guaranteed.
-    
+
     The RemoteData node is yielded and points to a folder in /tmp, and is removed at the end
     """
     from aiida.orm import RemoteData
-    from aiida.common.folders import SandboxFolder
 
     replacement_mapping = {'gaas': 'aiida'}
-    dir_path = str(
-        shared_datadir / 'gaas'
-    )  # TODO: Remove cast to 'str' when Python2 support is dropped.
+    dir_path = shared_datadir / 'gaas'
 
-    # TODO: replace with tempfile.TemporaryDirectory when Python2 support is
-    # dropped. Note that some things will change, e.g. sandbox.abspath
-    # becomes tempdir.name, or similary `insert_path` needs to be changed.
-    with SandboxFolder() as sandbox:
-        remote = RemoteData(
-            remote_path=sandbox.abspath, computer=fixture_localhost
-        )
-        for file_path in os.listdir(dir_path):
-            abs_path = os.path.abspath(os.path.join(dir_path, file_path))
-            res_file_path = file_path
+    with tempfile.TemporaryDirectory() as tmpdir:
+        remote = RemoteData(remote_path=tmpdir, computer=fixture_localhost)
+        for file_path in dir_path.iterdir():
+            abs_path = str(file_path.resolve())
+            res_file_path = os.path.join(tmpdir, file_path.name)
             for old, new in replacement_mapping.items():
-                res_file_path = res_file_path.replace(
-                    old, new
-                )  # put using correct method
-            sandbox.insert_path(abs_path, res_file_path)
+                res_file_path = res_file_path.replace(old, new)
+            shutil.copyfile(src=abs_path, dst=res_file_path)
         yield remote
 
 
@@ -83,15 +82,10 @@ def fixture_folderdata():
     mapping of strings to replace in the filenames can be passed. Note that the order
     of replacement is not guaranteed.
     """
+    def _fixture_folderdata(
+        dir_path, replacement_mapping=types.MappingProxyType({})
+    ):
 
-    # TODO: wrap 'replacement_mapping in 'types.MappingProxyType' after Python2 support
-    # is dropped, for immutability.
-    def _fixture_folderdata(dir_path, replacement_mapping=None):
-        if replacement_mapping is None:
-            replacement_mapping = {}
-        dir_path = str(
-            dir_path
-        )  # TODO: Remove cast to 'str' when Python2 support is dropped.
         from aiida.orm import FolderData
         folder = FolderData()
         for file_path in os.listdir(dir_path):
@@ -137,7 +131,7 @@ def generate_calc_job_node(shared_datadir):
     def flatten_inputs(inputs, prefix=''):
         """Flatten inputs recursively like :meth:`aiida.engine.processes.process::Process._flatten_inputs`."""
         flat_inputs = []
-        for key, value in six.iteritems(inputs):
+        for key, value in inputs.items():
             if isinstance(value, collections.Mapping):
                 flat_inputs.extend(
                     flatten_inputs(value, prefix=prefix + key + '__')
@@ -207,7 +201,6 @@ def generate_calc_job_node(shared_datadir):
         node.store()
 
         if test_name is not None:
-            # TODO: remove cast to 'str' when Python2 support is dropped
             filepath = str(shared_datadir / test_name)
 
             retrieved = orm.FolderData()
@@ -269,14 +262,16 @@ def generate_structure_gaas():
 
 @pytest.fixture
 def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):
-    # TODO: when Python2 support is dropped, wrap 'projections_dict'
-    # in 'types.MappingProxyType' for immutability.
-    def _generate_win_params_gaas(projections_dict=None):
+    def _generate_win_params_gaas(
+        projections_dict=types.MappingProxyType({
+            'kind_name': 'As',
+            'ang_mtm_name': 'sp3'
+        })
+    ):
         from aiida import orm
         from aiida.tools import get_kpoints_path
         from aiida_wannier90.orbitals import generate_projections
-        if projections_dict is None:
-            projections_dict = {'kind_name': 'As', 'ang_mtm_name': 'sp3'}
+        projections_dict_mutable = {**projections_dict}
         structure = generate_structure_gaas()
         inputs = {
             'structure':
@@ -294,7 +289,9 @@ def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):
                 }
             ),
             'projections':
-            generate_projections(projections_dict, structure=structure)
+            generate_projections(
+                projections_dict_mutable, structure=structure
+            )
         }
 
         return inputs
@@ -343,8 +340,6 @@ def generate_structure_o2sr():
 
 @pytest.fixture
 def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):
-    # TODO: when Python2 support is dropped, wrap 'projections_dict'
-    # in 'types.MappingProxyType' for immutability.
     def _generate_win_params_o2sr():
         from aiida import orm
         structure = generate_structure_o2sr()

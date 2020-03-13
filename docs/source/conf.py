@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 #
 # aiida-wannier90 documentation build configuration file, created by
 # sphinx-quickstart on Fri Oct 10 02:14:52 2014.
@@ -12,61 +20,25 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import contextlib
-
 import os
-import sys
 import time
+import contextlib
 
 import aiida_wannier90
 
+# Note: this requires AiiDA v1.1+
+from aiida.manage.configuration import load_documentation_profile
+load_documentation_profile()
+
 # -- General configuration ------------------------------------------------
 
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-if not on_rtd:
+# Set the RTD theme only when _not_ on readthedocs. On readthedocs,
+# the READTHEDOCS environment variable is set to 'True'.
+if not os.environ.get('READTHEDOCS', None) == 'True':
     with contextlib.suppress(ImportError):
         import sphinx_rtd_theme  # pylint: disable=import-error
         html_theme = 'sphinx_rtd_theme'
         html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
-try:
-    # For AiiDA v1.1+
-    from aiida.manage.configuration import load_documentation_profile
-    load_documentation_profile()
-except ImportError:
-    # AiiDA versions <1.1
-    # This can be removed when python2 support is dropped, because there
-    # will be no need to build the documentation with AiiDA v1.0.
-    sys.path.append(
-        os.path.join(os.path.split(__file__)[0], os.pardir, os.pardir)
-    )
-    sys.path.append(os.path.join(os.path.split(__file__)[0], os.pardir))
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'rtd_settings'
-
-    if not on_rtd:  # only import and set the theme if we're building docs locally
-        # Load the database environment by first loading the profile and then loading the backend through the manager
-        from aiida.manage.configuration import get_config, load_profile
-        from aiida.manage.manager import get_manager
-        config = get_config()
-        load_profile(config.default_profile_name)
-        get_manager().get_backend()
-    else:
-        from aiida.manage import configuration
-        from aiida.manage.configuration import load_profile, reset_config
-        from aiida.manage.manager import get_manager
-
-        # Set the global variable to trigger shortcut behavior in `aiida.manager.configuration.load_config`
-        configuration.IN_RT_DOC_MODE = True
-
-        # First need to reset the config, because an empty one will have been loaded when `aiida` module got imported
-        reset_config()
-
-        # Load the profile: this will first load the config, which will be the dummy one for RTD purposes
-        load_profile()
-
-        # Finally load the database backend but without checking the schema because there is no actual database
-        get_manager()._load_backend(schema_check=False)  # pylint: disable=protected-access
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'

@@ -1,16 +1,19 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 import copy
 
 from aiida_wannier90.utils import conv_to_fortran_withlists
 from aiida.common import InputValidationError
 
 from ._group_list import list_to_grouped_string
-import six
 
 __all__ = ('write_win', )
 
@@ -42,11 +45,11 @@ def write_win( # pylint: disable=too-many-arguments
     :param kpoint_path: List of k-points used for band interpolation.
     :type kpoint_path: aiida.orm.nodes.data.dict.Dict
 
-    :param projections: Orbitals used for the projections. Can be specified either as AiiDA OrbitalData,
+    :param projections: Orbitals used for the projections. Can be specified either as AiiDA  class :py:class:`OrbitalData <aiida.orm.OrbitalData>`,
      or as a list of strings specifying the projections in Wannier90's format.
     :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str]
 
-    :param random_projections: If OrbitalData is used for projections, enables random projections completion
+    :param random_projections: If  class :py:class:`OrbitalData <aiida.orm.OrbitalData>` is used for projections, enables random projections completion
     :type random_projections: aiida.orm.nodes.data.bool.Bool
     """
     with open(filename, 'w') as file:  #pylint: disable= redefined-builtin
@@ -284,7 +287,7 @@ def _format_atoms_cart(structure):
         Converts an input list item into a str
         '''
         list_item = copy.deepcopy(list_item)
-        if isinstance(list_item, (str, six.text_type)):
+        if isinstance(list_item, str):
             return list_item
         return ' ' + ' '.join(["{:18.10f}".format(_) for _ in list_item]) + ' '
 

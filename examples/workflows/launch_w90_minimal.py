@@ -1,9 +1,17 @@
 #!/usr/bin/env python
-from __future__ import absolute_import
-from __future__ import print_function
+# -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
+
+import os
 
 import click
-import os
 
 from aiida.engine import run
 from aiida.orm import Str, Dict, Group
@@ -86,7 +94,7 @@ def get_static_inputs():
 
 def get_or_create_pseudo_family():
     """Check if the pseudos are already in the DB, create them otherwise.
-    
+
     Then create (if needed) also a pseudopotential family including it (or pick any already existing)
     and return the name.
     If the family does not exist, it will be created with name 'GaAs-Wannier-example' and a possible prefix.

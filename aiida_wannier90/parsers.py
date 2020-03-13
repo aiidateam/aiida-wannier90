@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-import io
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 import os
-import six
-from six.moves import range
 from aiida.parsers import Parser
 from aiida.common import exceptions as exc
 
@@ -16,9 +20,9 @@ __all__ = (
 
 class Wannier90Parser(Parser):
     """
-    Wannier90 output parser. Will parse global gauge invarient spread as well as
-    the centers, spreads and, if possible the Imaginary/Real ratio of the
-    wannier functions. Will also check to see if the output converged.
+    Wannier90 output parser. Will parse the centres, spreads and, if
+    available, the Imaginary/Real ratio of the Wannier functions.
+    Will also check if the output converged.
     """
     def __init__(self, node):
         from .calculations import Wannier90Calculation
@@ -96,7 +100,7 @@ class Wannier90Parser(Parser):
         if temporary_folder is not None:
             nnkp_temp_path = os.path.join(temporary_folder, nnkp_file_name)
             if os.path.isfile(nnkp_temp_path):
-                with io.open(nnkp_temp_path, 'rb') as handle:
+                with open(nnkp_temp_path, 'rb') as handle:
                     node = SinglefileData(file=handle)
                     self.out('nnkp_file', node)
 
@@ -222,7 +226,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
                     if out['output_verbosity'] != 1:
                         out['warnings'].append(
                             'Parsing is only supported '
-                            'directly supported if output verbosity is set to 1'
+                            'if output verbosity is set to 1'
                         )
                 if 'Post-processing' in line:
                     out.update({'preprocess_only': line.split()[-2]})
@@ -474,7 +478,7 @@ def band_parser_legacy(band_dat, band_kpt, special_points, structure):  # pylint
     appends.sort()
 
     for i, append in enumerate(appends):
-        labels.insert(append[0] + i, (append[2], six.text_type(append[1])))
+        labels.insert(append[0] + i, (append[2], str(append[1])))
     bands = BandsData()
     k = KpointsData()
     k.set_cell_from_structure(structure)
