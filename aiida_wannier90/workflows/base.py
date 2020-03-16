@@ -82,6 +82,8 @@ class Wannier90BaseWorkChain(BaseRestartWorkChain):
         error_msg = calc.outputs.output_parameters['error_msg']
         kmesh_tol_error_msg = 'kmesh_get_bvector: Not enough bvectors found'
         is_kmesh_tol = any(kmesh_tol_error_msg in line for line in error_msg)
+        too_many_bvec_msg = 'kmesh_get: something wrong, found too many nearest neighbours'
+        is_kmesh_tol |= any(too_many_bvec_msg in line for line in error_msg)
         b1_error_msg = 'Unable to satisfy B1'
         is_kmesh_tol |= any(b1_error_msg in line for line in error_msg)
         if is_kmesh_tol:
