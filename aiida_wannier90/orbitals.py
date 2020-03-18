@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ################################################################################
 # Copyright (c), AiiDA team and individual contributors.                       #
@@ -12,9 +11,6 @@
 Creating OrbitalData instances
 ==============================
 """
-from __future__ import absolute_import
-import six
-from six.moves import range
 
 __all__ = ('generate_projections', )
 
@@ -47,7 +43,7 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
     :param ang_mtm_name: orbital name or list of orbital names, cannot
                          be used in conjunction with ang_mtm_l_list or
                          ang_mtm_mr_list
-    :param ang_mtm_l_list: angular momentum (either an integer or a list), if 
+    :param ang_mtm_l_list: angular momentum (either an integer or a list), if
                  ang_mtm_mr_list is not specified will return all orbitals associated with it
     :param ang_mtm_mr_list: magnetic angular momentum number must be specified
                        along with ang_mtm_l_list. Note that if this is specified,
@@ -120,7 +116,7 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
                 'Must supply a StructureData as '
                 'structure if using kind_name'
             )
-        if not isinstance(kind_name, six.string_types):
+        if not isinstance(kind_name, str):
             raise InputValidationError('kind_name must be a string')
 
     if ang_mtm_name is None and ang_mtm_l_list is None:
@@ -276,14 +272,14 @@ def generate_projections(list_of_projection_dicts, structure):
     :param ang_mtm_name: orbital name or list of orbital names, cannot
         be used in conjunction with ``ang_mtm_l_list`` or ``ang_mtm_mr_list``
         (see ``ang_mtm_l_list`` and ``ang_mtm_mr_list``).
-    :param ang_mtm_l_list: angular momentum (either an integer or a list), if 
+    :param ang_mtm_l_list: angular momentum (either an integer or a list), if
         ``ang_mtm_mr_list`` is not specified will return all orbitals
         associated with it (``angular_momentum``).
     :param ang_mtm_mr_list: magnetic angular momentum number must be specified
         along with ``ang_mtm_l_list`` (``magnetic_number + 1``). Note that
         if this is specified, ``ang_mtm_l_list`` must be an
         integer and not a list.
-    :param spin: the spin, spin up can be specified with ``1``, ``'u'`` or 
+    :param spin: the spin, spin up can be specified with ``1``, ``'u'`` or
         ``'U'`` and spin down can be specified using ``-1``, ``'d'``
         or ``'D'`` (``spin``)
     :param zona: as specified in user guide, applied to all orbitals

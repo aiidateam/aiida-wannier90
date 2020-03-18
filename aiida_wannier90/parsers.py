@@ -7,11 +7,7 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
-from __future__ import absolute_import
-import io
 import os
-import six
-from six.moves import range
 from aiida.parsers import Parser
 from aiida.common import exceptions as exc
 
@@ -104,7 +100,7 @@ class Wannier90Parser(Parser):
         if temporary_folder is not None:
             nnkp_temp_path = os.path.join(temporary_folder, nnkp_file_name)
             if os.path.isfile(nnkp_temp_path):
-                with io.open(nnkp_temp_path, 'rb') as handle:
+                with open(nnkp_temp_path, 'rb') as handle:
                     node = SinglefileData(file=handle)
                     self.out('nnkp_file', node)
 
@@ -459,7 +455,7 @@ def band_parser_legacy(band_dat, band_kpt, special_points, structure):  # pylint
     appends.sort()
 
     for i, append in enumerate(appends):
-        labels.insert(append[0] + i, (append[2], six.text_type(append[1])))
+        labels.insert(append[0] + i, (append[2], str(append[1])))
     bands = BandsData()
     k = KpointsData()
     k.set_cell_from_structure(structure)

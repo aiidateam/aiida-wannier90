@@ -8,8 +8,6 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
-from __future__ import absolute_import
-from __future__ import print_function
 import sys
 
 from aiida.plugins import DataFactory

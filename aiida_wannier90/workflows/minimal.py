@@ -7,7 +7,6 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
-from __future__ import absolute_import, print_function, division
 from aiida import orm
 from aiida.plugins import CalculationFactory
 from aiida.engine import WorkChain, ToContext, calcfunction
