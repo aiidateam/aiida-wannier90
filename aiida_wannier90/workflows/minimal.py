@@ -263,7 +263,6 @@ class MinimalW90WorkChain(WorkChain):
 
     def run_pw2wan(self):
         """Run pw2wannier90.x."""
-        self.out('nscf_output', self.ctx.pw_nscf.outputs.output_parameters)
         self.out('nnkp_file', self.ctx.w90_pp.outputs.nnkp_file)
 
         self.ctx.pw2wannier_parameters = {
@@ -305,6 +304,7 @@ class MinimalW90WorkChain(WorkChain):
         self.out(
             'pw2wan_remote_folder', self.ctx.pw2wannier.outputs.remote_folder
         )
+        self.out('p2wannier_output', self.ctx.pw2wannier.outputs.output_parameters)
 
         inputs = {
             'code': self.inputs.wannier_code,
