@@ -304,7 +304,9 @@ class MinimalW90WorkChain(WorkChain):
         self.out(
             'pw2wan_remote_folder', self.ctx.pw2wannier.outputs.remote_folder
         )
-        self.out('p2wannier_output', self.ctx.pw2wannier.outputs.output_parameters)
+        self.out(
+            'p2wannier_output', self.ctx.pw2wannier.outputs.output_parameters
+        )
 
         inputs = {
             'code': self.inputs.wannier_code,
