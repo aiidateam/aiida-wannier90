@@ -41,7 +41,7 @@
   ],
   "url": "https://github.com/aiidateam/aiida-wannier90",
   "python_requires": ">=3.6",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "classifiers": [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Plugins",
