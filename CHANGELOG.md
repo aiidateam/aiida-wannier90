@@ -1,3 +1,9 @@
+# v2.0.1
+
+## Fixes and general improvements
+
+* Register pw2wannier90 `output_parameters` to the outputs of `MinimalW90WorkChain` [[#96]](https://github.com/aiidateam/aiida-wannier90/pull/96)
+
 # v2.0.0
 
 ## New features

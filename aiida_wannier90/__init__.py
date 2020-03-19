@@ -34,7 +34,7 @@ This is a plugin for running `Wannier90 <http://wannier.org>`_ calculations on t
 __authors__ = "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi, Junfeng Qiao, Norma Rivano, and the AiiDA team."
 __license__ = "MIT License, see LICENSE.txt file."
 ## If upgraded, remember to change it also in setup.json (for pip)
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 from . import io
 from . import parsers
