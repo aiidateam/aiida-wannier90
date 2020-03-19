@@ -7,6 +7,3 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
-from .base import Wannier90BaseWorkChain
-
-__all__ = (Wannier90BaseWorkChain, )
