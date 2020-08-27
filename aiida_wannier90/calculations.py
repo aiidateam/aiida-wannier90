@@ -161,13 +161,15 @@ class Wannier90Calculation(CalcJob):
         spec.exit_code(
             200,
             'ERROR_NO_RETRIEVED_FOLDER',
-            message='The retrieved folder data node could not be accessed.'
+            message='The retrieved folder data node could not be accessed.',
+            invalidates_cache=True
         )
         spec.exit_code(
             210,
             'ERROR_OUTPUT_STDOUT_MISSING',
             message=
-            'The retrieved folder did not contain the required stdout output file.'
+            'The retrieved folder did not contain the required stdout output file.',
+            invalidates_cache=True
         )
         spec.exit_code(
             300,
