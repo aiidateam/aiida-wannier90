@@ -229,7 +229,7 @@ class Wannier90Calculation(CalcJob):
         has_local_input = 'local_input_folder' in self.inputs
         has_remote_input = 'remote_input_folder' in self.inputs
         if pp_setup:
-            if has_local_input or has_local_input:
+            if has_local_input or has_remote_input:
                 raise exc.InputValidationError(
                     "Can not set 'local_input_folder' or 'remote_input_folder' "
                     "with the 'postproc_setup' option."
