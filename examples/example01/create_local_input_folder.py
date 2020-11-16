@@ -28,7 +28,7 @@ def get_unstored_folder_data(seedname='aiida'):
         ('gaas.mmn', '{}.mmn'.format(seedname))
     ]:
         folder_node.put_object_from_file(
-            path=os.path.join(files_folder, local_file_name),
+            os.path.join(files_folder, local_file_name),
             key=file_name_in_aiida,
             encoding=None
         )
