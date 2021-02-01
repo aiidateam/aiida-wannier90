@@ -22,7 +22,7 @@ files_folder = os.path.join(
 def get_unstored_folder_data(seedname='aiida'):
     """Return a folder data (unstored) containing the .amn and .mmn files for GaAs."""
     # Create empty FolderData node
-    folder_node = DataFactory('folder')()
+    folder_node = DataFactory('folder')()  # pylint: disable=redefined-outer-name
     for local_file_name, file_name_in_aiida in [
         ('gaas.amn', '{}.amn'.format(seedname)),
         ('gaas.mmn', '{}.mmn'.format(seedname))

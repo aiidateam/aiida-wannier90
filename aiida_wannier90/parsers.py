@@ -192,7 +192,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
                     out.update({'number_wfs': int(line.split()[-2])})
                 if 'Length Unit' in line:
                     out.update({'length_units': line.split()[-2]})
-                    if (out['length_units'] != 'Ang'):
+                    if out['length_units'] != 'Ang':
                         out['warnings'].append(
                             'Units not Ang, '
                             'be sure this is OK!'
@@ -255,7 +255,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
             num_wf = out['number_wfs']
             wf_out = []
             end_wf_loop = i + num_wf + 1
-            for i in range(i + 1, end_wf_loop):
+            for i in range(i + 1, end_wf_loop):  # pylint: disable=redefined-outer-name
                 line = wann_out_file[i]
                 wf_out_i = {'wf_ids': '', 'wf_centres': '', 'wf_spreads': ''}
                 #wf_out_i['wf_ids'] = int(line.split()[-7])
@@ -285,7 +285,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
                 wf_out_i['wf_centres'] = coord
                 wf_out.append(wf_out_i)
             out.update({'wannier_functions_output': wf_out})
-            for i in range(i + 2, i + 6):
+            for i in range(i + 2, i + 6):  # pylint: disable=redefined-outer-name
                 line = wann_out_file[i]
                 if 'Omega I' in line:
                     out.update({'Omega_I': float(line.split()[-1])})
@@ -308,7 +308,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
     return out
 
 
-def band_parser(band_dat, band_kpt, band_labelinfo, structure):  # pylint: disable=too-many-locals
+def band_parser(band_dat, band_kpt, band_labelinfo, structure):
     """
     Parsers the bands output data to construct a BandsData object which is then
     returned. Used for wannier90 >= 3.0

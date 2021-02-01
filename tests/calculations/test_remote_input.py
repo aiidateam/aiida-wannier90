@@ -8,6 +8,8 @@
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
 
+# pylint: disable=redefined-outer-name
+
 import os
 
 import pytest
@@ -17,7 +19,7 @@ ENTRY_POINT_NAME = 'wannier90.wannier90'
 
 
 @pytest.fixture()
-def generate_common_inputs_gaas_remotedata(
+def generate_common_inputs_gaas_remotedata(  # pylint: disable=missing-function-docstring
     fixture_code, generate_win_params_gaas, fixture_remotedata
 ):
     def _generate_common_inputs_gaas():
@@ -40,7 +42,8 @@ def generate_common_inputs_gaas_remotedata(
 
     return _generate_common_inputs_gaas
 
-def test_default_remote(#pylint: disable=too-many-locals
+
+def test_default_remote(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas_remotedata,
     file_regression
 ):

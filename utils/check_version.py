@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 ################################################################################
 # Copyright (c), AiiDA team and individual contributors.                       #
 #  All rights reserved.                                                        #
@@ -12,6 +13,9 @@
 Check version number in setup.json and aiida_wannier90/__init__.py and make sure
 they match.
 """
+
+# pylint: skip-file
+
 import os
 import json
 import sys
@@ -37,7 +41,9 @@ if version != setup_content['version']:
         )
     )
     print(
-        "Version number in '{}/__init__.py': {}".format('aiida_diff', version)
+        "Version number in '{}/__init__.py': {}".format(
+            'aiida_wannier90', version
+        )
     )
     sys.exit(1)
 

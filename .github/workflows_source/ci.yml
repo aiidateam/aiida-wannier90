@@ -1,0 +1,90 @@
+name: Continuous Integration
+
+on: [push, pull_request]
+
+_anchors:
+  checkout: &CHECKOUT
+    name: Checkout code
+    uses: actions/checkout@v2
+
+  pip-cache: &PIP_CACHE
+    uses: actions/cache@v2
+    with:
+      path: ~/.cache/pip
+      key: pip-${{ matrix.python-version }}-${{ matrix.install-type }}-${{ hashFiles('**/setup.json') }}
+      restore-keys: pip-${{ matrix.python-version }}-${{ matrix.install-type }}
+
+  python-setup: &PYTHON_SETUP
+    name: Set up Python
+    uses: actions/setup-python@v2
+    with:
+      python-version: ${{ matrix.python-version }}
+
+  install-project: &INSTALL_PROJECT
+    name: Install the python project
+    env:
+      INSTALL_TYPE: ${{ matrix.install-type }}
+    run: .ci/install_script.sh
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+        install-type: [docs]
+    steps:
+      - *CHECKOUT
+      - *PIP_CACHE
+      - *PYTHON_SETUP
+      - *INSTALL_PROJECT
+      - name: Build documentation
+        env:
+          READTHEDOCS: "True"
+        run: SPHINXOPTS='-nW' make -C docs html
+      - uses: actions/upload-artifact@v2
+        with:
+          name: doc-build
+          path: docs/build/html
+  pre-commit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+        install-type: [dev_precommit]
+    steps:
+      - *CHECKOUT
+      - *PIP_CACHE
+      - *PYTHON_SETUP
+      - *INSTALL_PROJECT
+      - name: Run pre-commit
+        run: pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+        install-type: [testing]
+        include:
+          - python-version: 3.8
+            install-type: testing_sdist
+    services:
+      postgres:
+        image: postgres:10
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+    steps:
+      - *CHECKOUT
+      - *PIP_CACHE
+      - *PYTHON_SETUP
+      - *INSTALL_PROJECT
+      - name: Run pytest
+        run: pytest --cov=aiida_wannier90 --cov-report=xml --cov-config=.coveragerc
+        working-directory: tests
+      - name: Upload coverage data
+        if: ${{ matrix.install-type == 'testing' }} # Coverage data is present only when installed with -e
+        run: codecov --file tests/coverage.xml

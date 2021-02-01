@@ -10,9 +10,9 @@
 
 import copy
 
-from aiida_wannier90.utils import conv_to_fortran_withlists
 from aiida.common import InputValidationError
 
+from ..utils import conv_to_fortran_withlists
 from ._group_list import list_to_grouped_string
 
 __all__ = ('write_win', )
@@ -52,7 +52,7 @@ def write_win( # pylint: disable=too-many-arguments
     :param random_projections: If  class :py:class:`OrbitalData <aiida.orm.OrbitalData>` is used for projections, enables random projections completion
     :type random_projections: aiida.orm.nodes.data.bool.Bool
     """
-    with open(filename, 'w') as file:  #pylint: disable= redefined-builtin
+    with open(filename, 'w') as file:
         file.write(
             _create_win_string(
                 parameters=parameters,
@@ -65,7 +65,7 @@ def write_win( # pylint: disable=too-many-arguments
         )
 
 
-def _create_win_string( # pylint: disable=too-many-arguments
+def _create_win_string( # pylint: disable=too-many-branches,missing-function-docstring
     parameters,
     kpoints,
     structure=None,
