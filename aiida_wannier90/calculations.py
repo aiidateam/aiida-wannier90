@@ -67,7 +67,7 @@ class Wannier90Calculation(CalcJob):
     )
 
     @classmethod
-    def define(cls, spec):  # pylint: disable=no-self-argument
+    def define(cls, spec):
         super(Wannier90Calculation, cls).define(spec)
         spec.input(
             "structure",

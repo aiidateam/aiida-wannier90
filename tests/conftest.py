@@ -18,7 +18,7 @@ import collections
 
 import pytest
 
-pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
+pytest_plugins = ['aiida.manage.tests.pytest_fixtures']
 
 
 @pytest.fixture(scope='function')
@@ -140,7 +140,7 @@ def generate_calc_job_node(shared_datadir):
                 flat_inputs.append((prefix + key, value))
         return flat_inputs
 
-    def _generate_calc_job_node(  # pylint: disable=too-many-arguments,too-many-locals
+    def _generate_calc_job_node(
         entry_point_name,
         computer,
         seedname=None,
@@ -261,7 +261,7 @@ def generate_structure_gaas():
 
 
 @pytest.fixture
-def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):
+def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):  # pylint: disable=missing-function-docstring
     def _generate_win_params_gaas(
         projections_dict=types.MappingProxyType({
             'kind_name': 'As',
@@ -339,7 +339,7 @@ def generate_structure_o2sr():
 
 
 @pytest.fixture
-def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):
+def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):  # pylint: disable=missing-function-docstring
     def _generate_win_params_o2sr():
         from aiida import orm
         structure = generate_structure_o2sr()
