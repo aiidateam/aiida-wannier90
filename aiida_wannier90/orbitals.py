@@ -1,23 +1,28 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 """
 Creating OrbitalData instances
 ==============================
 """
-from __future__ import absolute_import
-import six
-from six.moves import range
-__all__ = ['generate_projections']
+
+__all__ = ('generate_projections', )
 
 
-def _generate_wannier_orbitals(
+def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-locals,too-many-statements # noqa:  disable=MC0001
     position_cart=None,
     structure=None,
     kind_name=None,
     radial=1,
     ang_mtm_name=None,
-    ang_mtm_l=None,
-    ang_mtm_mr=None,
+    ang_mtm_l_list=None,
+    ang_mtm_mr_list=None,
     spin=None,
     zona=None,
     zaxis=None,
@@ -25,23 +30,24 @@ def _generate_wannier_orbitals(
     spin_axis=None
 ):
     """
-    Use this method to emulate the input style of wannier90,
+    Use this method to emulate the input style of Wannier90,
     when setting the orbitals (see chapter 3 in the user_guide). Position
-    can be provided either in cartesian coordiantes using position_cart
-    or can be assigned based on an input structure and kind_name.
+    can be provided either in Cartesian coordiantes using ``position_cart``
+    or can be assigned based on an input structure and ``kind_name``.
 
-    :param position_cart: position in cartesian coordinates or list of
-                          positions in cartesian coodriantes
+    :param position_cart: position in Cartesian coordinates or list of
+                          positions in Cartesian coodriantes
     :param structure: input structure for use with kind_names
     :param kind_name: kind_name, for use with the structure
     :param radial: number of radial nodes
     :param ang_mtm_name: orbital name or list of orbital names, cannot
-                         be used in conjunction with ang_mtm_l or
-                         ang_mtm_mr
-    :param ang_mtm_l: angular momentum, if ang_mtm_mr is not specified
-                      will return all orbitals associated with it
-    :param ang_mtm_mr: magnetic angular momentum number must be specified
-                       along with ang_mtm_l
+                         be used in conjunction with ang_mtm_l_list or
+                         ang_mtm_mr_list
+    :param ang_mtm_l_list: angular momentum (either an integer or a list), if
+                 ang_mtm_mr_list is not specified will return all orbitals associated with it
+    :param ang_mtm_mr_list: magnetic angular momentum number must be specified
+                       along with ang_mtm_l_list. Note that if this is specified,
+                       ang_mtm_l_list must be an integer and not a list
     :param spin: the spin, spin up can be specified with 1,u or U and
                  spin down can be specified using -1,d,D
     :param zona: as specified in user guide, applied to all orbitals
@@ -54,6 +60,7 @@ def _generate_wannier_orbitals(
     """
     from aiida.plugins import DataFactory
     from aiida.plugins import OrbitalFactory
+    from aiida.common import InputValidationError
 
     def convert_to_list(item):
         """
@@ -63,8 +70,7 @@ def _generate_wannier_orbitals(
         """
         if isinstance(item, (list, tuple)):
             return tuple(item)
-        else:
-            return tuple([item])
+        return tuple([item])
 
     def combine_dictlists(dict_list1, dict_list2):
         """
@@ -95,35 +101,39 @@ def _generate_wannier_orbitals(
     #########################################################################
     # Validation of inputs                                                  #
     #########################################################################
-    if position_cart == None and kind_name == None:
+    if position_cart is None and kind_name is None:
         raise InputValidationError('Must supply a kind_name or position')
-    if position_cart != None and kind_name != None:
+    if position_cart is not None and kind_name is not None:
         raise InputValidationError(
             'Must supply position or kind_name'
             ' not both'
         )
 
     structure_class = DataFactory('structure')
-    if kind_name != None:
+    if kind_name is not None:
         if not isinstance(structure, structure_class):
             raise InputValidationError(
                 'Must supply a StructureData as '
                 'structure if using kind_name'
             )
-        if not isinstance(kind_name, six.string_types):
+        if not isinstance(kind_name, str):
             raise InputValidationError('kind_name must be a string')
 
-    if ang_mtm_name == None and ang_mtm_l == None:
-        raise InputValidationError("Must supply ang_mtm_name or ang_mtm_l")
-    if ang_mtm_name != None and (ang_mtm_l != None or ang_mtm_mr != None):
+    if ang_mtm_name is None and ang_mtm_l_list is None:
         raise InputValidationError(
-            "Cannot supply ang_mtm_l or ang_mtm_mr"
+            "Must supply ang_mtm_name or ang_mtm_l_list"
+        )
+    if ang_mtm_name is not None and (
+        ang_mtm_l_list is not None or ang_mtm_mr_list is not None
+    ):
+        raise InputValidationError(
+            "Cannot supply ang_mtm_l_list or ang_mtm_mr_list"
             " but not both"
         )
-    if ang_mtm_l == None and ang_mtm_mr != None:
+    if ang_mtm_l_list is None and ang_mtm_mr_list is not None:
         raise InputValidationError(
-            "Cannot supply ang_mtm_mr without "
-            "ang_mtm_l"
+            "Cannot supply ang_mtm_mr_list without "
+            "ang_mtm_l_list"
         )
 
     ####################################################################
@@ -154,7 +164,7 @@ def _generate_wannier_orbitals(
         for site in structure.sites:
             if site.kind_name == kind_name:
                 position_list.append(site.position)
-        if len(position_list) == 0:
+        if not position_list:
             raise InputValidationError(
                 "No valid positions found in structure "
                 "using {}".format(kind_name)
@@ -168,35 +178,35 @@ def _generate_wannier_orbitals(
     #######################################################################
     # Setting up angular momentum                                         #
     #######################################################################
-    # if ang_mtm_l, ang_mtm_mr provided, setup dicts
-    if ang_mtm_l is not None:
-        ang_mtm_l = convert_to_list(ang_mtm_l)
+    # if ang_mtm_l_list, ang_mtm_mr_list provided, setup dicts
+    if ang_mtm_l_list is not None:
+        ang_mtm_l_list = convert_to_list(ang_mtm_l_list)
         ang_mtm_dicts = []
-        for l in ang_mtm_l:
-            if l >= 0:
+        for ang_mtm_l in ang_mtm_l_list:
+            if ang_mtm_l >= 0:
                 ang_mtm_dicts += [{
-                    'angular_momentum': l,
+                    'angular_momentum': ang_mtm_l,
                     'magnetic_number': i
-                } for i in range(2 * l + 1)]
+                } for i in range(2 * ang_mtm_l + 1)]
             else:
                 ang_mtm_dicts += [{
-                    'angular_momentum': l,
+                    'angular_momentum': ang_mtm_l,
                     'magnetic_number': i
-                } for i in range(-l + 1)]
-        if ang_mtm_mr is not None:
-            if len(ang_mtm_l) > 1:
+                } for i in range(-ang_mtm_l + 1)]
+        if ang_mtm_mr_list is not None:
+            if len(ang_mtm_l_list) > 1:
                 raise InputValidationError(
                     "If you are giving specific"
                     " magnetic numbers please do"
                     " not supply more than one"
                     " angular number."
                 )
-            ang_mtm_mr = convert_to_list(ang_mtm_mr)
-            ang_mtm_l_num = ang_mtm_l[0]
+            ang_mtm_mr_list = convert_to_list(ang_mtm_mr_list)
+            ang_mtm_l_num = ang_mtm_l_list[0]
             ang_mtm_dicts = [{
                 'angular_momentum': ang_mtm_l_num,
                 'magnetic_number': j - 1
-            } for j in ang_mtm_mr]
+            } for j in ang_mtm_mr_list]
     if ang_mtm_name is not None:
         ang_mtm_names = convert_to_list(ang_mtm_name)
         ang_mtm_dicts = []
@@ -235,52 +245,51 @@ def _generate_wannier_orbitals(
 
 def generate_projections(list_of_projection_dicts, structure):
     """
-    Use this method to emulate the input style of wannier90,
-    when setting the orbitals (see chapter 3 in the wannier90 user guide).
-    Position can be provided either in cartesian coordiantes using
-    position_cart or can be assigned based on an input structure and
-    kind_name. Pass a **list of dictionaries**, in which the keys of each
-    dictionary correspond to those below. Also that *radial*,
-    and *ang_mtm_mr* both use 0 indexing as opposed to 1 indexing,
-    effectively meaning that both should be offset by 1. E.g. an orbital
-    with 1 radial node would use radial=2 (wannier90 syntax), and then
-    be converted to radial_nodes=1 (AiiDa plugin syntax)
-    inside the stored orbital.
+    Use this method to emulate the input style of Wannier90,
+    when setting the orbitals (see chapter 3 in the Wannier90 user guide).
+    Position can be provided either in Cartesian coordinates using
+    ``position_cart`` or can be assigned based on an input structure and
+    ``kind_name``. Pass a list of dictionaries, in which the keys of each
+    dictionary correspond to those below. Also note that ``radial``
+    and ``ang_mtm_mr_list`` both use 0-based indexing as opposed to 1-based
+    indexing, effectively meaning that both should be offset by 1.
+    E.g., an orbital with two radial nodes would use ``radial=2``
+    (Wannier90 syntax), and then be converted to ``radial_nodes=1``
+    (AiiDA plugin syntax) inside the stored orbital.
 
-    .. note:: The key entries used here, may not correspond to the keys used
-              internally by the orbital objects, for example, ``ang_mtm_mr``
-              will be converted to ``magnetic_number`` in the orbital object
-              the value stored in orbital is listed in (braces).
+    .. note:: The key entries used here do not correspond to the keys used
+        internally by the orbital objects.
+        For example, ``ang_mtm_mr_list``
+        will be converted to ``magnetic_number`` in the
+        :py:class:`~aiida.orm.OrbitalData` node
+        (the internal key is mentioned in brackets).
 
-    .. note:: To keep in line with python-indexing as much as possible,
-              the values of radial, and ang_mtm_mr our out of sync with
-              their radial_nodes, angular_momentum counterparts.
-              Specifically, radial and ang_mtm_mr both start at 1 while
-              radial_nodes and angular_momentum both start at 0, thus
-              making the two off by a factor of 1.
-
-    :param position_cart: position in cartesian coordinates or list of
-                          positions in cartesian coordinates (position)
-    :param kind_name: kind_name, for use with the structure (kind_name)
-    :param radial: number of radial nodes (radial_nodes + 1)
+    :param position_cart: position in Cartesian coordinates or list of
+        positions in Cartesian coordinates (``position``)
+    :param kind_name: kind name in the input
+        :py:class:`~aiida.orm.StructureData` node (``kind_name``)
+    :param radial: number of radial nodes (``radial_nodes + 1``)
     :param ang_mtm_name: orbital name or list of orbital names, cannot
-                         be used in conjunction with ang_mtm_l or
-                         ang_mtm_mr (See ang_mtm_l and ang_mtm_mr)
-    :param ang_mtm_l: angular momentum, if ang_mtm_mr is not specified
-                      will return all orbitals associated with it
-                      (angular_momentum)
-    :param ang_mtm_mr: magnetic angular momentum number must be specified
-                       along with ang_mtm_l (magnetic_number + 1)
-    :param spin: the spin, spin up can be specified with 1,u or U and
-                 spin down can be specified using -1,d,D (spin)
+        be used in conjunction with ``ang_mtm_l_list`` or ``ang_mtm_mr_list``
+        (see ``ang_mtm_l_list`` and ``ang_mtm_mr_list``).
+    :param ang_mtm_l_list: angular momentum (either an integer or a list), if
+        ``ang_mtm_mr_list`` is not specified will return all orbitals
+        associated with it (``angular_momentum``).
+    :param ang_mtm_mr_list: magnetic angular momentum number must be specified
+        along with ``ang_mtm_l_list`` (``magnetic_number + 1``). Note that
+        if this is specified, ``ang_mtm_l_list`` must be an
+        integer and not a list.
+    :param spin: the spin, spin up can be specified with ``1``, ``'u'`` or
+        ``'U'`` and spin down can be specified using ``-1``, ``'d'``
+        or ``'D'`` (``spin``)
     :param zona: as specified in user guide, applied to all orbitals
-                 (diffusivity)
-    :param zaxis: the zaxis, list of three floats
-                  as described in wannier user guide (z_orientation)
-    :param xaxis: the xaxis, list of three floats as described in the
-                  wannier user guide (x_orientation)
+        (``diffusivity``)
+    :param zaxis: the z-axis of the orbital, a list of three floats
+        as described in wannier user guide (``z_orientation``)
+    :param xaxis: the x-axis of the orbital, a list of three floats as
+        described in the Wannier user guide (``x_orientation``)
     :param spin_axis: the spin alignment axis, as described in the
-                      user guide (spin_orientation)
+        user guide (``spin_orientation``)
     """
     from aiida.plugins import DataFactory
 

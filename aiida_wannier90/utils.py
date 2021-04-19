@@ -1,18 +1,28 @@
-from __future__ import absolute_import
+# -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 import numbers
-import six
+
+__all__ = ('plot_centres_xsf', 'conv_to_fortran', 'conv_to_fortran_withlists')
 
 
 def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     """
     Plots Wannier function centres in .xsf format
     """
-    import sys
-    import ase
+    # Disabling the import-error since this is an optional requirement
+    import ase  # pylint: disable=import-error,useless-suppression
+
     a = structure.get_ase()
     new_a = a.copy()
     out = w90_calc.out.output_parameters.get_dict()['wannier_functions_output']
-    coords = [i['coordinates'] for i in out]
+    coords = [i['wf_centres'] for i in out]
     for c in coords:
         new_a.append(ase.Atom('X', c))
     new_a.write(filename)
@@ -35,7 +45,7 @@ def conv_to_fortran(val, quote_strings=True):
         val_str = "{:d}".format(val)
     elif isinstance(val, numbers.Real):
         val_str = ("{:18.10e}".format(val)).replace('e', 'd')
-    elif isinstance(val, six.string_types):
+    elif isinstance(val, str):
         if quote_strings:
             val_str = "'{!s}'".format(val)
         else:
@@ -71,13 +81,13 @@ def conv_to_fortran_withlists(val, quote_strings=True):
 
         return '.false.'
 
-    if isinstance(val, six.integer_types):
+    if isinstance(val, int):
         return "{:d}".format(val)
 
     if isinstance(val, float):
         return "{:18.10e}".format(val).replace('e', 'd')
 
-    if isinstance(val, six.string_types):
+    if isinstance(val, str):
         if quote_strings:
             return "'{!s}'".format(val)
 

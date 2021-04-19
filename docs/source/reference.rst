@@ -9,7 +9,8 @@ Reference
 Calculation and Parser classes
 ------------------------------
 
-.. autoclass:: aiida_wannier90.calculations.Wannier90Calculation
+.. aiida-calcjob:: Wannier90Calculation
+    :module: aiida_wannier90.calculations
 
 .. autoclass:: aiida_wannier90.parsers.Wannier90Parser
 

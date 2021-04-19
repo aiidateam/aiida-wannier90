@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
+################################################################################
+# Copyright (c), AiiDA team and individual contributors.                       #
+#  All rights reserved.                                                        #
+# This file is part of the AiiDA-wannier90 code.                               #
+#                                                                              #
+# The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
+# For further information on the license, see the LICENSE.txt file             #
+################################################################################
 # pylint: disable=redefined-outer-name
 """Initialise a text database and profile for pytest."""
-from __future__ import absolute_import
 
-import io
 import os
+import types
+import shutil
+import tempfile
 import collections
 
 import pytest
-import six
 
-pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
+pytest_plugins = ['aiida.manage.tests.pytest_fixtures']
 
 
 @pytest.fixture(scope='function')
@@ -42,6 +50,31 @@ def fixture_code(fixture_localhost):
     return _fixture_code
 
 
+@pytest.yield_fixture
+def fixture_remotedata(fixture_localhost, shared_datadir):
+    """
+    Return a `RemoteData` with contents from the specified directory. Optionally a
+    mapping of strings to replace in the filenames can be passed. Note that the order
+    of replacement is not guaranteed.
+
+    The RemoteData node is yielded and points to a folder in /tmp, and is removed at the end
+    """
+    from aiida.orm import RemoteData
+
+    replacement_mapping = {'gaas': 'aiida'}
+    dir_path = shared_datadir / 'gaas'
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        remote = RemoteData(remote_path=tmpdir, computer=fixture_localhost)
+        for file_path in dir_path.iterdir():
+            abs_path = str(file_path.resolve())
+            res_file_path = os.path.join(tmpdir, file_path.name)
+            for old, new in replacement_mapping.items():
+                res_file_path = res_file_path.replace(old, new)
+            shutil.copyfile(src=abs_path, dst=res_file_path)
+        yield remote
+
+
 @pytest.fixture
 def fixture_folderdata():
     """
@@ -49,12 +82,10 @@ def fixture_folderdata():
     mapping of strings to replace in the filenames can be passed. Note that the order
     of replacement is not guaranteed.
     """
+    def _fixture_folderdata(
+        dir_path, replacement_mapping=types.MappingProxyType({})
+    ):
 
-    # TODO: wrap 'replacement_mapping in 'types.MappingProxyType' after Python2 support
-    # is dropped, for immutability.
-    def _fixture_folderdata(dir_path, replacement_mapping={}):
-        # TODO: Remove cast to 'str' when Python2 support is dropped.
-        dir_path = str(dir_path)
         from aiida.orm import FolderData
         folder = FolderData()
         for file_path in os.listdir(dir_path):
@@ -100,7 +131,7 @@ def generate_calc_job_node(shared_datadir):
     def flatten_inputs(inputs, prefix=''):
         """Flatten inputs recursively like :meth:`aiida.engine.processes.process::Process._flatten_inputs`."""
         flat_inputs = []
-        for key, value in six.iteritems(inputs):
+        for key, value in inputs.items():
             if isinstance(value, collections.Mapping):
                 flat_inputs.extend(
                     flatten_inputs(value, prefix=prefix + key + '__')
@@ -170,7 +201,6 @@ def generate_calc_job_node(shared_datadir):
         node.store()
 
         if test_name is not None:
-            # TODO: remove cast to 'str' when Python2 support is dropped
             filepath = str(shared_datadir / test_name)
 
             retrieved = orm.FolderData()
@@ -231,19 +261,17 @@ def generate_structure_gaas():
 
 
 @pytest.fixture
-def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):
-    # TODO: when Python2 support is dropped, wrap 'projections_dict'
-    # in 'types.MappingProxyType' for immutability.
+def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):  # pylint: disable=missing-function-docstring
     def _generate_win_params_gaas(
-        projections_dict={
+        projections_dict=types.MappingProxyType({
             'kind_name': 'As',
             'ang_mtm_name': 'sp3'
-        }
+        })
     ):
         from aiida import orm
         from aiida.tools import get_kpoints_path
         from aiida_wannier90.orbitals import generate_projections
-
+        projections_dict_mutable = {**projections_dict}
         structure = generate_structure_gaas()
         inputs = {
             'structure':
@@ -261,7 +289,9 @@ def generate_win_params_gaas(generate_structure_gaas, generate_kpoints_mesh):
                 }
             ),
             'projections':
-            generate_projections(projections_dict, structure=structure)
+            generate_projections(
+                projections_dict_mutable, structure=structure
+            )
         }
 
         return inputs
@@ -282,3 +312,84 @@ def generate_kpoints_mesh():
         return kpoints
 
     return _generate_kpoints_mesh
+
+
+@pytest.fixture(scope='session')
+def generate_structure_o2sr():
+    """Return a `StructureData` representing bulk O2Sr."""
+    def _generate_structure():
+        """Return a `StructureData` representing bulk O2Sr."""
+
+        from aiida import orm
+
+        structure = orm.StructureData(
+            cell=[[-1.7828864010, 1.7828864010, 3.3905324933],
+                  [1.7828864010, -1.7828864010, 3.3905324933],
+                  [1.7828864010, 1.7828864010, -3.3905324933]]
+        )
+
+        structure.append_atom(symbols='Sr', position=[0, 0, 0])
+        structure.append_atom(
+            symbols='O', position=[1.7828864010, 1.7828864010, 0.7518485043]
+        )
+        structure.append_atom(symbols='O', position=[0, 0, 2.6386839890])
+        return structure
+
+    return _generate_structure
+
+
+@pytest.fixture
+def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):  # pylint: disable=missing-function-docstring
+    def _generate_win_params_o2sr():
+        from aiida import orm
+        structure = generate_structure_o2sr()
+        inputs = {
+            'structure':
+            structure,
+            'kpoints':
+            generate_kpoints_mesh(9),
+            'kpoint_path':
+            # To avoid dependency on seekpath, I paste here the result of
+            # get_kpoints_path(structure)['parameters']
+            orm.Dict(
+                dict={
+                    'point_coords': {
+                        'GAMMA': [0.0, 0.0, 0.0],
+                        'M': [0.5, 0.5, -0.5],
+                        'X': [0.0, 0.0, 0.5],
+                        'P': [0.25, 0.25, 0.25],
+                        'N': [0.0, 0.5, 0.0],
+                        'S_0': [
+                            -0.3191276083914903, 0.3191276083914903,
+                            0.3191276083914903
+                        ],
+                        'S': [
+                            0.3191276083914903, 0.6808723916085098,
+                            -0.3191276083914903
+                        ],
+                        'R': [-0.1382552167829806, 0.1382552167829806, 0.5],
+                        'G': [0.5, 0.5, -0.1382552167829806]
+                    },
+                    'path': [('GAMMA', 'X'), ('X', 'P'), ('P',
+                                                          'N'), ('N', 'GAMMA'),
+                             ('GAMMA',
+                              'M'), ('M', 'S'), ('S_0',
+                                                 'GAMMA'), ('X',
+                                                            'R'), ('G', 'M')],
+                }
+            ),
+            'parameters':
+            orm.Dict(
+                dict={
+                    "num_wann": 21,
+                    "num_bands": 31,
+                    "num_iter": 200,
+                    "bands_plot": True,
+                    "auto_projections": True
+                }
+            )
+        }
+
+        return inputs
+
+    return _generate_win_params_o2sr
