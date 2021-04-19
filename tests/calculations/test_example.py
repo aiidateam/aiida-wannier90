@@ -15,7 +15,7 @@ ENTRY_POINT_NAME = 'wannier90.wannier90'
 
 
 @pytest.fixture
-def prepare_for_submission_from_builder():
+def prepare_for_submission_from_builder():  # pylint: disable=missing-function-docstring
     def _generate_calc_job(folder, builder):
         """Fixture to generate a mock `CalcInfo` for testing calculation jobs."""
         from aiida.engine.utils import instantiate_process
@@ -44,7 +44,9 @@ def load_module(module_name, full_path):
 
 
 def test_example_gaas(
-    fixture_code, fixture_sandbox, prepare_for_submission_from_builder
+    fixture_code,
+    fixture_sandbox,
+    prepare_for_submission_from_builder  # pylint: disable=redefined-outer-name
 ):
     """Dynamically load the example and try to submit it to see that it works."""
     example_folder = os.path.join(

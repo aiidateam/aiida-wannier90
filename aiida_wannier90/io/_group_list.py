@@ -11,22 +11,21 @@
 __all__ = ('group_list', 'groups_to_string', 'list_to_grouped_string')
 
 
-def group_list(values):
+def group_list(values):  # pylint: disable=missing-function-docstring
     values = sorted(values)
     groups = []
     if not values:
         return groups
     current_start = values[0]
-    for v1, v2 in zip(values, values[1:]):
+    for val1, val2 in zip(values, values[1:]):
         # contiguous range
-        if v2 - 1 <= v1:
+        if val2 - 1 <= val1:
             continue
         # break in the range
-        else:
-            groups.append(sorted(set([current_start, v1])))
-            current_start = v2
+        groups.append(sorted(set([current_start, val1])))
+        current_start = val2
         # final group
-    groups.append(sorted(set([current_start, v2])))  # pylint: disable=undefined-loop-variable
+    groups.append(sorted(set([current_start, val2])))  # pylint: disable=undefined-loop-variable
     return groups
 
 
