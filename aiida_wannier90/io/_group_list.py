@@ -16,6 +16,8 @@ def group_list(values):
     groups = []
     if not values:
         return groups
+    if len(values) == 1:
+        return [values]
     current_start = values[0]
     for v1, v2 in zip(values, values[1:]):
         # contiguous range
