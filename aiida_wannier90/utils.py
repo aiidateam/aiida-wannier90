@@ -17,7 +17,7 @@ def plot_centres_xsf(structure, w90_calc, filename='./wannier.xsf'):
     Plots Wannier function centres in .xsf format
     """
     # Disabling the import-error since this is an optional requirement
-    import ase  # pylint: disable=import-error
+    import ase  # pylint: disable=import-error,useless-suppression
 
     a = structure.get_ase()
     new_a = a.copy()

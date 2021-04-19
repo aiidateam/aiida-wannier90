@@ -7,6 +7,8 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
+
+# pylint: disable=redefined-outer-name
 """Tests for the `PwCalculation` class."""
 
 import pytest
@@ -19,7 +21,7 @@ ENTRY_POINT_NAME = 'wannier90.wannier90'
 
 
 @pytest.fixture
-def generate_common_inputs_gaas(
+def generate_common_inputs_gaas(  # pylint: disable=missing-function-docstring
     shared_datadir,
     fixture_folderdata,
     fixture_code,
@@ -53,7 +55,7 @@ def seedname(request):
     return request.param
 
 
-def test_default(#pylint: disable=too-many-locals
+def test_default(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression, seedname
 ):
@@ -113,7 +115,7 @@ def test_default(#pylint: disable=too-many-locals
     file_regression.check(input_written, encoding='utf-8', extension='.win')
 
 
-def test_wrong_input_filename(#pylint: disable=too-many-locals
+def test_wrong_input_filename(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas
 ):
     """Test that passing an input filename that does not end in .win fails."""
@@ -130,7 +132,8 @@ def test_wrong_input_filename(#pylint: disable=too-many-locals
             inputs=inputs
         )
 
-def test_mismatch_input_output_filename(#pylint: disable=too-many-locals
+
+def test_mismatch_input_output_filename(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas
 ):
     """Test that passing an input and output filenames check the consistency and raise error if not"""
@@ -146,7 +149,8 @@ def test_mismatch_input_output_filename(#pylint: disable=too-many-locals
             inputs=inputs
         )
 
-def test_werr_retrieved_with_custom_seedname(#pylint: disable=too-many-locals
+
+def test_werr_retrieved_with_custom_seedname(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas
 ):
     """Test the file seedname.werr is produced if the inputs are correct"""
@@ -163,7 +167,8 @@ def test_werr_retrieved_with_custom_seedname(#pylint: disable=too-many-locals
 
     assert "test3.werr" in calc_info.retrieve_list
 
-def test_no_projections( #pylint: disable=too-many-locals
+
+def test_no_projections(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression
 ):
@@ -214,7 +219,7 @@ def test_no_projections( #pylint: disable=too-many-locals
     file_regression.check(input_written, encoding='utf-8', extension='.win')
 
 
-def test_list_projections(#pylint: disable=too-many-locals
+def test_list_projections(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression
 ):
@@ -332,7 +337,7 @@ def test_mixed_case_settings_key(
         )
 
 
-def test_diffusivity( #pylint: disable=too-many-locals
+def test_diffusivity(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression
 ):
@@ -407,7 +412,7 @@ def test_diffusivity( #pylint: disable=too-many-locals
     file_regression.check(input_written, encoding='utf-8', extension='.win')
 
 
-def test_spin_projections( #pylint: disable=too-many-locals
+def test_spin_projections(
     fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
     file_regression
 ):

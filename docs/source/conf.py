@@ -20,6 +20,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+# pylint: skip-file
+
 import os
 import time
 import contextlib

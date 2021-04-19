@@ -67,7 +67,7 @@ class Wannier90Calculation(CalcJob):
     )
 
     @classmethod
-    def define(cls, spec):  # pylint: disable=no-self-argument
+    def define(cls, spec):
         super(Wannier90Calculation, cls).define(spec)
         spec.input(
             "structure",
@@ -161,13 +161,15 @@ class Wannier90Calculation(CalcJob):
         spec.exit_code(
             200,
             'ERROR_NO_RETRIEVED_FOLDER',
-            message='The retrieved folder data node could not be accessed.'
+            message='The retrieved folder data node could not be accessed.',
+            invalidates_cache=True
         )
         spec.exit_code(
             210,
             'ERROR_OUTPUT_STDOUT_MISSING',
             message=
-            'The retrieved folder did not contain the required stdout output file.'
+            'The retrieved folder did not contain the required stdout output file.',
+            invalidates_cache=True
         )
         spec.exit_code(
             300,
@@ -227,7 +229,7 @@ class Wannier90Calculation(CalcJob):
         has_local_input = 'local_input_folder' in self.inputs
         has_remote_input = 'remote_input_folder' in self.inputs
         if pp_setup:
-            if has_local_input or has_local_input:
+            if has_local_input or has_remote_input:
                 raise exc.InputValidationError(
                     "Can not set 'local_input_folder' or 'remote_input_folder' "
                     "with the 'postproc_setup' option."
