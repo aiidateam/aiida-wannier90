@@ -142,7 +142,8 @@ def get_or_create_pseudo_family():
     # Try to create the group
     family_name = family_name_prefix
     group, group_created = Group.objects.get_or_create(
-        label=family_name, type_string=upf.UPFGROUP_TYPE
+        label=family_name,
+        type_string=upf.UPFGROUP_TYPE  # pylint: disable=no-member # TODO: fix
     )
 
     # continue trying creating the group if the previous one existed
@@ -154,7 +155,8 @@ def get_or_create_pseudo_family():
 
         family_name = "{}-{}".format(family_name_prefix, safe_counter)
         group, group_created = Group.objects.get_or_create(
-            label=family_name, type_string=upf.UPFGROUP_TYPE
+            label=family_name,
+            type_string=upf.UPFGROUP_TYPE  # pylint: disable=no-member # TODO: fix
         )
 
     # Update description of the group

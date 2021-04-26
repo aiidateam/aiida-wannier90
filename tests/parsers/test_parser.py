@@ -17,7 +17,7 @@ ENTRY_POINT_PARSER = 'wannier90.wannier90'
 
 
 @pytest.mark.parametrize("seedname", ("aiida", "wannier"))
-def test_wannier_default(#pylint: disable=too-many-arguments
+def test_wannier_default(
     fixture_localhost, generate_calc_job_node, generate_parser,
     generate_win_params_gaas, data_regression, seedname
 ):
@@ -78,7 +78,7 @@ def test_no_kpoint_path(
 
 
 @pytest.mark.parametrize("band_parser", ("new", "legacy"))
-def test_band_parser(#pylint: disable=too-many-arguments
+def test_band_parser(
     fixture_localhost, generate_calc_job_node, generate_parser,
     generate_win_params_o2sr, data_regression, band_parser
 ):
