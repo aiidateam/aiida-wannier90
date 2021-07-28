@@ -121,3 +121,25 @@ def test_band_parser(
                                 (208, 'N'), (288, 'GAMMA'), (362, 'M'),
                                 (412, 'S'), (413, 'S_0'), (502, 'GAMMA'),
                                 (503, 'X'), (530, 'R'), (531, 'G'), (603, 'M')]
+
+
+def test_bvectors(
+    fixture_localhost, generate_calc_job_node, generate_parser,
+    generate_win_params_ca4mg8
+):
+    """Check that parsing works for bvector error."""
+    from aiida.plugins import CalculationFactory
+    inputs = generate_win_params_ca4mg8()
+    node = generate_calc_job_node(
+        entry_point_name=ENTRY_POINT_CALC_JOB,
+        computer=fixture_localhost,
+        test_name='ca4mg8',
+        inputs=inputs
+    )
+    parser = generate_parser(ENTRY_POINT_PARSER)
+    _, calcfunction = parser.parse_from_node(node, store_provenance=False)
+
+    assert calcfunction.is_finished, calcfunction.exception
+    assert not calcfunction.is_finished_ok, calcfunction.exit_message
+    Wannier90Calculation = CalculationFactory(ENTRY_POINT_CALC_JOB)
+    assert calcfunction.exit_status == Wannier90Calculation.exit_codes.ERROR_BVECTORS.status

@@ -183,6 +183,12 @@ class Wannier90Calculation(CalcJob):
             'The string "Exiting..." has been found in the Wannier90 output (some partial output might have been '
             'parsed).'
         )
+        spec.exit_code(
+            401,
+            'ERROR_BVECTORS',
+            message=
+            'An error related to bvectors has been found in the Wannier90 output.'
+        )
 
     @property
     def _SEEDNAME(self):

@@ -93,6 +93,18 @@ class Wannier90Parser(Parser):
             # Wannier90 doesn't always write the .werr file on error
             if any('Exiting......' in line for line in out_file):
                 exiting_in_stdout = True
+            if any('Unable to satisfy B1' in line for line in out_file):
+                return self.exit_codes.ERROR_BVECTORS
+            if any(
+                'kmesh_get_bvector: Not enough bvectors found' in line
+                for line in out_file
+            ):
+                return self.exit_codes.ERROR_BVECTORS
+            if any(
+                'kmesh_get: something wrong, found too many nearest neighbours'
+                in line for line in out_file
+            ):
+                return self.exit_codes.ERROR_BVECTORS
         except OSError:
             self.logger.error("Standard output file could not be found.")
             return self.exit_codes.ERROR_OUTPUT_STDOUT_MISSING
@@ -168,34 +180,11 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
     w90_conv = False  #Used to assess convergence of MLWF procedure use conv_tol and conv_window>1
     out = {}
     out.update({'warnings': []})
-    out.update({'error_msg': []})
     for i, line in enumerate(wann_out_file):
         # checks for any warnings
         if 'Warning' in line:
             # Certain warnings get a special flag
             out['warnings'].append(line)
-
-        # append everything after Exiting to error_msg
-        if 'Exiting......' in line:
-            while i < len(wann_out_file):
-                line = wann_out_file[i].strip()
-                out['error_msg'].append(line)
-                i += 1
-
-        # Wannier90 error message:
-        #   Unable to satisfy B1 with any of the first  36 shells
-        #   Your cell might be very long, or you may have an irregular MP grid
-        #   Try increasing the parameter search_shells in the win file (default=12)
-        #
-        #   Exiting.......
-        #   kmesh_get_automatic
-        if 'Unable to satisfy B1' in line:
-            error_msg = ""
-            for j in range(3):
-                line = wann_out_file[i + j].strip()
-                error_msg += line + '\n'
-            i += 3
-            out['error_msg'].append(error_msg)
 
         # From the 'initial' part of the output, only sections which indicate
         # whether certain files have been written, e.g. 'Write r^2_nm to file'
