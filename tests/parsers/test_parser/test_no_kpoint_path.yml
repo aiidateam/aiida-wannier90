@@ -8,6 +8,31 @@ output_parameters:
   output_verbosity: 1
   preprocess_only: F
   r2mn_writeout: F
+  wannier_functions_initial:
+  - wf_centres:
+    - -0.866604
+    - 1.973396
+    - 1.973396
+    wf_ids: 1
+    wf_spreads: 1.11712902
+  - wf_centres:
+    - -0.866604
+    - 0.866604
+    - 0.866604
+    wf_ids: 2
+    wf_spreads: 1.11712902
+  - wf_centres:
+    - -1.973396
+    - 1.973396
+    - 0.866604
+    wf_ids: 3
+    wf_spreads: 1.11712902
+  - wf_centres:
+    - -1.973396
+    - 0.866604
+    - 1.973396
+    wf_ids: 4
+    wf_spreads: 1.11712902
   wannier_functions_output:
   - wf_centres:
     - -0.866225
