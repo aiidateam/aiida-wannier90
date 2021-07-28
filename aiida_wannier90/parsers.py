@@ -301,8 +301,8 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
             num_wf = out['number_wfs']
             wf_out = []
             end_wf_loop = i + num_wf + 1
-            for i in range(i + 1, end_wf_loop):
-                line = wann_out_file[i]
+            for j in range(i + 1, end_wf_loop):
+                line = wann_out_file[j]
                 wf_out_i = {'wf_ids': '', 'wf_centres': '', 'wf_spreads': ''}
                 #wf_out_i['wf_ids'] = int(line.split()[-7])
                 wf_out_i['wf_ids'] = int(line.split('(')[0].split()[-1])
