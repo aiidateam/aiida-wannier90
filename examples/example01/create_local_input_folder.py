@@ -29,7 +29,7 @@ def get_unstored_folder_data(seedname='aiida'):
     ]:
         folder_node.put_object_from_file(
             os.path.join(files_folder, local_file_name),
-            key=file_name_in_aiida,
+            path=file_name_in_aiida,
             encoding=None
         )
     return folder_node
