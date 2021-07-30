@@ -26,6 +26,9 @@ Contains a number of parsed properties. Currently it includes:
   - ``im_re_ratio``: if available, the Imaginary/Real ratio of the Wannier
     functions.
 
+* ``wannier_functions_initial``: similar to ``wannier_functions_output``,
+  but contains the initial centres and spreads, i.e. before maximal localisation.
+
 * ``warnings``: parsed list of warnings (see section
   :ref:`my-ref-parsed_warnings`).
 

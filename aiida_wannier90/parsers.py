@@ -296,6 +296,42 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
                 if 'Omega Total' in line:
                     out.update({'Omega_total': float(line.split()[-1])})
 
+        # Reading the initial WF
+        if 'Initial State' in line:
+            num_wf = out['number_wfs']
+            wf_out = []
+            end_wf_loop = i + num_wf + 1
+            for j in range(i + 1, end_wf_loop):
+                line = wann_out_file[j]
+                wf_out_i = {'wf_ids': '', 'wf_centres': '', 'wf_spreads': ''}
+                #wf_out_i['wf_ids'] = int(line.split()[-7])
+                wf_out_i['wf_ids'] = int(line.split('(')[0].split()[-1])
+                wf_out_i['wf_spreads'] = float(line.split(')')[1].strip())
+                #wf_out_i['wf_spreads'] = float(line.split()[-1])
+                try:
+                    x = float(
+                        line.split('(')[1].split(')')[0].split(',')[0].strip()
+                    )
+                except (ValueError, IndexError):
+                    # To avoid that the crasher completely fails, we set None as a fallback
+                    x = None
+                try:
+                    y = float(
+                        line.split('(')[1].split(')')[0].split(',')[1].strip()
+                    )
+                except (ValueError, IndexError):
+                    y = None
+                try:
+                    z = float(
+                        line.split('(')[1].split(')')[0].split(',')[2].strip()
+                    )
+                except (ValueError, IndexError):
+                    z = None
+                coord = (x, y, z)
+                wf_out_i['wf_centres'] = coord
+                wf_out.append(wf_out_i)
+            out.update({'wannier_functions_initial': wf_out})
+
         if ' Maximum Im/Re Ratio' in line:
             wann_functions = out['wannier_functions_output']
             wann_id = int(line.split()[3])
