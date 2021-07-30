@@ -70,7 +70,7 @@
              | 675 Mass Ave, Cambridge, MA 02139, USA.           |
              |                                                   |
              +---------------------------------------------------+
-             |    Execution started on 28Jul2021 at 17:12:41     |
+             |    Execution started on 30Jul2021 at 18:09:45     |
              +---------------------------------------------------+
  
  ******************************************************************************
@@ -136,8 +136,8 @@
  |  Total number of iterations                :               400             |
  |  Number of CG steps before reset           :                 5             |
  |  Trial step length for line search         :             2.000             |
- |  Convergence tolerence                     :         0.120E-05             |
- |  Convergence window                        :                 3             |
+ |  Convergence tolerence                     :         0.100E-09             |
+ |  Convergence window                        :                -1             |
  |  Iterations between writing output         :                 1             |
  |  Iterations between backing up to disk     :               100             |
  |  Write r^2_nm to file                      :                 F             |
@@ -148,32 +148,12 @@
  *----------------------------------------------------------------------------*
  *------------------------------- DISENTANGLE --------------------------------*
  |  Using band disentanglement                :                 T             |
- |  Total number of iterations                :                 0             |
+ |  Total number of iterations                :               200             |
  |  Mixing ratio                              :             0.500             |
  |  Convergence tolerence                     :         1.000E-10             |
  |  Convergence window                        :                 3             |
  *----------------------------------------------------------------------------*
- *-------------------------------- PLOTTING ----------------------------------*
- |  Plotting interpolated bandstructure       :                 T             |
- |   Number of K-path sections                :                11             |
- |   Divisions along first K-path section     :               100             |
- |   Output format                            :           gnuplot             |
- |   Output mode                              :               s-k             |
- *----------------------------------------------------------------------------*
- |   K-space path sections:                                                   |
- |    From: GAMMA   0.000  0.000  0.000     To: Y      -0.500  0.500  0.000   |
- |    From: Y      -0.500  0.500  0.000     To: C_0    -0.333  0.667  0.000   |
- |    From: SIGMA   0.333  0.333  0.000     To: GAMMA   0.000  0.000  0.000   |
- |    From: GAMMA   0.000  0.000  0.000     To: Z       0.000  0.000  0.500   |
- |    From: Z       0.000  0.000  0.500     To: A_0     0.333  0.333  0.500   |
- |    From: E_0    -0.333  0.667  0.500     To: T      -0.500  0.500  0.500   |
- |    From: T      -0.500  0.500  0.500     To: Y      -0.500  0.500  0.000   |
- |    From: GAMMA   0.000  0.000  0.000     To: S       0.000  0.500  0.000   |
- |    From: S       0.000  0.500  0.000     To: R       0.000  0.500  0.500   |
- |    From: R       0.000  0.500  0.500     To: Z       0.000  0.000  0.500   |
- |    From: Z       0.000  0.000  0.500     To: T      -0.500  0.500  0.500   |
- *----------------------------------------------------------------------------*
- Time to read parameters        0.009 (sec)
+ Time to read parameters        0.010 (sec)
 
  *---------------------------------- K-MESH ----------------------------------*
  +----------------------------------------------------------------------------+

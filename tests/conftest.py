@@ -399,7 +399,7 @@ def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):  #
 def generate_structure_ca4mg8():
     """Return a `StructureData` representing bulk Ca4Mg8."""
     def _generate_structure():
-        """Return a `StructureData` representing bulk O2Sr."""
+        """Return a `StructureData` representing bulk Ca4Mg8."""
 
         from aiida import orm
 
@@ -476,3 +476,59 @@ def generate_win_params_ca4mg8(generate_structure_ca4mg8):  # pylint: disable=mi
         return inputs
 
     return _generate_win_params_ca4mg8
+
+
+@pytest.fixture(scope='session')
+def generate_structure_br2fe():
+    """Return a `StructureData` representing bulk Br2Fe."""
+    def _generate_structure():
+        """Return a `StructureData` representing bulk Br2Fe."""
+
+        from aiida import orm
+
+        structure = orm.StructureData(
+            cell=[[3.1218481617, 1.8023993833, 0.0000000000],
+                  [-3.1218481617, 1.8023993833, 0.0000000000],
+                  [-0.0010222890, 0.0000000000, 6.6558096562]]
+        )
+
+        structure.append_atom(
+            symbols='Fe', position=[0.0000000000, 0.0000000000, 0.0000000000]
+        )
+        structure.append_atom(
+            symbols='Br', position=[5.2020635002, 1.8023993833, 5.3570235967]
+        )
+        structure.append_atom(
+            symbols='Br', position=[4.1624586959, 0.0000000000, 1.2987860595]
+        )
+        return structure
+
+    return _generate_structure
+
+
+@pytest.fixture
+def generate_win_params_br2fe(generate_structure_br2fe):  # pylint: disable=missing-function-docstring
+    def _generate_win_params_br2fe():
+        from aiida import orm
+        structure = generate_structure_br2fe()
+        kpoints = orm.KpointsData()
+        kpoints.set_kpoints_mesh([11, 11, 5])
+        inputs = {
+            'structure':
+            structure,
+            'kpoints':
+            kpoints,
+            'parameters':
+            orm.Dict(
+                dict={
+                    "num_wann": 17,
+                    "num_bands": 21,
+                    "num_iter": 400,
+                    "auto_projections": True
+                }
+            )
+        }
+
+        return inputs
+
+    return _generate_win_params_br2fe
