@@ -93,6 +93,18 @@ class Wannier90Parser(Parser):
             # Wannier90 doesn't always write the .werr file on error
             if any('Exiting......' in line for line in out_file):
                 exiting_in_stdout = True
+            if any('Unable to satisfy B1' in line for line in out_file):
+                return self.exit_codes.ERROR_BVECTORS
+            if any(
+                'kmesh_get_bvector: Not enough bvectors found' in line
+                for line in out_file
+            ):
+                return self.exit_codes.ERROR_BVECTORS
+            if any(
+                'kmesh_get: something wrong, found too many nearest neighbours'
+                in line for line in out_file
+            ):
+                return self.exit_codes.ERROR_BVECTORS
         except OSError:
             self.logger.error("Standard output file could not be found.")
             return self.exit_codes.ERROR_OUTPUT_STDOUT_MISSING

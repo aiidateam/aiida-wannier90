@@ -393,3 +393,142 @@ def generate_win_params_o2sr(generate_structure_o2sr, generate_kpoints_mesh):  #
         return inputs
 
     return _generate_win_params_o2sr
+
+
+@pytest.fixture(scope='session')
+def generate_structure_ca4mg8():
+    """Return a `StructureData` representing bulk Ca4Mg8."""
+    def _generate_structure():
+        """Return a `StructureData` representing bulk Ca4Mg8."""
+
+        from aiida import orm
+
+        structure = orm.StructureData(
+            cell=[[3.1235488629, -5.4101154125, 0.0000000000],
+                  [3.1235488629, 5.4101154125, 0.0000000000],
+                  [0.0000000000, 0.0000000000, 10.0402257142]]
+        )
+
+        structure.append_atom(
+            symbols='Ca', position=[3.1235488629, 7.2135064307, 5.6428504986]
+        )
+        structure.append_atom(
+            symbols='Ca', position=[3.1235488629, 3.6067243943, 4.3973752156]
+        )
+        structure.append_atom(
+            symbols='Ca', position=[3.1235488629, 3.6067243943, 0.6227376415]
+        )
+        structure.append_atom(
+            symbols='Ca', position=[3.1235488629, 7.2135064307, 9.4174880727]
+        )
+        structure.append_atom(
+            symbols='Mg', position=[3.1235488629, 0.0000000000, 5.0201128571]
+        )
+        structure.append_atom(
+            symbols='Mg', position=[3.1235488629, 0.0000000000, 0.0000000000]
+        )
+        structure.append_atom(
+            symbols='Mg', position=[1.5416212587, 9.9069482534, 7.5301692857]
+        )
+        structure.append_atom(
+            symbols='Mg', position=[3.1235488629, 1.8266571732, 7.5301692857]
+        )
+        structure.append_atom(
+            symbols='Mg', position=[4.7054764671, 9.9069482534, 7.5301692857]
+        )
+        structure.append_atom(
+            symbols='Mg', position=[4.7054764671, 0.9132825716, 2.5100564285]
+        )
+        structure.append_atom(
+            symbols='Mg', position=[3.1235488629, 8.9935736518, 2.5100564285]
+        )
+        structure.append_atom(
+            symbols='Mg', position=[1.5416212587, 0.9132825716, 2.5100564285]
+        )
+        return structure
+
+    return _generate_structure
+
+
+@pytest.fixture
+def generate_win_params_ca4mg8(generate_structure_ca4mg8):  # pylint: disable=missing-function-docstring
+    def _generate_win_params_ca4mg8():
+        from aiida import orm
+        structure = generate_structure_ca4mg8()
+        kpoints = orm.KpointsData()
+        kpoints.set_kpoints_mesh([6, 6, 4])
+        inputs = {
+            'structure':
+            structure,
+            'kpoints':
+            kpoints,
+            'parameters':
+            orm.Dict(
+                dict={
+                    "num_wann": 72,
+                    "num_bands": 86,
+                    "num_iter": 400,
+                    "auto_projections": True
+                }
+            )
+        }
+
+        return inputs
+
+    return _generate_win_params_ca4mg8
+
+
+@pytest.fixture(scope='session')
+def generate_structure_br2fe():
+    """Return a `StructureData` representing bulk Br2Fe."""
+    def _generate_structure():
+        """Return a `StructureData` representing bulk Br2Fe."""
+
+        from aiida import orm
+
+        structure = orm.StructureData(
+            cell=[[3.1218481617, 1.8023993833, 0.0000000000],
+                  [-3.1218481617, 1.8023993833, 0.0000000000],
+                  [-0.0010222890, 0.0000000000, 6.6558096562]]
+        )
+
+        structure.append_atom(
+            symbols='Fe', position=[0.0000000000, 0.0000000000, 0.0000000000]
+        )
+        structure.append_atom(
+            symbols='Br', position=[5.2020635002, 1.8023993833, 5.3570235967]
+        )
+        structure.append_atom(
+            symbols='Br', position=[4.1624586959, 0.0000000000, 1.2987860595]
+        )
+        return structure
+
+    return _generate_structure
+
+
+@pytest.fixture
+def generate_win_params_br2fe(generate_structure_br2fe):  # pylint: disable=missing-function-docstring
+    def _generate_win_params_br2fe():
+        from aiida import orm
+        structure = generate_structure_br2fe()
+        kpoints = orm.KpointsData()
+        kpoints.set_kpoints_mesh([11, 11, 5])
+        inputs = {
+            'structure':
+            structure,
+            'kpoints':
+            kpoints,
+            'parameters':
+            orm.Dict(
+                dict={
+                    "num_wann": 17,
+                    "num_bands": 21,
+                    "num_iter": 400,
+                    "auto_projections": True
+                }
+            )
+        }
+
+        return inputs
+
+    return _generate_win_params_br2fe

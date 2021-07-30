@@ -1,0 +1,354 @@
+
+             +---------------------------------------------------+
+             |                                                   |
+             |                   WANNIER90                       |
+             |                                                   |
+             +---------------------------------------------------+
+             |                                                   |
+             |        Welcome to the Maximally-Localized         |
+             |        Generalized Wannier Functions code         |
+             |            http://www.wannier.org                 |
+             |                                                   |
+             |                                                   |
+             |  Wannier90 Developer Group:                       |
+             |    Giovanni Pizzi    (EPFL)                       |
+             |    Valerio Vitale    (Cambridge)                  |
+             |    David Vanderbilt  (Rutgers University)         |
+             |    Nicola Marzari    (EPFL)                       |
+             |    Ivo Souza         (Universidad del Pais Vasco) |
+             |    Arash A. Mostofi  (Imperial College London)    |
+             |    Jonathan R. Yates (University of Oxford)       |
+             |                                                   |
+             |  For the full list of Wannier90 3.x authors,      |
+             |  please check the code documentation and the      |
+             |  README on the GitHub page of the code            |
+             |                                                   |
+             |                                                   |
+             |  Please cite                                      |
+             |                                                   |
+             |  [ref] "Wannier90 as a community code:            |
+             |        new features and applications",            |
+             |        G. Pizzi et al., J. Phys. Cond. Matt. 32,  |
+             |        165902 (2020).                             |
+             |        http://doi.org/10.1088/1361-648X/ab51ff    |
+             |                                                   |
+             |  in any publications arising from the use of      |
+             |  this code. For the method please cite            |
+             |                                                   |
+             |  [ref] "Maximally Localized Generalised Wannier   |
+             |         Functions for Composite Energy Bands"     |
+             |         N. Marzari and D. Vanderbilt              |
+             |         Phys. Rev. B 56 12847 (1997)              |
+             |                                                   |
+             |  [ref] "Maximally Localized Wannier Functions     |
+             |         for Entangled Energy Bands"               |
+             |         I. Souza, N. Marzari and D. Vanderbilt    |
+             |         Phys. Rev. B 65 035109 (2001)             |
+             |                                                   |
+             |                                                   |
+             | Copyright (c) 1996-2020                           |
+             |        The Wannier90 Developer Group and          |
+             |        individual contributors                    |
+             |                                                   |
+             |      Release: 3.1.0        5th March    2020      |
+             |                                                   |
+             | This program is free software; you can            |
+             | redistribute it and/or modify it under the terms  |
+             | of the GNU General Public License as published by |
+             | the Free Software Foundation; either version 2 of |
+             | the License, or (at your option) any later version|
+             |                                                   |
+             | This program is distributed in the hope that it   |
+             | will be useful, but WITHOUT ANY WARRANTY; without |
+             | even the implied warranty of MERCHANTABILITY or   |
+             | FITNESS FOR A PARTICULAR PURPOSE. See the GNU     |
+             | General Public License for more details.          |
+             |                                                   |
+             | You should have received a copy of the GNU General|
+             | Public License along with this program; if not,   |
+             | write to the Free Software Foundation, Inc.,      |
+             | 675 Mass Ave, Cambridge, MA 02139, USA.           |
+             |                                                   |
+             +---------------------------------------------------+
+             |    Execution started on 30Jul2021 at 18:37:55     |
+             +---------------------------------------------------+
+ 
+ ******************************************************************************
+ * -> Using CODATA 2006 constant values                                       *
+ *    (http://physics.nist.gov/cuu/Constants/index.html)                      *
+ * -> Using Bohr value from CODATA                                            *
+ ******************************************************************************
+ 
+
+ Running in serial (with parallel executable)
+
+                                    ------
+                                    SYSTEM
+                                    ------
+
+                              Lattice Vectors (Ang)
+                    a_1     3.121848   1.802399   0.000000
+                    a_2    -3.121848   1.802399   0.000000
+                    a_3    -0.001022   0.000000   6.655810
+
+                   Unit Cell Volume:      74.90205  (Ang^3)
+
+                        Reciprocal-Space Vectors (Ang^-1)
+                    b_1     1.006325   1.743006   0.000155
+                    b_2    -1.006325   1.743006  -0.000155
+                    b_3     0.000000  -0.000000   0.944015
+  
+ *----------------------------------------------------------------------------*
+ |   Site       Fractional Coordinate          Cartesian Coordinate (Ang)     |
+ +----------------------------------------------------------------------------+
+ | Fe   1   0.00000   0.00000   0.00000   |    0.00000   0.00000   0.00000    |
+ | Br   1   1.33330  -0.33330   0.80486   |    5.20206   1.80240   5.35702    |
+ | Br   2   0.66670  -0.66670   0.19514   |    4.16246  -0.00000   1.29879    |
+ *----------------------------------------------------------------------------*
+                                ------------
+                                K-POINT GRID
+                                ------------
+  
+             Grid size = 11 x 11 x  5      Total points =  605
+  
+  
+ *---------------------------------- MAIN ------------------------------------*
+ |  Number of Wannier Functions               :                17             |
+ |  Number of Objective Wannier Functions     :                17             |
+ |  Number of input Bloch states              :                21             |
+ |  Output verbosity (1=low, 5=high)          :                 1             |
+ |  Timing Level (1=low, 5=high)              :                 1             |
+ |  Optimisation (0=memory, 3=speed)          :                 3             |
+ |  Length Unit                               :               Ang             |
+ |  Post-processing setup (write *.nnkp)      :                 T             |
+ |  Using Gamma-only branch of algorithms     :                 F             |
+ *----------------------------------------------------------------------------*
+ *------------------------------- WANNIERISE ---------------------------------*
+ |  Total number of iterations                :               400             |
+ |  Number of CG steps before reset           :                 5             |
+ |  Trial step length for line search         :             2.000             |
+ |  Convergence tolerence                     :         0.300E-06             |
+ |  Convergence window                        :                 3             |
+ |  Iterations between writing output         :                 1             |
+ |  Iterations between backing up to disk     :               100             |
+ |  Write r^2_nm to file                      :                 F             |
+ |  Write xyz WF centres to file              :                 F             |
+ |  Write on-site energies <0n|H|0n> to file  :                 F             |
+ |  Use guiding centre to control phases      :                 F             |
+ |  Use phases for initial projections        :                 F             |
+ *----------------------------------------------------------------------------*
+ *------------------------------- DISENTANGLE --------------------------------*
+ |  Using band disentanglement                :                 T             |
+ |  Total number of iterations                :               400             |
+ |  Mixing ratio                              :             0.500             |
+ |  Convergence tolerence                     :         3.000E-07             |
+ |  Convergence window                        :                 3             |
+ *----------------------------------------------------------------------------*
+ Time to read parameters        0.026 (sec)
+
+ *---------------------------------- K-MESH ----------------------------------*
+ +----------------------------------------------------------------------------+
+ |                    Distance to Nearest-Neighbour Shells                    |
+ |                    ------------------------------------                    |
+ |          Shell             Distance (Ang^-1)          Multiplicity         |
+ |          -----             -----------------          ------------         |
+ |             1                   0.182968                      6            |
+ |             2                   0.188803                      2            |
+ |             3                   0.262894                      2            |
+ |             4                   0.262904                      4            |
+ |             5                   0.262924                      4            |
+ |             6                   0.262934                      2            |
+ |             7                   0.316910                      6            |
+ |             8                   0.365936                      6            |
+ |             9                   0.368867                      4            |
+ |            10                   0.368888                      4            |
+ |            11                   0.368910                      4            |
+ |            12                   0.377606                      2            |
+ |            13                   0.411746                      2            |
+ |            14                   0.411759                      4            |
+ |            15                   0.411785                      4            |
+ |            16                   0.411797                      2            |
+ |            17                   0.419574                      2            |
+ |            18                   0.419587                      4            |
+ |            19                   0.419612                      4            |
+ |            20                   0.419625                      2            |
+ |            21                   0.484088                     12            |
+ |            22                   0.492937                      4            |
+ |            23                   0.492969                      4            |
+ |            24                   0.493001                      4            |
+ |            25                   0.519578                      4            |
+ |            26                   0.519583                      4            |
+ |            27                   0.519599                      4            |
+ |            28                   0.519609                      4            |
+ |            29                   0.519624                      4            |
+ |            30                   0.519629                      4            |
+ |            31                   0.525788                      2            |
+ |            32                   0.525808                      4            |
+ |            33                   0.525849                      4            |
+ |            34                   0.525869                      2            |
+ |            35                   0.548904                      6            |
+ |            36                   0.566409                      2            |
+ +----------------------------------------------------------------------------+
+ | The b-vectors are chosen automatically                                     |
+ | The following shells are used:   1,  2,  3,  4                             |
+ **WARNING: kmesh has found >12 nearest neighbours**
+ 
+ This is probably caused by an error in your unit cell specification
+ 
+ If you think this is not the problem; please send your *.win file to the 
+ wannier90 developers
+ 
+ The problem may be caused by having accidentally degenerate shells of 
+ kpoints. The solution is then to rerun wannier90 specifying the b-vectors 
+ in each shell.  Give devel_flag=kmesh_degen in the *.win file
+ and create a *.kshell file:
+ 
+ $>   cat hexagonal.kshell
+ $>   1 2
+ $>   5 6 7 8
+ 
+ Where each line is a new shell (so num_shells in total)
+ The elements are the bvectors labelled according to the following 
+ list (last column is distance)
+ 
+ | b-vector     1 : (     -0.091484    0.158455   -0.000014  )      0.182968  |
+ | b-vector     2 : (      0.091484    0.158455    0.000014  )      0.182968  |
+ | b-vector     3 : (      0.091484   -0.158455    0.000014  )      0.182968  |
+ | b-vector     4 : (      0.182968    0.000000    0.000028  )      0.182968  |
+ | b-vector     5 : (     -0.091484   -0.158455   -0.000014  )      0.182968  |
+ | b-vector     6 : (     -0.182968    0.000000   -0.000028  )      0.182968  |
+ | b-vector     7 : (      0.000000    0.000000    0.188803  )      0.188803  |
+ | b-vector     8 : (      0.000000    0.000000   -0.188803  )      0.188803  |
+ | b-vector     9 : (     -0.182968    0.000000    0.188775  )      0.262894  |
+ | b-vector    10 : (      0.182968    0.000000   -0.188775  )      0.262894  |
+ | b-vector    11 : (     -0.091484    0.158455    0.188789  )      0.262904  |
+ | b-vector    12 : (      0.091484    0.158455   -0.188789  )      0.262904  |
+ | b-vector    13 : (     -0.091484   -0.158455    0.188789  )      0.262904  |
+ | b-vector    14 : (      0.091484   -0.158455   -0.188789  )      0.262904  |
+ | b-vector    15 : (      0.091484    0.158455    0.188817  )      0.262924  |
+ | b-vector    16 : (     -0.091484    0.158455   -0.188817  )      0.262924  |
+ | b-vector    17 : (      0.091484   -0.158455    0.188817  )      0.262924  |
+ | b-vector    18 : (     -0.091484   -0.158455   -0.188817  )      0.262924  |
+ | b-vector    19 : (      0.182968    0.000000    0.188831  )      0.262934  |
+ | b-vector    20 : (     -0.182968    0.000000   -0.188831  )      0.262934  |
+ | b-vector    21 : (      0.000000    0.316910    0.000000  )      0.316910  |
+ | b-vector    22 : (      0.274452   -0.158455    0.000042  )      0.316910  |
+ | b-vector    23 : (      0.274452    0.158455    0.000042  )      0.316910  |
+ | b-vector    24 : (     -0.274452   -0.158455   -0.000042  )      0.316910  |
+ | b-vector    25 : (     -0.274452    0.158455   -0.000042  )      0.316910  |
+ | b-vector    26 : (      0.000000   -0.316910    0.000000  )      0.316910  |
+ | b-vector    27 : (     -0.182968    0.316910   -0.000028  )      0.365936  |
+ | b-vector    28 : (      0.182968    0.316910    0.000028  )      0.365936  |
+ | b-vector    29 : (      0.182968   -0.316910    0.000028  )      0.365936  |
+ | b-vector    30 : (      0.365936    0.000000    0.000056  )      0.365936  |
+ | b-vector    31 : (     -0.182968   -0.316910   -0.000028  )      0.365936  |
+ | b-vector    32 : (     -0.365936    0.000000   -0.000056  )      0.365936  |
+ | b-vector    33 : (     -0.274452   -0.158455    0.188761  )      0.368867  |
+ | b-vector    34 : (     -0.274452    0.158455    0.188761  )      0.368867  |
+ | b-vector    35 : (      0.274452   -0.158455   -0.188761  )      0.368867  |
+ | b-vector    36 : (      0.274452    0.158455   -0.188761  )      0.368867  |
+ | b-vector    37 : (      0.000000    0.316910    0.188803  )      0.368888  |
+ | b-vector    38 : (      0.000000    0.316910   -0.188803  )      0.368888  |
+ | b-vector    39 : (      0.000000   -0.316910    0.188803  )      0.368888  |
+ | b-vector    40 : (      0.000000   -0.316910   -0.188803  )      0.368888  |
+ | b-vector    41 : (      0.274452   -0.158455    0.188845  )      0.368910  |
+ | b-vector    42 : (      0.274452    0.158455    0.188845  )      0.368910  |
+ | b-vector    43 : (     -0.274452   -0.158455   -0.188845  )      0.368910  |
+ | b-vector    44 : (     -0.274452    0.158455   -0.188845  )      0.368910  |
+ | b-vector    45 : (      0.000000    0.000000    0.377606  )      0.377606  |
+ | b-vector    46 : (      0.000000    0.000000   -0.377606  )      0.377606  |
+ | b-vector    47 : (     -0.365936    0.000000    0.188747  )      0.411746  |
+ | b-vector    48 : (      0.365936    0.000000   -0.188747  )      0.411746  |
+ | b-vector    49 : (     -0.182968    0.316910    0.188775  )      0.411759  |
+ | b-vector    50 : (      0.182968    0.316910   -0.188775  )      0.411759  |
+ | b-vector    51 : (     -0.182968   -0.316910    0.188775  )      0.411759  |
+ | b-vector    52 : (      0.182968   -0.316910   -0.188775  )      0.411759  |
+ | b-vector    53 : (      0.182968    0.316910    0.188831  )      0.411785  |
+ | b-vector    54 : (     -0.182968    0.316910   -0.188831  )      0.411785  |
+ | b-vector    55 : (      0.182968   -0.316910    0.188831  )      0.411785  |
+ | b-vector    56 : (     -0.182968   -0.316910   -0.188831  )      0.411785  |
+ | b-vector    57 : (      0.365936    0.000000    0.188859  )      0.411797  |
+ | b-vector    58 : (     -0.365936    0.000000   -0.188859  )      0.411797  |
+ | b-vector    59 : (     -0.182968    0.000000    0.377578  )      0.419574  |
+ | b-vector    60 : (      0.182968    0.000000   -0.377578  )      0.419574  |
+ | b-vector    61 : (     -0.091484    0.158455    0.377592  )      0.419587  |
+ | b-vector    62 : (      0.091484    0.158455   -0.377592  )      0.419587  |
+ | b-vector    63 : (     -0.091484   -0.158455    0.377592  )      0.419587  |
+ | b-vector    64 : (      0.091484   -0.158455   -0.377592  )      0.419587  |
+ | b-vector    65 : (      0.091484    0.158455    0.377620  )      0.419612  |
+ | b-vector    66 : (     -0.091484    0.158455   -0.377620  )      0.419612  |
+ | b-vector    67 : (      0.091484   -0.158455    0.377620  )      0.419612  |
+ | b-vector    68 : (     -0.091484   -0.158455   -0.377620  )      0.419612  |
+ | b-vector    69 : (      0.182968    0.000000    0.377634  )      0.419625  |
+ | b-vector    70 : (     -0.182968    0.000000   -0.377634  )      0.419625  |
+ | b-vector    71 : (     -0.091484    0.475365   -0.000014  )      0.484088  |
+ | b-vector    72 : (      0.091484    0.475365    0.000014  )      0.484088  |
+ | b-vector    73 : (      0.365936   -0.316910    0.000056  )      0.484088  |
+ | b-vector    74 : (      0.457420   -0.158455    0.000070  )      0.484088  |
+ | b-vector    75 : (      0.457420    0.158455    0.000070  )      0.484088  |
+ | b-vector    76 : (      0.365936    0.316910    0.000056  )      0.484088  |
+ | b-vector    77 : (     -0.365936   -0.316910   -0.000056  )      0.484088  |
+ | b-vector    78 : (     -0.457420   -0.158455   -0.000070  )      0.484088  |
+ | b-vector    79 : (     -0.457420    0.158455   -0.000070  )      0.484088  |
+ | b-vector    80 : (     -0.365936    0.316910   -0.000056  )      0.484088  |
+ | b-vector    81 : (     -0.091484   -0.475365   -0.000014  )      0.484088  |
+ | b-vector    82 : (      0.091484   -0.475365    0.000014  )      0.484088  |
+ | b-vector    83 : (     -0.274452   -0.158455    0.377564  )      0.492937  |
+ | b-vector    84 : (     -0.274452    0.158455    0.377564  )      0.492937  |
+ | b-vector    85 : (      0.274452   -0.158455   -0.377564  )      0.492937  |
+ | b-vector    86 : (      0.274452    0.158455   -0.377564  )      0.492937  |
+ | b-vector    87 : (      0.000000    0.316910    0.377606  )      0.492969  |
+ | b-vector    88 : (      0.000000    0.316910   -0.377606  )      0.492969  |
+ | b-vector    89 : (      0.000000   -0.316910    0.377606  )      0.492969  |
+ | b-vector    90 : (      0.000000   -0.316910   -0.377606  )      0.492969  |
+ | b-vector    91 : (      0.274452   -0.158455    0.377648  )      0.493001  |
+ | b-vector    92 : (      0.274452    0.158455    0.377648  )      0.493001  |
+ | b-vector    93 : (     -0.274452   -0.158455   -0.377648  )      0.493001  |
+ | b-vector    94 : (     -0.274452    0.158455   -0.377648  )      0.493001  |
+ | b-vector    95 : (     -0.457420   -0.158455    0.188733  )      0.519578  |
+ | b-vector    96 : (     -0.457420    0.158455    0.188733  )      0.519578  |
+ | b-vector    97 : (      0.457420   -0.158455   -0.188733  )      0.519578  |
+ | b-vector    98 : (      0.457420    0.158455   -0.188733  )      0.519578  |
+ | b-vector    99 : (     -0.365936   -0.316910    0.188747  )      0.519583  |
+ | b-vector   100 : (     -0.365936    0.316910    0.188747  )      0.519583  |
+ | b-vector   101 : (      0.365936   -0.316910   -0.188747  )      0.519583  |
+ | b-vector   102 : (      0.365936    0.316910   -0.188747  )      0.519583  |
+ | b-vector   103 : (     -0.091484    0.475365    0.188789  )      0.519599  |
+ | b-vector   104 : (      0.091484    0.475365   -0.188789  )      0.519599  |
+ | b-vector   105 : (     -0.091484   -0.475365    0.188789  )      0.519599  |
+ | b-vector   106 : (      0.091484   -0.475365   -0.188789  )      0.519599  |
+ | b-vector   107 : (      0.091484    0.475365    0.188817  )      0.519609  |
+ | b-vector   108 : (     -0.091484    0.475365   -0.188817  )      0.519609  |
+ | b-vector   109 : (      0.091484   -0.475365    0.188817  )      0.519609  |
+ | b-vector   110 : (     -0.091484   -0.475365   -0.188817  )      0.519609  |
+ | b-vector   111 : (      0.365936   -0.316910    0.188859  )      0.519624  |
+ | b-vector   112 : (      0.365936    0.316910    0.188859  )      0.519624  |
+ | b-vector   113 : (     -0.365936   -0.316910   -0.188859  )      0.519624  |
+ | b-vector   114 : (     -0.365936    0.316910   -0.188859  )      0.519624  |
+ | b-vector   115 : (      0.457420   -0.158455    0.188873  )      0.519629  |
+ | b-vector   116 : (      0.457420    0.158455    0.188873  )      0.519629  |
+ | b-vector   117 : (     -0.457420   -0.158455   -0.188873  )      0.519629  |
+ | b-vector   118 : (     -0.457420    0.158455   -0.188873  )      0.519629  |
+ | b-vector   119 : (     -0.365936    0.000000    0.377550  )      0.525788  |
+ | b-vector   120 : (      0.365936    0.000000   -0.377550  )      0.525788  |
+ | b-vector   121 : (     -0.182968    0.316910    0.377578  )      0.525808  |
+ | b-vector   122 : (      0.182968    0.316910   -0.377578  )      0.525808  |
+ | b-vector   123 : (     -0.182968   -0.316910    0.377578  )      0.525808  |
+ | b-vector   124 : (      0.182968   -0.316910   -0.377578  )      0.525808  |
+ | b-vector   125 : (      0.182968    0.316910    0.377634  )      0.525849  |
+ | b-vector   126 : (     -0.182968    0.316910   -0.377634  )      0.525849  |
+ | b-vector   127 : (      0.182968   -0.316910    0.377634  )      0.525849  |
+ | b-vector   128 : (     -0.182968   -0.316910   -0.377634  )      0.525849  |
+ | b-vector   129 : (      0.365936    0.000000    0.377662  )      0.525869  |
+ | b-vector   130 : (     -0.365936    0.000000   -0.377662  )      0.525869  |
+ | b-vector   131 : (     -0.274452    0.475365   -0.000042  )      0.548904  |
+ | b-vector   132 : (      0.274452    0.475365    0.000042  )      0.548904  |
+ | b-vector   133 : (      0.274452   -0.475365    0.000042  )      0.548904  |
+ | b-vector   134 : (      0.548904    0.000000    0.000084  )      0.548904  |
+ | b-vector   135 : (     -0.274452   -0.475365   -0.000042  )      0.548904  |
+ | b-vector   136 : (     -0.548904    0.000000   -0.000084  )      0.548904  |
+ | b-vector   137 : (      0.000000    0.000000    0.566409  )      0.566409  |
+ | b-vector   138 : (      0.000000    0.000000   -0.566409  )      0.566409  |
+ 
+ Exiting.......
+ kmesh_get: something wrong, found too many nearest neighbours
