@@ -1,5 +1,4 @@
 name: Continuous Integration
-
 on: [push, pull_request]
 jobs:
   docs:
@@ -11,24 +10,20 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
     - uses: actions/cache@v2
       with:
         path: ~/.cache/pip
         key: pip-${{ matrix.python-version }}-${{ matrix.install-type }}-${{ hashFiles('**/setup.json')
           }}
         restore-keys: pip-${{ matrix.python-version }}-${{ matrix.install-type }}
-
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-
     - name: Install the python project
       env:
         INSTALL_TYPE: ${{ matrix.install-type }}
       run: .ci/install_script.sh
-
     - name: Build documentation
       env:
         READTHEDOCS: 'True'
@@ -46,24 +41,20 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
     - uses: actions/cache@v2
       with:
         path: ~/.cache/pip
         key: pip-${{ matrix.python-version }}-${{ matrix.install-type }}-${{ hashFiles('**/setup.json')
           }}
         restore-keys: pip-${{ matrix.python-version }}-${{ matrix.install-type }}
-
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-
     - name: Install the python project
       env:
         INSTALL_TYPE: ${{ matrix.install-type }}
       run: .ci/install_script.sh
-
     - name: Run pre-commit
       run: pre-commit run --all-files || ( git status --short ; git diff ; exit 1
         )
@@ -71,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
         install-type: [testing]
         include:
         - python-version: 3.8
@@ -88,27 +79,23 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
     - uses: actions/cache@v2
       with:
         path: ~/.cache/pip
         key: pip-${{ matrix.python-version }}-${{ matrix.install-type }}-${{ hashFiles('**/setup.json')
           }}
         restore-keys: pip-${{ matrix.python-version }}-${{ matrix.install-type }}
-
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-
     - name: Install the python project
       env:
         INSTALL_TYPE: ${{ matrix.install-type }}
       run: .ci/install_script.sh
-
     - name: Run pytest
       run: pytest --cov=aiida_wannier90 --cov-report=xml --cov-config=.coveragerc
       working-directory: tests
     - name: Upload coverage data
-      if: ${{ matrix.install-type == 'testing' }}   # Coverage data is present only when installed with -e
+      if: ${{ matrix.install-type == 'testing' }}
       run: codecov --file tests/coverage.xml
