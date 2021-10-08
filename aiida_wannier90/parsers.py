@@ -30,12 +30,10 @@ class Wannier90Parser(Parser):
         # check for valid input
         if not issubclass(node.process_class, Wannier90Calculation):
             raise exc.OutputParsingError(
-                "Input must calc must be a "
-                "Wannier90Calculation, it is instead {}".format(
-                    type(node.process_class)
-                )
+                'Input must calc must be a '
+                f'Wannier90Calculation, it is instead {type(node.process_class)}'
             )
-        super(Wannier90Parser, self).__init__(node)
+        super().__init__(node)
 
     @staticmethod
     def _get_seedname_from_input_filename(input_filename):
@@ -49,8 +47,7 @@ class Wannier90Parser(Parser):
             return input_filename[:-len(input_suffix)]
 
         raise ValueError(
-            "The input filename '{}' does not end with '{}', so I don't know how to get the seedname"
-            .format(input_filename, input_suffix)
+            f"The input filename '{input_filename}' does not end with '{input_suffix}', so I don't know how to get the seedname"
         )
 
     def parse(self, **kwargs):  # pylint: disable=too-many-locals,inconsistent-return-statements; # noqa: MC0001
@@ -67,9 +64,9 @@ class Wannier90Parser(Parser):
         seedname = self._get_seedname_from_input_filename(
             self.node.get_options()['input_filename']
         )
-        output_file_name = "{}.wout".format(seedname)
-        error_file_name = "{}.werr".format(seedname)
-        nnkp_file_name = "{}.nnkp".format(seedname)
+        output_file_name = f"{seedname}.wout"
+        error_file_name = f"{seedname}.werr"
+        nnkp_file_name = f"{seedname}.nnkp"
 
         # select the folder object
         # Check that the retrieved folder is there
@@ -82,7 +79,7 @@ class Wannier90Parser(Parser):
         if error_file_name in out_folder.list_object_names():
             self.logger.error(
                 'Errors were found please check the retrieved '
-                '{} file'.format(error_file_name)
+                f'{error_file_name} file'
             )
             return self.exit_codes.ERROR_WERR_FILE_PRESENT
 
@@ -91,20 +88,17 @@ class Wannier90Parser(Parser):
             with out_folder.open(output_file_name) as handle:
                 out_file = handle.readlines()
             # Wannier90 doesn't always write the .werr file on error
-            if any('Exiting......' in line for line in out_file):
-                exiting_in_stdout = True
-            if any('Unable to satisfy B1' in line for line in out_file):
-                return self.exit_codes.ERROR_BVECTORS
-            if any(
-                'kmesh_get_bvector: Not enough bvectors found' in line
-                for line in out_file
-            ):
-                return self.exit_codes.ERROR_BVECTORS
-            if any(
-                'kmesh_get: something wrong, found too many nearest neighbours'
-                in line for line in out_file
-            ):
-                return self.exit_codes.ERROR_BVECTORS
+            for line in out_file:
+                if 'Exiting......' in line:
+                    exiting_in_stdout = True
+                if 'Unable to satisfy B1' in line:
+                    return self.exit_codes.ERROR_BVECTORS
+                if 'kmesh_get_bvector: Not enough bvectors found' in line:
+                    return self.exit_codes.ERROR_BVECTORS
+                if 'kmesh_get: something wrong, found too many nearest neighbours' in line:
+                    return self.exit_codes.ERROR_BVECTORS
+                if 'Energy window contains fewer states than number of target WFs, consider reducing dis_proj_min/increasing dis_win_max?' in line:
+                    return self.exit_codes.ERROR_DISENTANGLEMENT_NOT_ENOUGH_STATES
         except OSError:
             self.logger.error("Standard output file could not be found.")
             return self.exit_codes.ERROR_OUTPUT_STDOUT_MISSING
@@ -118,9 +112,9 @@ class Wannier90Parser(Parser):
 
         # Tries to parse the bands
         try:
-            with out_folder.open('{}_band.dat'.format(seedname)) as fil:
+            with out_folder.open(f'{seedname}_band.dat') as fil:
                 band_dat = fil.readlines()
-            with out_folder.open('{}_band.kpt'.format(seedname)) as fil:
+            with out_folder.open(f'{seedname}_band.kpt') as fil:
                 band_kpt = fil.readlines()
         except IOError:
             # IOError: _band.* files not present
@@ -129,9 +123,7 @@ class Wannier90Parser(Parser):
             structure = self.node.inputs.structure
             ## TODO: should we catch exceptions here?
             try:
-                with out_folder.open(
-                    '{}_band.labelinfo.dat'.format(seedname)
-                ) as fil:
+                with out_folder.open(f'{seedname}_band.labelinfo.dat') as fil:
                     band_labelinfo = fil.readlines()
             except IOError:  # use legacy parser for wannier90 < 3.0
                 try:

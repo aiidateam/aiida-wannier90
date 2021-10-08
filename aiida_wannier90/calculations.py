@@ -189,6 +189,12 @@ class Wannier90Calculation(CalcJob):
             message=
             'An error related to bvectors has been found in the Wannier90 output.'
         )
+        spec.exit_code(
+            402,
+            'ERROR_DISENTANGLEMENT_NOT_ENOUGH_STATES',
+            message=
+            'Energy window contains fewer states than number of target WFs.'
+        )
 
     @property
     def _SEEDNAME(self):
@@ -205,9 +211,9 @@ class Wannier90Calculation(CalcJob):
 
         # If we are here, it's an invalid input filename.
         raise ValueError(
-            "The input filename '{}' does not end with '{}', so I don't know how to get the seedname. "
+            f"The input filename '{input_filename}' does not end with '{self._REQUIRED_INPUT_SUFFIX}', "
+            "so I don't know how to get the seedname. "
             "You need to change the `metadata.options.input_filename` in the process inputs."
-            .format(input_filename, self._REQUIRED_INPUT_SUFFIX)
         )
 
     def prepare_for_submission(self, folder):  #pylint: disable=too-many-locals, too-many-statements # noqa:  disable=MC0001
@@ -260,7 +266,7 @@ class Wannier90Calculation(CalcJob):
         random_projections = settings_dict.pop('random_projections', False)
 
         write_win(
-            filename=folder.get_abs_path('{}.win'.format(self._SEEDNAME)),
+            filename=folder.get_abs_path(f'{self._SEEDNAME}.win'),
             parameters=param_dict,
             structure=self.inputs.structure,
             kpoints=self.inputs.kpoints,
@@ -308,9 +314,7 @@ class Wannier90Calculation(CalcJob):
         calcinfo.retrieve_temporary_list = []
         if pp_setup:
             # The parser will then put this in a SinglefileData (if present)
-            calcinfo.retrieve_temporary_list.append(
-                '{}.nnkp'.format(self._SEEDNAME)
-            )
+            calcinfo.retrieve_temporary_list.append(f'{self._SEEDNAME}.nnkp')
 
         # Retrieves bands automatically, if they are calculated
 
@@ -322,9 +326,7 @@ class Wannier90Calculation(CalcJob):
         settings_dict.pop('seedname', None)
         if settings_dict:
             raise exc.InputValidationError(
-                "The following keys in settings are unrecognized: {}".format(
-                    list(settings_dict.keys())
-                )
+                f"The following keys in settings are unrecognized: {list(settings_dict.keys())}"
             )
 
         return calcinfo
@@ -340,9 +342,7 @@ class Wannier90Calculation(CalcJob):
         ):
             raise exc.InputValidationError(
                 "The input filename for Wannier90 (specified in the metadata.options.input_filename) "
-                "must end with .win, you specified instead '{}'".format(
-                    self.inputs.metadata.options.input_filename
-                )
+                f"must end with .win, you specified instead '{self.inputs.metadata.options.input_filename}'"
             )
 
         # The output filename is defined by Wannier90 based on the seedname.
@@ -354,12 +354,9 @@ class Wannier90Calculation(CalcJob):
             raise exc.InputValidationError(
                 "The output filename specified is wrong. You probably changed the metadata.options.input_filename "
                 "but you forgot to adapt the metadata.options.output_filename accordingly! Currently, you have: "
-                "input_filename: '{}', output_filename: '{}', while I would expect '{}'"
-                .format(
-                    self.inputs.metadata.options.input_filename,
-                    self.inputs.metadata.options.output_filename,
-                    expected_output_filename
-                )
+                f"input_filename: '{self.inputs.metadata.options.input_filename}', "
+                f"output_filename: '{self.inputs.metadata.options.output_filename}', "
+                f"while I would expect '{expected_output_filename}'"
             )
 
     @staticmethod
@@ -377,8 +374,7 @@ class Wannier90Calculation(CalcJob):
                 non_lowercase.append(key)
         if non_lowercase:
             raise exc.InputValidationError(
-                "input keys to the Wannier90 plugin must be all lower-case, but the following aren't : {}"
-                .format(", ".join(non_lowercase))
+                f"input keys to the Wannier90 plugin must be all lower-case, but the following aren't : {', '.join(non_lowercase)}"
             )
 
     def _validate_input_parameters(self, parameters):
@@ -398,8 +394,7 @@ class Wannier90Calculation(CalcJob):
                 existing_blocked_keys.append(key)
         if existing_blocked_keys:
             raise exc.InputValidationError(
-                'The following blocked keys were found in the parameters: {}'.
-                format(", ".join(existing_blocked_keys))
+                f'The following blocked keys were found in the parameters: {", ".join(existing_blocked_keys)}'
             )
 
     def _get_input_file_lists(self, pp_setup):
@@ -510,11 +505,10 @@ class Wannier90Calculation(CalcJob):
 
         if not_found:
             raise exc.InputValidationError(
-                "{} necessary input files were not found: {} (NOTE: if you "
-                "wanted to run a preprocess step, remember to pass "
-                "postproc_setup=True in the input settings node)".format(
-                    len(not_found), ', '.join(str(nf) for nf in not_found)
-                )
+                f'{len(not_found)} necessary input files were not found: '
+                f"{', '.join(str(nf) for nf in not_found)} (NOTE: if you "
+                'wanted to run a preprocess step, remember to pass '
+                'postproc_setup=True in the input settings node)'
             )
 
         for pattern in optional_file_globs:
