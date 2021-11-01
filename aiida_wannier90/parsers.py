@@ -99,6 +99,8 @@ class Wannier90Parser(Parser):
                     return self.exit_codes.ERROR_BVECTORS
                 if 'Energy window contains fewer states than number of target WFs, consider reducing dis_proj_min/increasing dis_win_max?' in line:
                     return self.exit_codes.ERROR_DISENTANGLEMENT_NOT_ENOUGH_STATES
+                if 'Error plotting WF cube. Try one of the following:' in line:
+                    return self.exit_codes.ERROR_PLOT_WF_CUBE
         except OSError:
             self.logger.error("Standard output file could not be found.")
             return self.exit_codes.ERROR_OUTPUT_STDOUT_MISSING

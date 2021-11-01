@@ -195,6 +195,11 @@ class Wannier90Calculation(CalcJob):
             message=
             'Energy window contains fewer states than number of target WFs.'
         )
+        spec.exit_code(
+            403,
+            'ERROR_PLOT_WF_CUBE',
+            message='Error plotting Wanier functions in cube format.'
+        )
 
     @property
     def _SEEDNAME(self):
