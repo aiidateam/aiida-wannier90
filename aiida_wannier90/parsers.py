@@ -56,6 +56,7 @@ class Wannier90Parser(Parser):
         This parser for this simple code does simply store in the DB a node
         representing the file of forces in real space
         """
+        import re
         from aiida.orm import Dict, SinglefileData
 
         # None if unset
@@ -82,6 +83,16 @@ class Wannier90Parser(Parser):
                 f'{error_file_name} file'
             )
             return self.exit_codes.ERROR_WERR_FILE_PRESENT
+
+        # Some times the error files are aiida.node_00001.werr, ...
+        error_file_name = re.compile(seedname + r'.+?\.werr')
+        for filename in out_folder.list_object_names():
+            if error_file_name.match(filename):
+                self.logger.error(
+                    'Errors were found please check the retrieved '
+                    f'{filename} file'
+                )
+                return self.exit_codes.ERROR_WERR_FILE_PRESENT
 
         exiting_in_stdout = False
         try:
