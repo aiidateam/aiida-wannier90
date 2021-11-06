@@ -205,3 +205,23 @@ def test_plot_wf_cube(
     assert not calcfunction.is_finished_ok, calcfunction.exit_message
     Wannier90Calculation = CalculationFactory(ENTRY_POINT_CALC_JOB)
     assert calcfunction.exit_status == Wannier90Calculation.exit_codes.ERROR_PLOT_WF_CUBE.status
+
+
+def test_output_stdout_incomplete(
+    fixture_localhost, generate_calc_job_node, generate_parser
+):
+    """Check that parsing works for incomplete wout error."""
+    from aiida.plugins import CalculationFactory
+
+    node = generate_calc_job_node(
+        entry_point_name=ENTRY_POINT_CALC_JOB,
+        computer=fixture_localhost,
+        test_name='output_stdout_incomplete'
+    )
+    parser = generate_parser(ENTRY_POINT_PARSER)
+    _, calcfunction = parser.parse_from_node(node, store_provenance=False)
+
+    assert calcfunction.is_finished, calcfunction.exception
+    assert not calcfunction.is_finished_ok, calcfunction.exit_message
+    Wannier90Calculation = CalculationFactory(ENTRY_POINT_CALC_JOB)
+    assert calcfunction.exit_status == Wannier90Calculation.exit_codes.ERROR_OUTPUT_STDOUT_INCOMPLETE.status

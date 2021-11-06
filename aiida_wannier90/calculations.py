@@ -200,6 +200,12 @@ class Wannier90Calculation(CalcJob):
             'ERROR_PLOT_WF_CUBE',
             message='Error plotting Wanier functions in cube format.'
         )
+        spec.exit_code(
+            404,
+            'ERROR_OUTPUT_STDOUT_INCOMPLETE',
+            message=
+            'The stdout output file was incomplete probably because the calculation got interrupted.'
+        )
 
     @property
     def _SEEDNAME(self):

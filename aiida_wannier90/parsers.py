@@ -112,6 +112,13 @@ class Wannier90Parser(Parser):
                     return self.exit_codes.ERROR_DISENTANGLEMENT_NOT_ENOUGH_STATES
                 if 'Error plotting WF cube. Try one of the following:' in line:
                     return self.exit_codes.ERROR_PLOT_WF_CUBE
+            if len(out_file) == 0:
+                return self.exit_codes.ERROR_OUTPUT_STDOUT_INCOMPLETE
+            if out_file[-1].strip() not in (
+                f'Exiting... {seedname}.nnkp written.',
+                'All done: wannier90 exiting'
+            ):
+                return self.exit_codes.ERROR_OUTPUT_STDOUT_INCOMPLETE
         except OSError:
             self.logger.error("Standard output file could not be found.")
             return self.exit_codes.ERROR_OUTPUT_STDOUT_MISSING
