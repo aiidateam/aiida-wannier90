@@ -64,12 +64,8 @@ def test_default(
     input_seedname = seedname or 'aiida'
     inputs = generate_common_inputs_gaas(inputfolder_seedname=input_seedname)
     if seedname is not None:
-        inputs['metadata']['options']['input_filename'] = "{}.win".format(
-            seedname
-        )
-        inputs['metadata']['options']['output_filename'] = "{}.wout".format(
-            seedname
-        )
+        inputs['metadata']['options']['input_filename'] = f"{seedname}.win"
+        inputs['metadata']['options']['output_filename'] = f"{seedname}.wout"
 
     calc_info = generate_calc_job(
         folder=fixture_sandbox,
@@ -80,8 +76,8 @@ def test_default(
     cmdline_params = [input_seedname]
     local_copy_list = [(val, val) for val in (
         'UNK00001.1', 'UNK00002.1', 'UNK00003.1', 'UNK00004.1', 'UNK00005.1',
-        'UNK00006.1', 'UNK00007.1', 'UNK00008.1',
-        '{}.mmn'.format(input_seedname), '{}.amn'.format(input_seedname)
+        'UNK00006.1', 'UNK00007.1', 'UNK00008.1', f'{input_seedname}.mmn',
+        f'{input_seedname}.amn'
     )]
     retrieve_list = [
         input_seedname + suffix for suffix in (
@@ -89,7 +85,7 @@ def test_default(
             '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz',
             '_hr.dat', '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat',
             '_dos.dat', '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw',
-            '_band_proj.dat', '_band.labelinfo.dat'
+            '_band_proj.dat', '_band.labelinfo.dat', '.node_00001.werr'
         )
     ]
     retrieve_temporary_list = []
@@ -106,12 +102,12 @@ def test_default(
                   ) == sorted(retrieve_temporary_list)
     assert sorted(calc_info.remote_symlink_list) == sorted([])
 
-    with fixture_sandbox.open('{}.win'.format(input_seedname)) as handle:
+    with fixture_sandbox.open(f'{input_seedname}.win') as handle:
         input_written = handle.read()
 
     # Checks on the files written to the sandbox folder as raw input
     assert sorted(fixture_sandbox.get_content_list()
-                  ) == sorted(['{}.win'.format(input_seedname)])
+                  ) == sorted([f'{input_seedname}.win'])
     file_regression.check(input_written, encoding='utf-8', extension='.win')
 
 
@@ -194,7 +190,7 @@ def test_no_projections(
             '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz',
             '_hr.dat', '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat',
             '_dos.dat', '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw',
-            '_band_proj.dat', '_band.labelinfo.dat'
+            '_band_proj.dat', '_band.labelinfo.dat', '.node_00001.werr'
         )
     ]
     retrieve_temporary_list = []
@@ -245,7 +241,7 @@ def test_list_projections(
             '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz',
             '_hr.dat', '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat',
             '_dos.dat', '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw',
-            '_band_proj.dat', '_band.labelinfo.dat'
+            '_band_proj.dat', '_band.labelinfo.dat', '.node_00001.werr'
         )
     ]
     retrieve_temporary_list = []
@@ -280,12 +276,8 @@ def test_wrong_seedname(
 
     inputs = generate_common_inputs_gaas(inputfolder_seedname='something_else')
     if seedname is not None:
-        inputs['metadata']['options']['input_filename'] = "{}.win".format(
-            seedname
-        )
-        inputs['metadata']['options']['output_filename'] = "{}.wout".format(
-            seedname
-        )
+        inputs['metadata']['options']['input_filename'] = f"{seedname}.win"
+        inputs['metadata']['options']['output_filename'] = f"{seedname}.wout"
 
     with pytest.raises(InputValidationError):
         generate_calc_job(
@@ -406,7 +398,7 @@ def test_diffusivity(
         inputs=inputs
     )
 
-    with fixture_sandbox.open('{}.win'.format(seedname)) as handle:
+    with fixture_sandbox.open(f'{seedname}.win') as handle:
         input_written = handle.read()
 
     file_regression.check(input_written, encoding='utf-8', extension='.win')
@@ -499,7 +491,43 @@ def test_spin_projections(
         inputs=inputs
     )
 
-    with fixture_sandbox.open('{}.win'.format(seedname)) as handle:
+    with fixture_sandbox.open(f'{seedname}.win') as handle:
+        input_written = handle.read()
+
+    file_regression.check(input_written, encoding='utf-8', extension='.win')
+
+
+def test_bands_kpoints(
+    fixture_sandbox, generate_calc_job, generate_common_inputs_gaas,
+    file_regression
+):
+    """Test a `Wannier90Calculation` with inputs `bands_kpoints`."""
+
+    seedname = 'aiida'
+    inputs = generate_common_inputs_gaas(inputfolder_seedname=seedname)
+
+    # Replace kpoint_path by bands_kpoints
+    kpoint_path = inputs.pop('kpoint_path')
+    point_coords = kpoint_path['point_coords']
+    labels = []
+    kpoints = []
+    for label, coords in point_coords.items():
+        labels.append(label)
+        kpoints.append(coords)
+    label_numbers = list(range(len(labels)))
+    bands_kpoints = orm.KpointsData()
+    bands_kpoints.set_kpoints(kpoints)
+    bands_kpoints.set_attribute('labels', labels)
+    bands_kpoints.set_attribute('label_numbers', label_numbers)
+    inputs['bands_kpoints'] = bands_kpoints
+
+    generate_calc_job(
+        folder=fixture_sandbox,
+        entry_point_name=ENTRY_POINT_NAME,
+        inputs=inputs
+    )
+
+    with fixture_sandbox.open(f'{seedname}.win') as handle:
         input_written = handle.read()
 
     file_regression.check(input_written, encoding='utf-8', extension='.win')

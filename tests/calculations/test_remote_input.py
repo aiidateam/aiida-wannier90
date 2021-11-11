@@ -51,12 +51,8 @@ def test_default_remote(
     seedname = 'aiida'  # This is hardcoded in the generate_common_inputs_remotedata
     inputs = generate_common_inputs_gaas_remotedata()
     if seedname is not None:
-        inputs['metadata']['options']['input_filename'] = "{}.win".format(
-            seedname
-        )
-        inputs['metadata']['options']['output_filename'] = "{}.wout".format(
-            seedname
-        )
+        inputs['metadata']['options']['input_filename'] = f"{seedname}.win"
+        inputs['metadata']['options']['output_filename'] = f"{seedname}.wout"
 
     calc_info = generate_calc_job(
         folder=fixture_sandbox,
@@ -78,7 +74,7 @@ def test_default_remote(
             '_band.kpt', '.bxsf', '_w.xsf', '_w.cube', '_centres.xyz',
             '_hr.dat', '_tb.dat', '_r.dat', '.bvec', '_wsvec.dat', '_qc.dat',
             '_dos.dat', '_htB.dat', '_u.mat', '_u_dis.mat', '.vdw',
-            '_band_proj.dat', '_band.labelinfo.dat'
+            '_band_proj.dat', '_band.labelinfo.dat', '.node_00001.werr'
         )
     ]
     retrieve_temporary_list = []
@@ -100,10 +96,10 @@ def test_default_remote(
         os.path.basename(elem[1]) for elem in calc_info.remote_copy_list
     ]) == sorted(remote_copy_list_files)
 
-    with fixture_sandbox.open('{}.win'.format(seedname)) as handle:
+    with fixture_sandbox.open(f'{seedname}.win') as handle:
         input_written = handle.read()
 
     # Checks on the files written to the sandbox folder as raw input
     assert sorted(fixture_sandbox.get_content_list()
-                  ) == sorted(['{}.win'.format(seedname)])
+                  ) == sorted([f'{seedname}.win'])
     file_regression.check(input_written, encoding='utf-8', extension='.win')

@@ -8,8 +8,10 @@
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
 
+import typing as ty
 import copy
 
+from aiida import orm
 from aiida.common import InputValidationError
 
 from ..utils import conv_to_fortran_withlists
@@ -24,6 +26,7 @@ def write_win( # pylint: disable=too-many-arguments
     kpoints=None,
     structure=None,
     kpoint_path=None,
+    bands_kpoints=None,
     projections=None,
     random_projections=False,
 ):
@@ -45,6 +48,9 @@ def write_win( # pylint: disable=too-many-arguments
     :param kpoint_path: List of k-points used for band interpolation.
     :type kpoint_path: aiida.orm.nodes.data.dict.Dict
 
+    :param bands_kpoints: An explicit list of k-points used for band interpolation.
+    :type bands_kpoints: aiida.orm.KpointsData
+
     :param projections: Orbitals used for the projections. Can be specified either as AiiDA  class :py:class:`OrbitalData <aiida.orm.OrbitalData>`,
      or as a list of strings specifying the projections in Wannier90's format.
     :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str]
@@ -59,17 +65,19 @@ def write_win( # pylint: disable=too-many-arguments
                 structure=structure,
                 kpoints=kpoints,
                 kpoint_path=kpoint_path,
+                bands_kpoints=bands_kpoints,
                 projections=projections,
                 random_projections=random_projections,
             )
         )
 
 
-def _create_win_string( # pylint: disable=too-many-branches,missing-function-docstring
+def _create_win_string( # pylint: disable=too-many-branches,missing-function-docstring,too-many-arguments
     parameters,
     kpoints,
     structure=None,
     kpoint_path=None,
+    bands_kpoints=None,
     projections=None,
     random_projections=False,
 ):
@@ -119,6 +127,10 @@ def _create_win_string( # pylint: disable=too-many-branches,missing-function-doc
         block_inputs['kpoints'] = _format_kpoints(kpoints)
     if kpoint_path is not None:
         block_inputs['kpoint_path'] = _format_kpoint_path(kpoint_path)
+    elif bands_kpoints is not None:
+        kpath, labels = _format_explicit_kpoint_path(bands_kpoints)
+        block_inputs['explicit_kpath'] = kpath
+        block_inputs['explicit_kpath_labels'] = labels
     input_file_lines += _format_block_inputs(block_inputs)
 
     return '\n'.join(input_file_lines) + '\n'
@@ -201,7 +213,7 @@ def _format_single_projection(orbital):  #pylint: disable=too-many-locals
         res = orb_dict.get(name, None)
         if res is None and required:
             raise InputValidationError(
-                "Orbital is missing attribute '{}'.".format(name)
+                f"Orbital is missing attribute '{name}'."
             )
         return res
 
@@ -215,9 +227,7 @@ def _format_single_projection(orbital):  #pylint: disable=too-many-locals
             return ''
         if not isinstance(value, (tuple, list)):
             value = [value]
-        return '{}={}'.format(
-            name, ','.join("{:.10f}".format(x) for x in value)
-        )
+        return f'{name}={",".join(f"{x:.10f}" for x in value)}'
 
     def _format_projection_values_generic(name, value):
         """
@@ -231,7 +241,7 @@ def _format_single_projection(orbital):  #pylint: disable=too-many-locals
             return ''
         if not isinstance(value, (tuple, list)):
             value = [value]
-        return '{}={}'.format(name, ','.join("{}".format(x) for x in value))
+        return f'{name}={",".join(f"{x}" for x in value)}'
 
     # required arguments
     position = _get_attribute("position")
@@ -253,9 +263,7 @@ def _format_single_projection(orbital):  #pylint: disable=too-many-locals
         xaxis_string = _format_projection_values_float('x', xaxis)
         radial_string = _format_projection_values_generic('r', radial + 1)
         zona_string = _format_projection_values_float('zona', zona)
-        wann_string += ':{}:{}:{}:{}'.format(
-            zaxis_string, xaxis_string, radial_string, zona_string
-        )
+        wann_string += f':{zaxis_string}:{xaxis_string}:{radial_string}:{zona_string}'
 
     # spin, optional
     # Careful with spin, it is insufficient to set the spin the projection
@@ -264,19 +272,18 @@ def _format_single_projection(orbital):  #pylint: disable=too-many-locals
     spin = _get_attribute("spin", required=False)
     if spin is not None and spin != 0:
         spin_dict = {-1: "d", 1: "u"}
-        wann_string += "({})".format(spin_dict[spin])
+        wann_string += f"({spin_dict[spin]})"
     spin_orient = _get_attribute("spin_orientation", required=False)
     if spin_orient is not None:
-        wann_string += "[" + ",".join([
-            "{:18.10f}".format(x) for x in spin_orient
-        ]) + "]"
+        wann_string += "[" + ",".join([f"{x:18.10f}"
+                                       for x in spin_orient]) + "]"
 
     return wann_string
 
 
 def _format_unit_cell(structure):
     return ['ang'] + [
-        "{0:18.10f} {1:18.10f} {2:18.10f}".format(*vector)
+        f"{vector[0]:18.10f} {vector[1]:18.10f} {vector[2]:18.10f}"
         for vector in structure.cell
     ]
 
@@ -293,10 +300,10 @@ def _format_atoms_cart(structure):
         list_item = copy.deepcopy(list_item)
         if isinstance(list_item, str):
             return list_item
-        return ' ' + ' '.join(["{:18.10f}".format(_) for _ in list_item]) + ' '
+        return ' ' + ' '.join([f"{_:18.10f}" for _ in list_item]) + ' '
 
     return ['ang'] + [
-        '{}  {}'.format(site.kind_name, list2str(site.position))
+        f'{site.kind_name}  {list2str(site.position)}'
         for site in structure.sites
     ]
 
@@ -308,7 +315,7 @@ def _format_kpoints(kpoints):
     # KpointsData was set with set_kpoints
     except AttributeError:
         all_kpoints = kpoints.get_kpoints()
-    return ["{:18.10f} {:18.10f} {:18.10f}".format(*k) for k in all_kpoints]
+    return [f"{k[0]:18.10f} {k[1]:18.10f} {k[2]:18.10f}" for k in all_kpoints]
 
 
 def _format_kpoint_path(kpoint_path):
@@ -334,17 +341,55 @@ def _format_kpoint_path(kpoint_path):
     for (point1, point2) in path:
         coord1 = point_coords[point1]
         coord2 = point_coords[point2]
-        path_line = '{} {} {} {} '.format(point1, *coord1)
-        path_line += ' {} {} {} {}'.format(point2, *coord2)
+        path_line = f'{point1} {coord1[0]} {coord1[1]} {coord1[2]} '
+        path_line += f' {point2} {coord2[0]} {coord2[1]} {coord2[2]}'
         res.append(path_line)
     return res
+
+
+def _format_explicit_kpoint_path(bands_kpoints: orm.KpointsData) -> ty.Tuple:
+    """
+    Prepare the lines for the Wannier90 input file related to the `explicit_kpath` and `explicit_kpath_labels`.
+
+    :param bands_kpoints: a KpointsData which must contain labels.
+    :return: a tuple of list of strings to be added to the input file, for the `explicit_kpath`
+    and `explicit_kpath_labels` blocks.
+    """
+    if 'mesh' in bands_kpoints.attributes:
+        raise ValueError(
+            'Input should be a list of kpoints along the kpath, but '
+            f'KpointsData<{bands_kpoints.pk}> contains a mesh'
+        )
+
+    if bands_kpoints.labels is None:
+        raise ValueError(
+            f'Input KpointsData<{bands_kpoints.pk}> should contain `labels`'
+        )
+
+    kpoints = bands_kpoints.get_kpoints()
+    labels = bands_kpoints.labels
+
+    # In Wannier90 (from the user guide): Values are in
+    # fractional coordinates with respect to the primitive
+    # reciprocal lattice vectors.
+    explicit_kpath = []
+    for kpt in kpoints:
+        explicit_kpath.append(f'{kpt[0]} {kpt[1]} {kpt[2]}')
+
+    explicit_kpath_labels = []
+    for idx, lab in labels:
+        kpt = kpoints[idx]
+        path_line = f'{lab} {kpt[0]} {kpt[1]} {kpt[2]}'
+        explicit_kpath_labels.append(path_line)
+
+    return explicit_kpath, explicit_kpath_labels
 
 
 def _format_block_inputs(block_inputs):
     res = []
     for name, lines in sorted(block_inputs.items()):
         res.append('')
-        res.append('begin {}'.format(name))
+        res.append(f'begin {name}')
         res.extend(lines)
-        res.append('end {}'.format(name))
+        res.append(f'end {name}')
     return res

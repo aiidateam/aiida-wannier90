@@ -120,6 +120,15 @@ class Wannier90Calculation(CalcJob):
             "a list ``path`` of length-2 tuples with the labels of the endpoints of the path; and "
             "a dictionary ``point_coords`` giving the scaled coordinates for each high-symmetry endpoint."
         )
+        spec.input(
+            "bands_kpoints",
+            valid_type=KpointsData,
+            required=False,
+            help=
+            "A list of k-points along a path to be used for bands interpolation; "
+            "it should contain `labels`. Specify either this or `kpoint_path`."
+        )
+        spec.inputs.validator = cls.validate_inputs
 
         spec.output(
             'output_parameters',
@@ -227,6 +236,19 @@ class Wannier90Calculation(CalcJob):
             "You need to change the `metadata.options.input_filename` in the process inputs."
         )
 
+    @staticmethod
+    def validate_inputs(inputs, ctx=None):  # pylint: disable=unused-argument
+        """Validate the inputs of the entire input namespace."""
+
+        # Cannot specify both `kpoint_path` and `bands_kpoints`
+        if all(key in inputs for key in ['kpoint_path', 'bands_kpoints']):
+            return 'Cannot specify both `kpoint_path` and `bands_kpoints`.'
+
+        # `bands_kpoints` must contain `labels`
+        if 'bands_kpoints' in inputs:
+            if inputs['bands_kpoints'].labels is None:
+                return '`bands_kpoints` must contain `labels`.'
+
     def prepare_for_submission(self, folder):  #pylint: disable=too-many-locals, too-many-statements # noqa:  disable=MC0001
         """
         Routine which creates the input file of Wannier90
@@ -282,6 +304,7 @@ class Wannier90Calculation(CalcJob):
             structure=self.inputs.structure,
             kpoints=self.inputs.kpoints,
             kpoint_path=getattr(self.inputs, 'kpoint_path', None),
+            bands_kpoints=getattr(self.inputs, 'bands_kpoints', None),
             projections=getattr(self.inputs, 'projections', None),
             random_projections=random_projections,
         )
