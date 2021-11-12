@@ -225,3 +225,28 @@ def test_output_stdout_incomplete(
     assert not calcfunction.is_finished_ok, calcfunction.exit_message
     Wannier90Calculation = CalculationFactory(ENTRY_POINT_CALC_JOB)
     assert calcfunction.exit_status == Wannier90Calculation.exit_codes.ERROR_OUTPUT_STDOUT_INCOMPLETE.status
+
+
+def test_restart(
+    fixture_localhost, generate_calc_job_node, generate_parser, data_regression
+):
+    """Basic check of parsing a Wannier90 restart calculation."""
+    node = generate_calc_job_node(
+        entry_point_name=ENTRY_POINT_CALC_JOB,
+        computer=fixture_localhost,
+        test_name='restart'
+    )
+    parser = generate_parser(ENTRY_POINT_PARSER)
+    results, calcfunction = parser.parse_from_node(
+        node, store_provenance=False
+    )
+
+    assert calcfunction.is_finished, calcfunction.exception
+    assert calcfunction.is_finished_ok, calcfunction.exit_message
+    assert not orm.Log.objects.get_logs_for(node)
+    assert 'output_parameters' in results
+
+    data_regression.check({
+        'output_parameters':
+        results['output_parameters'].get_dict(),
+    })

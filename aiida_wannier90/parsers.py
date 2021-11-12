@@ -190,6 +190,7 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
     :return out: a dictionary of parameters that can be stored as parameter data
     '''
     w90_conv = False  #Used to assess convergence of MLWF procedure use conv_tol and conv_window>1
+    w90_restart = False
     out = {}
     out.update({'warnings': []})
     for i, line in enumerate(wann_out_file):
@@ -356,12 +357,36 @@ def raw_wout_parser(wann_out_file):  # pylint: disable=too-many-locals,too-many-
                 wf_out.append(wf_out_i)
             out.update({'wannier_functions_initial': wf_out})
 
+        if 'Reading restart information from file' in line:
+            w90_restart = True
+            # When restart for plotting WFs, there might be no `out['wannier_functions_output']`
+            wann_functions = []
+
         if ' Maximum Im/Re Ratio' in line:
-            wann_functions = out['wannier_functions_output']
             wann_id = int(line.split()[3])
-            wann_function = wann_functions[wann_id - 1]
-            wann_function.update({'im_re_ratio': float(line.split()[-1])})
-    if not w90_conv:
+            wann_ratio = float(line.split()[-1])
+            if w90_restart:
+                wann_functions.append({
+                    'wf_ids': wann_id,
+                    'im_re_ratio': wann_ratio
+                })
+            else:
+                wann_functions = out['wannier_functions_output']
+                wann_function = wann_functions[wann_id - 1]
+                wann_function.update({'im_re_ratio': wann_ratio})
+    if w90_restart:
+        if 'wannier_functions_output' not in out and len(wann_functions) > 0:
+            out['wannier_functions_output'] = wann_functions
+        else:
+            for wann_function in wann_functions:
+                wann_id = wann_function['wf_ids']
+                wann_out = out['wannier_functions_output'][wann_id - 1]
+                if wann_out['wf_ids'] != wann_id:
+                    raise ValueError(
+                        f'Failed to parse `wannier_functions_output` for wf_ids = {wann_id}'
+                    )
+                wann_out.update(wann_functions)
+    if not w90_restart and not w90_conv:
         out['warnings'].append(
             'Wannierisation finished because num_iter was reached.'
         )

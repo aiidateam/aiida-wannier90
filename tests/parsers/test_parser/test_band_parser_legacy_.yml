@@ -138,7 +138,6 @@ output_parameters:
 
     '
   - The xyz_WF_center file has been selected to be written, but this is not yet supported!
-  - Wannierisation finished because num_iter was reached.
   - 'Note: no file named SEEDNAME_band.labelinfo.dat found. You are probably using
     a version of Wannier90 before 3.0. There, the labels associated with each k-points
     were not printed in output and there were also cases in which points were not
