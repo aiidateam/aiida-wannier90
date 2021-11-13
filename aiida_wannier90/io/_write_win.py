@@ -58,7 +58,7 @@ def write_win( # pylint: disable=too-many-arguments
     :param random_projections: If  class :py:class:`OrbitalData <aiida.orm.OrbitalData>` is used for projections, enables random projections completion
     :type random_projections: aiida.orm.nodes.data.bool.Bool
     """
-    with open(filename, 'w') as file:
+    with open(filename, 'w', encoding='utf-8') as file:
         file.write(
             _create_win_string(
                 parameters=parameters,
@@ -374,12 +374,14 @@ def _format_explicit_kpoint_path(bands_kpoints: orm.KpointsData) -> ty.Tuple:
     # reciprocal lattice vectors.
     explicit_kpath = []
     for kpt in kpoints:
-        explicit_kpath.append(f'{kpt[0]} {kpt[1]} {kpt[2]}')
+        explicit_kpath.append(
+            f'{kpt[0]:18.10f} {kpt[1]:18.10f} {kpt[2]:18.10f}'
+        )
 
     explicit_kpath_labels = []
     for idx, lab in labels:
         kpt = kpoints[idx]
-        path_line = f'{lab} {kpt[0]} {kpt[1]} {kpt[2]}'
+        path_line = f'{lab} {kpt[0]:18.10f} {kpt[1]:18.10f} {kpt[2]:18.10f}'
         explicit_kpath_labels.append(path_line)
 
     return explicit_kpath, explicit_kpath_labels

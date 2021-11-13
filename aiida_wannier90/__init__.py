@@ -40,5 +40,6 @@ from . import io
 from . import parsers
 from . import orbitals
 from . import calculations
+from . import utils
 
-__all__ = ('io', 'parsers', 'orbitals', 'calculations')
+__all__ = ('io', 'parsers', 'orbitals', 'calculations', 'utils')
