@@ -35,6 +35,27 @@ _InputFileSpec = namedtuple(
 )
 
 
+def validate_inputs(inputs, ctx=None):  # pylint: disable=unused-argument
+    """Validate the inputs of the entire input namespace."""
+
+    # Cannot specify both `kpoint_path` and `bands_kpoints`
+    if all(key in inputs for key in ['kpoint_path', 'bands_kpoints']):
+        return 'Cannot specify both `kpoint_path` and `bands_kpoints`.'
+
+    # `bands_kpoints` must contain `labels`
+    if 'bands_kpoints' in inputs:
+        if inputs['bands_kpoints'].labels is None:
+            return '`bands_kpoints` must contain `labels`.'
+
+    # Check bands_plot and kpoint_path, bands_kpoints
+    bands_plot = inputs['parameters'].get_dict().get('bands_plot', False)
+    if bands_plot:
+        kpoint_path = inputs.get('kpoint_path', None)
+        bands_kpoints = inputs.get('bands_kpoints', None)
+        if kpoint_path is None and bands_kpoints is None:
+            return '`bands_plot` is True but no `kpoint_path` or `bands_kpoints` provided'
+
+
 class Wannier90Calculation(CalcJob):
     """
     Plugin for Wannier90, a code for computing maximally-localized Wannier
@@ -128,7 +149,7 @@ class Wannier90Calculation(CalcJob):
             "A list of k-points along a path to be used for bands interpolation; "
             "it should contain `labels`. Specify either this or `kpoint_path`."
         )
-        spec.inputs.validator = cls.validate_inputs
+        spec.inputs.validator = validate_inputs
 
         spec.output(
             'output_parameters',
@@ -235,19 +256,6 @@ class Wannier90Calculation(CalcJob):
             "so I don't know how to get the seedname. "
             "You need to change the `metadata.options.input_filename` in the process inputs."
         )
-
-    @staticmethod
-    def validate_inputs(inputs, ctx=None):  # pylint: disable=unused-argument
-        """Validate the inputs of the entire input namespace."""
-
-        # Cannot specify both `kpoint_path` and `bands_kpoints`
-        if all(key in inputs for key in ['kpoint_path', 'bands_kpoints']):
-            return 'Cannot specify both `kpoint_path` and `bands_kpoints`.'
-
-        # `bands_kpoints` must contain `labels`
-        if 'bands_kpoints' in inputs:
-            if inputs['bands_kpoints'].labels is None:
-                return '`bands_kpoints` must contain `labels`.'
 
     def prepare_for_submission(self, folder):  #pylint: disable=too-many-locals, too-many-statements # noqa:  disable=MC0001
         """
