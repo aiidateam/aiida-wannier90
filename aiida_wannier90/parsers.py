@@ -76,24 +76,6 @@ class Wannier90Parser(Parser):
         except exc.NotExistent:
             return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
 
-        # Checks for error output files
-        if error_file_name in out_folder.list_object_names():
-            self.logger.error(
-                'Errors were found please check the retrieved '
-                f'{error_file_name} file'
-            )
-            return self.exit_codes.ERROR_WERR_FILE_PRESENT
-
-        # Some times the error files are aiida.node_00001.werr, ...
-        error_file_name = re.compile(seedname + r'.+?\.werr')
-        for filename in out_folder.list_object_names():
-            if error_file_name.match(filename):
-                self.logger.error(
-                    'Errors were found please check the retrieved '
-                    f'{filename} file'
-                )
-                return self.exit_codes.ERROR_WERR_FILE_PRESENT
-
         exiting_in_stdout = False
         try:
             with out_folder.open(output_file_name) as handle:
@@ -122,6 +104,25 @@ class Wannier90Parser(Parser):
         except OSError:
             self.logger.error("Standard output file could not be found.")
             return self.exit_codes.ERROR_OUTPUT_STDOUT_MISSING
+
+        # Checks for error output files
+        # This is after the check of stdout, since stdout might give more verbose exit code.
+        if error_file_name in out_folder.list_object_names():
+            self.logger.error(
+                'Errors were found please check the retrieved '
+                f'{error_file_name} file'
+            )
+            return self.exit_codes.ERROR_WERR_FILE_PRESENT
+
+        # Some times the error files are aiida.node_00001.werr, ...
+        error_file_name = re.compile(seedname + r'.+?\.werr')
+        for filename in out_folder.list_object_names():
+            if error_file_name.match(filename):
+                self.logger.error(
+                    'Errors were found please check the retrieved '
+                    f'{filename} file'
+                )
+                return self.exit_codes.ERROR_WERR_FILE_PRESENT
 
         if temporary_folder is not None:
             nnkp_temp_path = os.path.join(temporary_folder, nnkp_file_name)
