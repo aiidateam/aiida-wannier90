@@ -10,6 +10,7 @@
 
 import pytest
 from aiida.common.exceptions import InputValidationError
+from aiida.orm import Dict, List
 
 
 def test_create_win_string(generate_win_params_gaas, file_regression):
@@ -19,6 +20,58 @@ def test_create_win_string(generate_win_params_gaas, file_regression):
         _create_win_string(**generate_win_params_gaas()),
         encoding='utf-8',
         extension='.win'
+    )
+
+
+def test_create_win_string_projections_list_of_str(
+    generate_win_params_gaas, file_regression
+):
+    """Test _write_win for parameter projections using a List of str."""
+    from aiida_wannier90.io._write_win import _create_win_string
+
+    gaas_params = generate_win_params_gaas()
+    gaas_params['projections'] = List(list=["Ga: p", "As: p"])
+    file_regression.check(
+        _create_win_string(**gaas_params), encoding='utf-8', extension='.win'
+    )
+
+
+def test_create_win_string_projections_list_of_dict(
+    generate_win_params_gaas, file_regression
+):
+    """Test _write_win for parameter projections using a List of dict."""
+    from aiida_wannier90.io._write_win import _create_win_string
+
+    gaas_params = generate_win_params_gaas()
+    gaas_params['projections'] = List(
+        list=[{
+            "kind_name": "Ga",
+            "ang_mtm_name": ["p"]
+        }, {
+            "kind_name": "As",
+            "ang_mtm_name": ["p"]
+        }]
+    )
+    file_regression.check(
+        _create_win_string(**gaas_params), encoding='utf-8', extension='.win'
+    )
+
+
+def test_create_win_string_projections_dict(
+    generate_win_params_gaas, file_regression
+):
+    """Test _write_win for parameter projections using a List of str."""
+    from aiida_wannier90.io._write_win import _create_win_string
+
+    gaas_params = generate_win_params_gaas()
+    gaas_params['projections'] = Dict(
+        dict={
+            "kind_name": "Ga",
+            "ang_mtm_name": ["p"]
+        }
+    )
+    file_regression.check(
+        _create_win_string(**gaas_params), encoding='utf-8', extension='.win'
     )
 
 

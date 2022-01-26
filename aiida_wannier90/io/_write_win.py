@@ -13,6 +13,7 @@ import copy
 from aiida.common import InputValidationError
 
 from ..utils import conv_to_fortran_withlists
+from ..orbitals import generate_projections
 from ._group_list import list_to_grouped_string
 
 __all__ = ('write_win', )
@@ -46,8 +47,9 @@ def write_win( # pylint: disable=too-many-arguments
     :type kpoint_path: aiida.orm.nodes.data.dict.Dict
 
     :param projections: Orbitals used for the projections. Can be specified either as AiiDA  class :py:class:`OrbitalData <aiida.orm.OrbitalData>`,
-     or as a list of strings specifying the projections in Wannier90's format.
-    :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str]
+     or as a list of strings specifying the projections in Wannier90's format,
+     or as a list of dict in the format of the argument of `generate_projections`.
+    :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str], aiida.orm.nodes.data.list.List[dict]
 
     :param random_projections: If  class :py:class:`OrbitalData <aiida.orm.OrbitalData>` is used for projections, enables random projections completion
     :type random_projections: aiida.orm.nodes.data.bool.Bool
@@ -65,7 +67,7 @@ def write_win( # pylint: disable=too-many-arguments
         )
 
 
-def _create_win_string( # pylint: disable=too-many-branches,missing-function-docstring
+def _create_win_string( # pylint: disable=too-many-branches,missing-function-docstring # noqa: MC0001
     parameters,
     kpoints,
     structure=None,
@@ -74,7 +76,7 @@ def _create_win_string( # pylint: disable=too-many-branches,missing-function-doc
     random_projections=False,
 ):
     from aiida.plugins import DataFactory
-    from aiida.orm import List
+    from aiida.orm import List, Dict
 
     # prepare the main input text
     input_file_lines = []
@@ -106,7 +108,31 @@ def _create_win_string( # pylint: disable=too-many-branches,missing-function-doc
                 'random_projections cannot be True if with List-type projections.'
                 'Instead, use "random" string as first element of the List.'
             )
-        block_inputs['projections'] = projections.get_list()
+        lst = projections.get_list()
+        if all(isinstance(x, str) for x in lst):
+            block_inputs['projections'] = lst
+        elif all(isinstance(x, dict) for x in lst):
+            orbital_data = generate_projections(lst, structure=structure)
+            block_inputs['projections'] = _format_all_projections(
+                orbital_data, random_projections=True
+            )
+        else:
+            raise InputValidationError(
+                'Projections List contains wrong elements.'
+                'They need to be either all strings or all dicts.'
+            )
+
+    elif isinstance(projections, Dict):
+        if random_projections:
+            raise InputValidationError(
+                'random_projections cannot be True if with Dict-type projections.'
+            )
+        orbital_data = generate_projections(
+            projections.get_dict(), structure=structure
+        )
+        block_inputs['projections'] = _format_all_projections(
+            orbital_data, random_projections=True
+        )
     else:
         block_inputs['projections'] = _format_all_projections(
             projections, random_projections=True
