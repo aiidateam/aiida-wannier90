@@ -10,13 +10,30 @@
 
 import pytest
 from aiida.common.exceptions import InputValidationError
-
+from aiida.orm import List
 
 def test_create_win_string(generate_win_params_gaas, file_regression):
     from aiida_wannier90.io._write_win import _create_win_string
 
     file_regression.check(
         _create_win_string(**generate_win_params_gaas()),
+        encoding='utf-8',
+        extension='.win'
+    )
+
+def test_create_win_string_generate_projections(generate_win_params_gaas, file_regression):
+    from aiida_wannier90.io._write_win import _create_win_string
+
+    gaas_params = generate_win_params_gaas()
+    gaas_params['projecions'] = List([{
+        "kind_name": "Ga",
+        "ang_mtm_name": ["p"]
+    }, {
+        "kind_name": "As",
+        "ang_mtm_name": ["p"]
+    }])
+    file_regression.check(
+        _create_win_string(**gaas_params),
         encoding='utf-8',
         extension='.win'
     )
