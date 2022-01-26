@@ -34,7 +34,6 @@ begin kpoints
 end kpoints
 
 begin projections
-random
 Ga: p
 As: p
 end projections

@@ -47,8 +47,9 @@ def write_win( # pylint: disable=too-many-arguments
     :type kpoint_path: aiida.orm.nodes.data.dict.Dict
 
     :param projections: Orbitals used for the projections. Can be specified either as AiiDA  class :py:class:`OrbitalData <aiida.orm.OrbitalData>`,
-     or as a list of strings specifying the projections in Wannier90's format.
-    :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str]
+     or as a list of strings specifying the projections in Wannier90's format,
+     or as a list of dict in the format of the argument of `generate_projections`.
+    :type projections: aiida.orm.nodes.data.orbital.OrbitalData, aiida.orm.nodes.data.list.List[str], aiida.orm.nodes.data.list.List[dict]
 
     :param random_projections: If  class :py:class:`OrbitalData <aiida.orm.OrbitalData>` is used for projections, enables random projections completion
     :type random_projections: aiida.orm.nodes.data.bool.Bool
@@ -66,7 +67,7 @@ def write_win( # pylint: disable=too-many-arguments
         )
 
 
-def _create_win_string( # pylint: disable=too-many-branches,missing-function-docstring
+def _create_win_string( # pylint: disable=too-many-branches,missing-function-docstring # noqa: MC0001
     parameters,
     kpoints,
     structure=None,
@@ -111,10 +112,7 @@ def _create_win_string( # pylint: disable=too-many-branches,missing-function-doc
         if all(isinstance(x, str) for x in lst):
             block_inputs['projections'] = lst
         elif all(isinstance(x, dict) for x in lst):
-            orbital_data = generate_projections(
-                lst,
-                structure=structure
-            )
+            orbital_data = generate_projections(lst, structure=structure)
             block_inputs['projections'] = _format_all_projections(
                 orbital_data, random_projections=True
             )
@@ -130,8 +128,7 @@ def _create_win_string( # pylint: disable=too-many-branches,missing-function-doc
                 'random_projections cannot be True if with Dict-type projections.'
             )
         orbital_data = generate_projections(
-            projections.get_dict(),
-            structure=structure
+            projections.get_dict(), structure=structure
         )
         block_inputs['projections'] = _format_all_projections(
             orbital_data, random_projections=True
