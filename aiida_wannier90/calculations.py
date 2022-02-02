@@ -35,7 +35,7 @@ _InputFileSpec = namedtuple(
 )
 
 
-def validate_inputs(inputs, ctx=None):  # pylint: disable=unused-argument
+def validate_inputs_base(inputs, ctx=None):  # pylint: disable=unused-argument
     """Validate the inputs of the entire input namespace."""
 
     # Cannot specify both `kpoint_path` and `bands_kpoints`
@@ -46,6 +46,14 @@ def validate_inputs(inputs, ctx=None):  # pylint: disable=unused-argument
     if 'bands_kpoints' in inputs:
         if inputs['bands_kpoints'].labels is None:
             return '`bands_kpoints` must contain `labels`.'
+
+
+def validate_inputs(inputs, ctx=None):
+    """Validate the inputs of the entire input namespace."""
+
+    results = validate_inputs_base(inputs, ctx)
+    if results:
+        return results
 
     # Check bands_plot and kpoint_path, bands_kpoints
     bands_plot = inputs['parameters'].get_dict().get('bands_plot', False)
