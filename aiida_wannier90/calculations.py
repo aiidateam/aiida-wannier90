@@ -466,7 +466,11 @@ class Wannier90Calculation(CalcJob):
             ]
         ] + [_InputFileSpec(suffix='.chk', required=False, always_copy=True)]
 
-        optional_file_globs = ['UNK*']
+        # Only symlink UNK* when plotting Wannier functions, to save inodes.
+        if self.inputs['parameters'].get_dict().get('wannier_plot', False):
+            optional_file_globs = ['UNK*']
+        else:
+            optional_file_globs = []
 
         if 'remote_input_folder' in self.inputs:
             return self._get_remote_input_file_lists(
