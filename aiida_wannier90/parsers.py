@@ -83,7 +83,7 @@ class Wannier90Parser(Parser):
 
         exiting_in_stdout = False
         try:
-            with out_folder.open(output_file_name) as handle:
+            with out_folder.base.repository.open(output_file_name) as handle:
                 out_file = handle.readlines()
             # Wannier90 doesn't always write the .werr file on error
             for line in out_file:
@@ -119,7 +119,7 @@ class Wannier90Parser(Parser):
 
         # Checks for error output files
         # This is after the check of stdout, since stdout might give more verbose exit code.
-        if error_file_name in out_folder.list_object_names():
+        if error_file_name in out_folder.base.repository.list_object_names():
             self.logger.error(
                 "Errors were found please check the retrieved "
                 f"{error_file_name} file"
@@ -128,7 +128,7 @@ class Wannier90Parser(Parser):
 
         # Some times the error files are aiida.node_00001.werr, ...
         error_file_name = re.compile(seedname + r".+?\.werr")
-        for filename in out_folder.list_object_names():
+        for filename in out_folder.base.repository.list_object_names():
             if error_file_name.match(filename):
                 self.logger.error(
                     f"Errors were found please check the retrieved {filename} file"
@@ -144,9 +144,9 @@ class Wannier90Parser(Parser):
 
         # Tries to parse the bands
         try:
-            with out_folder.open(f"{seedname}_band.dat") as fil:
+            with out_folder.base.repository.open(f"{seedname}_band.dat") as fil:
                 band_dat = fil.readlines()
-            with out_folder.open(f"{seedname}_band.kpt") as fil:
+            with out_folder.base.repository.open(f"{seedname}_band.kpt") as fil:
                 band_kpt = fil.readlines()
         except OSError:
             # IOError: _band.* files not present
@@ -155,7 +155,9 @@ class Wannier90Parser(Parser):
             structure = self.node.inputs.structure
             ## TODO: should we catch exceptions here?
             try:
-                with out_folder.open(f"{seedname}_band.labelinfo.dat") as fil:
+                with out_folder.base.repository.open(
+                    f"{seedname}_band.labelinfo.dat"
+                ) as fil:
                     band_labelinfo = fil.readlines()
             except OSError:  # use legacy parser for wannier90 < 3.0
                 try:

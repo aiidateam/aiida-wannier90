@@ -281,6 +281,6 @@ def generate_projections(list_of_projection_dicts, structure):
         if "kind_name" in this_dict:
             this_dict.update({"structure": structure})
         orbitals += _generate_wannier_orbitals(**this_dict)
-    orbitaldata = DataFactory("orbital")()
+    orbitaldata = DataFactory("core.orbital")()
     orbitaldata.set_orbitals(orbitals)
     return orbitaldata

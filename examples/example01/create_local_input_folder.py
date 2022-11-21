@@ -19,12 +19,12 @@ files_folder = os.path.join(os.path.split(os.path.abspath(__file__))[0], "inputd
 def get_unstored_folder_data(seedname="aiida"):
     """Return a folder data (unstored) containing the .amn and .mmn files for GaAs."""
     # Create empty FolderData node
-    folder_node = DataFactory("folder")()  # pylint: disable=redefined-outer-name
+    folder_node = DataFactory("core.folder")()  # pylint: disable=redefined-outer-name
     for local_file_name, file_name_in_aiida in [
         ("gaas.amn", f"{seedname}.amn"),
         ("gaas.mmn", f"{seedname}.mmn"),
     ]:
-        folder_node.put_object_from_file(
+        folder_node.base.repository.put_object_from_file(
             filepath=os.path.join(files_folder, local_file_name),
             path=file_name_in_aiida,
         )

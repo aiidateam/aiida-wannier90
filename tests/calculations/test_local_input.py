@@ -606,8 +606,8 @@ def test_bands_kpoints(
     label_numbers = list(range(len(labels)))
     bands_kpoints = orm.KpointsData()
     bands_kpoints.set_kpoints(kpoints)
-    bands_kpoints.set_attribute("labels", labels)
-    bands_kpoints.set_attribute("label_numbers", label_numbers)
+    bands_kpoints.base.attributes.set("labels", labels)
+    bands_kpoints.base.attributes.set("label_numbers", label_numbers)
     inputs["bands_kpoints"] = bands_kpoints
 
     generate_calc_job(

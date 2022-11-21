@@ -87,7 +87,7 @@ def _create_win_string(  # pylint: disable=too-many-arguments
 
     # prepare the main input text
     input_file_lines = []
-    if isinstance(parameters, DataFactory("dict")):
+    if isinstance(parameters, DataFactory("core.dict")):
         parameters = parameters.get_dict()
     try:
         parameters.setdefault("mp_grid", kpoints.get_kpoints_mesh()[0])
@@ -343,7 +343,7 @@ def _format_explicit_kpoint_path(bands_kpoints: orm.KpointsData) -> ty.Tuple:
     :return: a tuple of list of strings to be added to the input file, for the `explicit_kpath`
     and `explicit_kpath_labels` blocks.
     """
-    if "mesh" in bands_kpoints.attributes:
+    if "mesh" in bands_kpoints.base.attributes.all:
         raise ValueError(
             "Input should be a list of kpoints along the kpath, but "
             f"KpointsData<{bands_kpoints.pk}> contains a mesh"
