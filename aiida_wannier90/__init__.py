@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ################################################################################
 # Copyright (c), AiiDA team and individual contributors.                       #
 #  All rights reserved.                                                        #
@@ -7,9 +6,7 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
-"""
-AiiDA Wannier90 plugin
-======================
+"""AiiDA Wannier90 plugin.
 
 This is a plugin for running `Wannier90 <http://wannier.org>`_ calculations on the `AiiDA <http://aiida.net>`_ platform.
 
@@ -31,15 +28,10 @@ This is a plugin for running `Wannier90 <http://wannier.org>`_ calculations on t
    `[arXiv link] <https://arxiv.org/abs/1504.01163>`_
 """
 
-__authors__ = "Dominik Gresch, Antimo Marrazzo, Daniel Marchand, Giovanni Pizzi, Junfeng Qiao, Norma Rivano, and the AiiDA team."
+__authors__ = "The AiiDA team."
 __license__ = "MIT License, see LICENSE.txt file."
-## If upgraded, remember to change it also in setup.json (for pip)
-__version__ = "2.0.1"
+__version__ = "3.0.0"
 
-from . import io
-from . import parsers
-from . import orbitals
-from . import calculations
-from . import utils
+from . import calculations, io, orbitals, parsers, utils
 
-__all__ = ('io', 'parsers', 'orbitals', 'calculations', 'utils')
+__all__ = ("io", "parsers", "orbitals", "calculations", "utils")

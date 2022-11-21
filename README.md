@@ -1,5 +1,5 @@
 # aiida-wannier90
-AiiDA plugin for the [Wannier90](http://www.wannier.org) code. 
+AiiDA plugin for the [Wannier90](http://www.wannier.org) code.
 This plugin allows to run Wannier90 calculations.
 Examples are provided to show the integration with [Quantum ESPRESSO](https://www.quantum-espresso.org) via the [aiida-quantumespresso](https://github.com/aiidateam/aiida-quantumespresso) plugin.
 
@@ -17,6 +17,6 @@ The documentation on how to use this plugin package is available on [Read the Do
 
 This work is supported by the [MARVEL National Centre for Competency in Research](<http://nccr-marvel.ch>) funded by the [Swiss National Science Foundation](<http://www.snf.ch/en>), and the [swissuniversities P-5 project "Materials Cloud"](<https://www.materialscloud.org/swissuniversities>).
 
-![MARVEL](miscellaneous/logos/MARVEL.png)
+![MARVEL](misc/logos/MARVEL.png)
 
-![swissuniversities](miscellaneous/logos/swissuniversities.png)
+![swissuniversities](misc/logos/swissuniversities.png)
