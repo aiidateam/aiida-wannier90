@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ################################################################################
 # Copyright (c), AiiDA team and individual contributors.                       #
 #  All rights reserved.                                                        #
@@ -7,11 +6,16 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
+"""Functions for converting list of integers."""
 
-__all__ = ('group_list', 'groups_to_string', 'list_to_grouped_string')
+__all__ = ("group_list", "groups_to_string", "list_to_grouped_string")
 
 
-def group_list(values):  # pylint: disable=missing-function-docstring
+def group_list(values):
+    """Group a list of values into a list of groups of consecutive values.
+
+    For W90 input parameters, e.g. exclude_bands.
+    """
     values = sorted(values)
     groups = []
     if not values:
@@ -24,18 +28,20 @@ def group_list(values):  # pylint: disable=missing-function-docstring
         if val2 - 1 <= val1:
             continue
         # break in the range
-        groups.append(sorted(set([current_start, val1])))
+        groups.append(sorted({current_start, val1}))
         current_start = val2
         # final group
-    groups.append(sorted(set([current_start, val2])))  # pylint: disable=undefined-loop-variable
+    groups.append(
+        sorted({current_start, val2})  # pylint: disable=undefined-loop-variable
+    )
     return groups
 
 
 def groups_to_string(value_groups):
-    return ','.join(
-        '-'.join([str(g) for g in group]) for group in value_groups
-    )
+    """Convert a list of groups of values to a string."""
+    return ",".join("-".join([str(g) for g in group]) for group in value_groups)
 
 
 def list_to_grouped_string(values):
+    """Convert a list of values to a string, grouping consecutive values."""
     return groups_to_string(group_list(values))
