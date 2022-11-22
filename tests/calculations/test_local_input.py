@@ -434,7 +434,7 @@ def test_mixed_case_settings_key(
     """Test that using mixed case keys in 'settings' raises an InputValidationError."""
     inputs = generate_common_inputs_gaas(inputfolder_seedname="aiida")
     # Add an incorrect 'settings' input.
-    inputs["settings"] = orm.Dict(dict=dict(PostpROc_SeTup=True))
+    inputs["settings"] = orm.Dict(dict(PostpROc_SeTup=True))
 
     with pytest.raises(InputValidationError):
         generate_calc_job(

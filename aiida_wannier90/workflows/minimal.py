@@ -122,7 +122,7 @@ class MinimalW90WorkChain(WorkChain):
             "pseudos": get_pseudos_from_structure(
                 self.inputs.structure, self.inputs.pseudo_family.value
             ),
-            "parameters": orm.Dict(dict=self.ctx.scf_parameters),
+            "parameters": orm.Dict(self.ctx.scf_parameters),
             "kpoints": self.inputs.kpoints_scf,
             "metadata": {
                 "options": {
@@ -171,7 +171,7 @@ class MinimalW90WorkChain(WorkChain):
             "pseudos": get_pseudos_from_structure(
                 self.inputs.structure, self.inputs.pseudo_family.value
             ),
-            "parameters": orm.Dict(dict=nscf_parameters),
+            "parameters": orm.Dict(nscf_parameters),
             "kpoints": self.ctx.kpoints_nscf_explicit,
             "parent_folder": self.ctx.pw_scf.outputs.remote_folder,
             "metadata": {
@@ -211,7 +211,7 @@ class MinimalW90WorkChain(WorkChain):
         inputs = {
             "code": self.inputs.wannier_code,
             "structure": self.inputs.structure,
-            "parameters": orm.Dict(dict=self.ctx.w90_pp_parameters),
+            "parameters": orm.Dict(self.ctx.w90_pp_parameters),
             "kpoints": self.ctx.kpoints_nscf_explicit,
             "kpoint_path": self.inputs.kpoint_path,
             "projections": self.inputs.projections,
@@ -244,7 +244,7 @@ class MinimalW90WorkChain(WorkChain):
         settings = {"ADDITIONAL_RETRIEVE_LIST": ["*.amn", "*.mmn", "*.eig"]}
         inputs = {
             "code": self.inputs.pw2wannier90_code,
-            "parameters": orm.Dict(dict=self.ctx.pw2wannier_parameters),
+            "parameters": orm.Dict(self.ctx.pw2wannier_parameters),
             "parent_folder": self.ctx.pw_nscf.outputs.remote_folder,
             "nnkp_file": self.ctx.w90_pp.outputs.nnkp_file,
             "settings": Dict(settings),
@@ -271,7 +271,7 @@ class MinimalW90WorkChain(WorkChain):
         inputs = {
             "code": self.inputs.wannier_code,
             "structure": self.inputs.structure,
-            "parameters": orm.Dict(dict=self.ctx.w90_pp_parameters),
+            "parameters": orm.Dict(self.ctx.w90_pp_parameters),
             "kpoints": self.ctx.kpoints_nscf_explicit,
             "kpoint_path": self.inputs.kpoint_path,
             "remote_input_folder": self.ctx.pw2wannier.outputs.remote_folder,
