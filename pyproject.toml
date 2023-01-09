@@ -70,9 +70,11 @@ atomic_tools = [
 
 [project.entry-points."aiida.calculations"]
 "wannier90.wannier90" = "aiida_wannier90.calculations:Wannier90Calculation"
+"wannier90.postw90" = "aiida_wannier90.calculations:Postw90Calculation"
 
 [project.entry-points."aiida.parsers"]
 "wannier90.wannier90" = "aiida_wannier90.parsers:Wannier90Parser"
+"wannier90.postw90" = "aiida_wannier90.parsers:Postw90Parser"
 
 [project.entry-points."aiida.workflows"]
 "wannier90.minimal" = "aiida_wannier90.workflows.minimal:MinimalW90WorkChain"

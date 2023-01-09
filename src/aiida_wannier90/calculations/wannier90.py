@@ -26,7 +26,7 @@ from aiida.orm import (
     StructureData,
 )
 
-from .io import write_win
+from ..io import write_win
 
 __all__ = ("Wannier90Calculation",)
 

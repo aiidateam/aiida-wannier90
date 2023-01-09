@@ -28,7 +28,7 @@ class Wannier90Parser(Parser):
 
     def __init__(self, node):
         """Construct the parser."""
-        from .calculations import Wannier90Calculation
+        from ..calculations import Wannier90Calculation
 
         # check for valid input
         if not issubclass(node.process_class, Wannier90Calculation):
