@@ -139,6 +139,12 @@ class Postw90Calculation(CalcJob):
                 "it should contain `labels`. Specify either this or `kpoint_path`."
             ),
         )
+        spec.input(
+            "clean_workdir",
+            valid_type=orm.Bool,
+            default=lambda: orm.Bool(False),
+            help="If `True`, work directories of all called calculation jobs will be cleaned at the end of execution.",
+        )
         spec.inputs.validator = validate_inputs
 
         spec.output(
@@ -442,3 +448,18 @@ class Postw90Calculation(CalcJob):
             remote_copy_list=remote_copy_list,
             remote_symlink_list=remote_symlink_list,
         )
+
+    def on_terminated(self):
+        """Clean the working directories of all child calculation jobs if `clean_workdir=True` in the inputs."""
+        if self.inputs.clean_workdir.value is False:  # type: ignore[union-attr]
+            self.report("remote folders will not be cleaned")
+            return
+
+        try:
+            self.outputs["remote_folder"]._clean()  # pylint: disable=protected-access
+            self.report("cleaned remote folders of the calculation")
+        except (OSError, KeyError):
+            pass
+
+        # I need to run the cleanning before this, otherwise the it is not executed.
+        super().on_terminated()
