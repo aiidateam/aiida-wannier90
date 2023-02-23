@@ -266,6 +266,9 @@ def raw_wpout_parser(
     regex = re.compile(
         r"Time for BoltzWann \(Boltzmann transport\) *([+-]?(?:[0-9]*[.])?[0-9]+) \(sec\)"
     )
+    regex_boltzwann_grid = re.compile(
+        r"k-grid used for band interpolation in BoltzWann: *([0-9]+)x([0-9]+)x([0-9]+)"
+    )
 
     out = {}
     out.update({"warnings": []})
@@ -279,6 +282,19 @@ def raw_wpout_parser(
         match_boltzwann = regex.match(line.strip())
         if match_boltzwann:
             out.update({"wallclock_seconds_boltzwann": float(match_boltzwann.group(1))})
+
+        # checks for the k-grid used for band interpolation in BoltzWann
+        match = regex_boltzwann_grid.match(line.strip())
+        if match:
+            out.update(
+                {
+                    "kmesh_boltzwann": [
+                        int(match.group(1)),
+                        int(match.group(2)),
+                        int(match.group(3)),
+                    ]
+                }
+            )
 
     return out
 
