@@ -453,13 +453,13 @@ class Postw90Calculation(CalcJob):
         """Clean the working directories of all child calculation jobs if `clean_workdir=True` in the inputs."""
         if self.inputs.clean_workdir.value is False:  # type: ignore[union-attr]
             self.report("remote folders will not be cleaned")
-            return
-
-        try:
-            self.outputs["remote_folder"]._clean()  # pylint: disable=protected-access
-            self.report("cleaned remote folders of the calculation")
-        except (OSError, KeyError):
-            pass
+        else:
+            try:
+                # pylint: disable=protected-access
+                self.outputs["remote_folder"]._clean()
+                self.report("cleaned remote folders of the calculation")
+            except (OSError, KeyError):
+                pass
 
         # I need to run the cleanning before this, otherwise the it is not executed.
         super().on_terminated()
