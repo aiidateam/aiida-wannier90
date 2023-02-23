@@ -81,6 +81,16 @@ class Postw90Calculation(CalcJob):
         ".node_00001.werr",
     )
 
+    _DEFAULT_RETRIEVE_TEMPORARY_SUFFIXES = (
+        # BoltzWann related files
+        "_boltzdos.dat",
+        "_elcond.dat",
+        "_kappa.dat",
+        "_seebeck.dat",
+        "_sigmas.dat",
+        "_tdf.dat",
+    )
+
     @classmethod
     def define(cls, spec):
         """Define the specs."""
@@ -159,6 +169,42 @@ class Postw90Calculation(CalcJob):
             help="The interpolated band structure by Wannier90 (if any).",
         )
         spec.default_output_node = "output_parameters"
+        spec.output(
+            "boltzwann.boltzdos",
+            valid_type=orm.XyData,
+            required=False,
+            help="The DOS by postw90.x BoltzWann module (if any).",
+        )
+        spec.output(
+            "boltzwann.elcond",
+            valid_type=orm.ArrayData,
+            required=False,
+            help="The elcond by postw90.x BoltzWann module (if any).",
+        )
+        spec.output(
+            "boltzwann.kappa",
+            valid_type=orm.ArrayData,
+            required=False,
+            help="The kappa by postw90.x BoltzWann module (if any).",
+        )
+        spec.output(
+            "boltzwann.seebeck",
+            valid_type=orm.ArrayData,
+            required=False,
+            help="The seebeck by postw90.x BoltzWann module (if any).",
+        )
+        spec.output(
+            "boltzwann.sigmas",
+            valid_type=orm.ArrayData,
+            required=False,
+            help="The sigmas by postw90.x BoltzWann module (if any).",
+        )
+        spec.output(
+            "boltzwann.tdf",
+            valid_type=orm.ArrayData,
+            required=False,
+            help="The tdf by postw90.x BoltzWann module (if any).",
+        )
 
         spec.input(
             "metadata.options.input_filename",
@@ -220,6 +266,16 @@ class Postw90Calculation(CalcJob):
             404,
             "ERROR_OUTPUT_STDOUT_INCOMPLETE",
             message="The stdout output file was incomplete probably because the calculation got interrupted.",
+        )
+        spec.exit_code(
+            405,
+            "ERROR_OUTPUT_FILE_MISSING",
+            message="Some output files were missing probably because the calculation got interrupted.",
+        )
+        spec.exit_code(
+            406,
+            "ERROR_NO_RETRIEVED_TEMPORARY_FOLDER",
+            message="The retrieved temporary folder could not be accessed.",
         )
 
     @property
@@ -314,6 +370,15 @@ class Postw90Calculation(CalcJob):
         ]
         calcinfo.retrieve_list = retrieve_list
         calcinfo.retrieve_list += settings_dict.pop("additional_retrieve_list", [])
+
+        retrieve_temporary_list = [
+            self._SEEDNAME + suffix
+            for suffix in self._DEFAULT_RETRIEVE_TEMPORARY_SUFFIXES
+        ]
+        calcinfo.retrieve_temporary_list = retrieve_temporary_list
+        calcinfo.retrieve_temporary_list += settings_dict.pop(
+            "additional_retrieve_temporary_list", []
+        )
 
         # pop input keys not used here
         settings_dict.pop("seedname", None)
