@@ -308,7 +308,10 @@ def raw_boltzdos_dat_parser(handle: ty.TextIO) -> ty.Union[np.ndarray, dict]:
     handle.readline()
     # The second column is the DOS for a fixed smearing of   0.300000E-01 eV.
     line = handle.readline()
-    smr_width = float(line.split("fixed smearing of")[1].split("eV")[0].strip())
+    if "# The second column is the unsmeared DOS." in line:
+        smr_width = 0.0
+    else:
+        smr_width = float(line.split("fixed smearing of")[1].split("eV")[0].strip())
     # Cell volume (ang^3):     16.8700
     line = handle.readline()
     volume = float(line.split("(ang^3):")[1].strip())
