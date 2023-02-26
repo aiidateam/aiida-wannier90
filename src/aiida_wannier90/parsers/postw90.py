@@ -308,8 +308,29 @@ def raw_boltzdos_dat_parser(handle: ty.TextIO) -> ty.Union[np.ndarray, dict]:
     handle.readline()
     # The second column is the DOS for a fixed smearing of   0.300000E-01 eV.
     line = handle.readline()
+    adpt_smr = False
     if "# The second column is the unsmeared DOS." in line:
         smr_width = 0.0
+    elif "# The second column is the adaptively-smeared DOS" in line:
+        adpt_smr = True
+        # (see Yates et al., PRB 75, 195121 (2007)
+        handle.readline()
+        # Smearing coefficient:    0.100000
+        line = handle.readline()
+        adpt_smr_fac = float(line.split("Smearing coefficient:")[1].strip())
+        # Number of points refined: 1394 out of 8120601
+        line = handle.readline()
+        line = line.split("Number of points refined:")[1].strip()
+        number_of_points_total = int(line.split("out of")[1].strip())
+        number_of_points_refined = int(line.split("out of")[0].strip())
+        # (Min spacing:   0.1568860590E-06, max spacing:   0.1691778553    )
+        line = handle.readline()
+        adpt_smr_min_spacing = float(
+            line.split("Min spacing:")[1].split(",")[0].strip()
+        )
+        adpt_smr_max_spacing = float(
+            line.split("max spacing:")[1].split(")")[0].strip()
+        )
     else:
         smr_width = float(line.split("fixed smearing of")[1].split("eV")[0].strip())
     # Cell volume (ang^3):     16.8700
@@ -319,11 +340,27 @@ def raw_boltzdos_dat_parser(handle: ty.TextIO) -> ty.Union[np.ndarray, dict]:
     handle.readline()
 
     attrs = {
-        "fixed_smearing_width": smr_width,
-        "fixed_smearing_width_unit": "eV",
+        "adaptive_smearing": adpt_smr,
         "cell_volume": volume,
         "cell_volume_unit": "ang^3",
     }
+    if adpt_smr:
+        attrs.update(
+            {
+                "adaptive_smearing_factor": adpt_smr_fac,
+                "adaptive_smearing_number_of_points_total": number_of_points_total,
+                "adaptive_smearing_number_of_points_refined": number_of_points_refined,
+                "adaptive_smearing_min_spacing": adpt_smr_min_spacing,
+                "adaptive_smearing_max_spacing": adpt_smr_max_spacing,
+            }
+        )
+    else:
+        attrs.update(
+            {
+                "fixed_smearing_width": smr_width,
+                "fixed_smearing_width_unit": "eV",
+            }
+        )
     energy_dos = np.loadtxt(handle)
     return energy_dos, attrs
 
