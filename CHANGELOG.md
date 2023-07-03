@@ -1,3 +1,9 @@
+# v2.1.0
+
+## New features
+
+- Support AiiDA v2.0 [[#117]](https://github.com/aiidateam/aiida-wannier90/issues/117)
+
 # v2.0.1
 
 ## Fixes and general improvements
@@ -33,9 +39,9 @@
 
 - General update of the documentation to include all new changes [[#91]](https://github.com/aiidateam/aiida-wannier90/pull/91) [[#52]](https://github.com/aiidateam/aiida-wannier90/pull/52)
 
-- Use aiida calcjob directive in documentation [[#86]](https://github.com/aiidateam/aiida-wannier90/pull/86) 
+- Use aiida calcjob directive in documentation [[#86]](https://github.com/aiidateam/aiida-wannier90/pull/86)
 
 - Example of GaAs wannierization (both as a single submission, and via a workchain using Quantum ESPRESSO) [[#77]](https://github.com/aiidateam/aiida-wannier90/pull/77) [[#84]](https://github.com/aiidateam/aiida-wannier90/pull/84)
-  
+
 # v1.0.0
 First working version of the plugin
