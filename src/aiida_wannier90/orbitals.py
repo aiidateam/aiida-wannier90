@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ################################################################################
 # Copyright (c), AiiDA team and individual contributors.                       #
 #  All rights reserved.                                                        #
@@ -7,15 +6,12 @@
 # The code is hosted on GitHub at https://github.com/aiidateam/aiida-wannier90 #
 # For further information on the license, see the LICENSE.txt file             #
 ################################################################################
-"""
-Creating OrbitalData instances
-==============================
-"""
+"""Create OrbitalData instances."""
 
-__all__ = ('generate_projections', )
+__all__ = ("generate_projections",)
 
 
-def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-locals,too-many-statements # noqa:  disable=MC0001
+def _generate_wannier_orbitals(  # pylint: disable=too-many-arguments,too-many-statements # noqa:  disable=MC0001
     position_cart=None,
     structure=None,
     kind_name=None,
@@ -27,12 +23,12 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
     zona=None,
     zaxis=None,
     xaxis=None,
-    spin_axis=None
+    spin_axis=None,
 ):
-    """
-    Use this method to emulate the input style of Wannier90,
-    when setting the orbitals (see chapter 3 in the user_guide). Position
-    can be provided either in Cartesian coordiantes using ``position_cart``
+    """Emulate the input style of Wannier90, when setting the orbitals.
+
+    See chapter 3 in the user_guide.
+    Position can be provided either in Cartesian coordiantes using ``position_cart``
     or can be assigned based on an input structure and ``kind_name``.
 
     :param position_cart: position in Cartesian coordinates or list of
@@ -58,31 +54,26 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
     :param spin_axis: the spin alignment axis, as described in the
                       user guide
     """
-    from aiida.plugins import DataFactory
-    from aiida.plugins import OrbitalFactory
     from aiida.common import InputValidationError
+    from aiida.plugins import DataFactory, OrbitalFactory
 
     def convert_to_list(item):
-        """
-        internal method, checks if the item is already a list or tuple.
-        if not returns a tuple containing only item, otherwise returns
-        tuple(item)
+        """Check if the item is already a list or tuple.
+
+        if not returns a tuple containing only item, otherwise returns ``tuple(item)``.
         """
         if isinstance(item, (list, tuple)):
             return tuple(item)
         return tuple([item])
 
     def combine_dictlists(dict_list1, dict_list2):
-        """
-        Creates a list of every dict in dict_list1 updated with every
-        dict in dict_list2
-        """
+        """Create a list of every dict in dict_list1 updated with every dict in dict_list2."""
         out_list = []
         # excpetion handling for the case of empty dicts
-        dict_list1_empty = not any([bool(x) for x in dict_list1])
-        dict_list2_empty = not any([bool(x) for x in dict_list2])
+        dict_list1_empty = not any(bool(x) for x in dict_list1)
+        dict_list2_empty = not any(bool(x) for x in dict_list2)
         if dict_list1_empty and dict_list2_empty:
-            raise InputValidationError('One dict must not be empty')
+            raise InputValidationError("One dict must not be empty")
         if dict_list1_empty:
             return dict_list2
         if dict_list2_empty:
@@ -96,62 +87,54 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
                 out_list.append(temp_1)
         return out_list
 
-    RealhydrogenOrbital = OrbitalFactory('realhydrogen')
+    RealhydrogenOrbital = OrbitalFactory("core.realhydrogen")
 
     #########################################################################
     # Validation of inputs                                                  #
     #########################################################################
     if position_cart is None and kind_name is None:
-        raise InputValidationError('Must supply a kind_name or position')
+        raise InputValidationError("Must supply a kind_name or position")
     if position_cart is not None and kind_name is not None:
-        raise InputValidationError(
-            'Must supply position or kind_name'
-            ' not both'
-        )
+        raise InputValidationError("Must supply position or kind_name not both")
 
-    structure_class = DataFactory('structure')
+    structure_class = DataFactory("core.structure")
     if kind_name is not None:
         if not isinstance(structure, structure_class):
             raise InputValidationError(
-                'Must supply a StructureData as '
-                'structure if using kind_name'
+                "Must supply a StructureData as structure if using kind_name"
             )
         if not isinstance(kind_name, str):
-            raise InputValidationError('kind_name must be a string')
+            raise InputValidationError("kind_name must be a string")
 
     if ang_mtm_name is None and ang_mtm_l_list is None:
-        raise InputValidationError(
-            "Must supply ang_mtm_name or ang_mtm_l_list"
-        )
+        raise InputValidationError("Must supply ang_mtm_name or ang_mtm_l_list")
     if ang_mtm_name is not None and (
         ang_mtm_l_list is not None or ang_mtm_mr_list is not None
     ):
         raise InputValidationError(
-            "Cannot supply ang_mtm_l_list or ang_mtm_mr_list"
-            " but not both"
+            "Cannot supply ang_mtm_l_list or ang_mtm_mr_list but not both"
         )
     if ang_mtm_l_list is None and ang_mtm_mr_list is not None:
         raise InputValidationError(
-            "Cannot supply ang_mtm_mr_list without "
-            "ang_mtm_l_list"
+            "Cannot supply ang_mtm_mr_list without ang_mtm_l_list"
         )
 
     ####################################################################
-    #Setting up initial basic parameters
+    # Setting up initial basic parameters
     ####################################################################
     projection_dict = {}
     if radial:
-        projection_dict['radial_nodes'] = radial - 1
+        projection_dict["radial_nodes"] = radial - 1
     if xaxis:
-        projection_dict['x_orientation'] = xaxis
+        projection_dict["x_orientation"] = xaxis
     if zaxis:
-        projection_dict['z_orientation'] = zaxis
+        projection_dict["z_orientation"] = zaxis
     if kind_name:
-        projection_dict['kind_name'] = kind_name
+        projection_dict["kind_name"] = kind_name
     if spin_axis:
-        projection_dict['spin_orientation'] = spin_axis
+        projection_dict["spin_orientation"] = spin_axis
     if zona:
-        projection_dict['diffusivity'] = zona
+        projection_dict["diffusivity"] = zona
 
     projection_dicts = [projection_dict]
 
@@ -166,8 +149,7 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
                 position_list.append(site.position)
         if not position_list:
             raise InputValidationError(
-                "No valid positions found in structure "
-                "using {}".format(kind_name)
+                f"No valid positions found in structure using {kind_name}"
             )
     # otherwise turns position into position_list
     else:
@@ -184,15 +166,15 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
         ang_mtm_dicts = []
         for ang_mtm_l in ang_mtm_l_list:
             if ang_mtm_l >= 0:
-                ang_mtm_dicts += [{
-                    'angular_momentum': ang_mtm_l,
-                    'magnetic_number': i
-                } for i in range(2 * ang_mtm_l + 1)]
+                ang_mtm_dicts += [
+                    {"angular_momentum": ang_mtm_l, "magnetic_number": i}
+                    for i in range(2 * ang_mtm_l + 1)
+                ]
             else:
-                ang_mtm_dicts += [{
-                    'angular_momentum': ang_mtm_l,
-                    'magnetic_number': i
-                } for i in range(-ang_mtm_l + 1)]
+                ang_mtm_dicts += [
+                    {"angular_momentum": ang_mtm_l, "magnetic_number": i}
+                    for i in range(-ang_mtm_l + 1)
+                ]
         if ang_mtm_mr_list is not None:
             if len(ang_mtm_l_list) > 1:
                 raise InputValidationError(
@@ -203,10 +185,10 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
                 )
             ang_mtm_mr_list = convert_to_list(ang_mtm_mr_list)
             ang_mtm_l_num = ang_mtm_l_list[0]
-            ang_mtm_dicts = [{
-                'angular_momentum': ang_mtm_l_num,
-                'magnetic_number': j - 1
-            } for j in ang_mtm_mr_list]
+            ang_mtm_dicts = [
+                {"angular_momentum": ang_mtm_l_num, "magnetic_number": j - 1}
+                for j in ang_mtm_mr_list
+            ]
     if ang_mtm_name is not None:
         ang_mtm_names = convert_to_list(ang_mtm_name)
         ang_mtm_dicts = []
@@ -218,8 +200,7 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
             # around the issue here.
             ang_mtm_dicts += sorted(
                 RealhydrogenOrbital.get_quantum_numbers_from_name(name),
-                key=lambda qnums:
-                (qnums['angular_momentum'], qnums['magnetic_number'])
+                key=lambda qnums: (qnums["angular_momentum"], qnums["magnetic_number"]),
             )
     projection_dicts = combine_dictlists(projection_dicts, ang_mtm_dicts)
 
@@ -227,12 +208,12 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
     # Setting up the spin                                               #
     #####################################################################
     if spin:
-        spin_dict = {'U': 1, 'u': 1, 1: 1, 'D': -1, 'd': -1, -1: -1}
+        spin_dict = {"U": 1, "u": 1, 1: 1, "D": -1, "d": -1, -1: -1}
         if isinstance(spin, (list, tuple)):
             spin = [spin_dict[x] for x in spin]
         else:
             spin = [spin_dict[spin]]
-        spin_dicts = [{'spin': v} for v in spin]
+        spin_dicts = [{"spin": v} for v in spin]
         projection_dicts = combine_dictlists(projection_dicts, spin_dicts)
 
     # generating and returning a list of all corresponding orbitals
@@ -244,9 +225,9 @@ def _generate_wannier_orbitals( # pylint: disable=too-many-arguments,too-many-lo
 
 
 def generate_projections(list_of_projection_dicts, structure):
-    """
-    Use this method to emulate the input style of Wannier90,
-    when setting the orbitals (see chapter 3 in the Wannier90 user guide).
+    """Emulate the input style of Wannier90, when setting the orbitals.
+
+    See chapter 3 in the Wannier90 user guide.
     Position can be provided either in Cartesian coordinates using
     ``position_cart`` or can be assigned based on an input structure and
     ``kind_name``. Pass a list of dictionaries, in which the keys of each
@@ -297,9 +278,9 @@ def generate_projections(list_of_projection_dicts, structure):
         list_of_projection_dicts = [list_of_projection_dicts]
     orbitals = []
     for this_dict in list_of_projection_dicts:
-        if 'kind_name' in this_dict:
-            this_dict.update({'structure': structure})
+        if "kind_name" in this_dict:
+            this_dict.update({"structure": structure})
         orbitals += _generate_wannier_orbitals(**this_dict)
-    orbitaldata = DataFactory('orbital')()
+    orbitaldata = DataFactory("core.orbital")()
     orbitaldata.set_orbitals(orbitals)
     return orbitaldata

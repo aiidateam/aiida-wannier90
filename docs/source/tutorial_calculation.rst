@@ -30,19 +30,19 @@ the database in the form of a ``StructureData`` by typing:
 .. code:: python
 
    from aiida.plugins import DataFactory
-   StructureData = DataFactory('structure')
+   StructureData = DataFactory('core.structure')
    a = 5.68018817933178
    structure = StructureData(cell = [[-a/2., 0, a/2.], [0, a/2., a/2.], [-a/2., a/2., 0]])
    structure.append_atom(symbols=['Ga'], position=(0., 0., 0.))
    structure.append_atom(symbols=['As'], position=(-a/4., a/4., a/4.))
    structure.store()
-   print ( 'Structure stored with pk %d' %structure.pk)  
+   print ( 'Structure stored with pk %d' %structure.pk)
 
 In the example  file we also define the kpoints mesh to be used :
 
 .. code:: python
 
-   KpointsData = DataFactory('array.kpoints')
+   KpointsData = DataFactory('core.array.kpoints')
    kpoints = KpointsData()
    kpoints.set_kpoints_mesh([2, 2, 2])
 
@@ -114,7 +114,7 @@ The code prints out on the screen:
 
 ::
 
-   Submitted PwCalculation<PK_calculation> to the daemon 
+   Submitted PwCalculation<PK_calculation> to the daemon
 
 and we can check the status of the calculation:
 
@@ -242,7 +242,7 @@ The command, in both cases, is the following:
 
 ::
 
-   verdi run wannier_gaas.py --send <codename_wannier> main <PK_inputfolder> 
+   verdi run wannier_gaas.py --send <codename_wannier> main <PK_inputfolder>
 
 where ``<PK_inputfolder>`` is either ``<PK_remotedata_pw2wannier>``
 (strategy A) or the output of the ``create_local_input_folder.py``

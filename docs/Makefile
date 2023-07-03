@@ -37,4 +37,3 @@ view:
 	xdg-open $(BUILDDIR)/html/index.html
 
 .PHONY: all help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest coverage gettext
-

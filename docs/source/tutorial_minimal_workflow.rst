@@ -96,7 +96,7 @@ using:
 
 ::
 
-   verdi data bands show -F agr <PK> 
+   verdi data bands show -F agr <PK>
 
 or export it to file using:
 
@@ -119,7 +119,7 @@ following command:
 
 ::
 
-   xmgrace DFT-bands.agr interpolated.agr 
+   xmgrace DFT-bands.agr interpolated.agr
 
 You should see something like the following plot (where we just changed
 some graphical aspects):

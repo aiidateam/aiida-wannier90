@@ -1,0 +1,30 @@
+output_parameters:
+  convergence_tolerance: 2.0e-07
+  length_units: Ang
+  number_wfs: 10
+  output_verbosity: 1
+  preprocess_only: F
+  r2mn_writeout: F
+  wannier_functions_output:
+  - im_re_ratio: 3.0e-06
+    wf_ids: 1
+  - im_re_ratio: 1.0e-06
+    wf_ids: 2
+  - im_re_ratio: 0.0
+    wf_ids: 3
+  - im_re_ratio: 1.0e-06
+    wf_ids: 4
+  - im_re_ratio: 1.0e-06
+    wf_ids: 5
+  - im_re_ratio: 1.0e-06
+    wf_ids: 6
+  - im_re_ratio: 1.0e-06
+    wf_ids: 7
+  - im_re_ratio: 0.0
+    wf_ids: 8
+  - im_re_ratio: 0.0
+    wf_ids: 9
+  - im_re_ratio: 0.0
+    wf_ids: 10
+  warnings: []
+  xyz_writeout: F
