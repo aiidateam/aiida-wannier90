@@ -76,12 +76,12 @@ def get_static_inputs():
     )
     # sp^3 projections, centered on As
     projections = generate_projections(
-        dict(
-            position_cart=(-a / 4.0, a / 4.0, a / 4.0),
-            ang_mtm_l=-3,
-            spin=None,
-            spin_axis=None,
-        ),
+        {
+            "position_cart": (-a / 4.0, a / 4.0, a / 4.0),
+            "ang_mtm_l": -3,
+            "spin": None,
+            "spin_axis": None,
+        },
         structure=structure,
     )
 

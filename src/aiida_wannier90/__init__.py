@@ -30,7 +30,7 @@ This is a plugin for running `Wannier90 <http://wannier.org>`_ calculations on t
 
 __authors__ = "The AiiDA team."
 __license__ = "MIT License, see LICENSE.txt file."
-__version__ = "3.0.0"
+__version__ = "2.1.0"
 
 from . import calculations, io, orbitals, parsers, utils
 

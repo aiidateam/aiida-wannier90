@@ -25,18 +25,18 @@ def generate_common_inputs_gaas_remotedata(
     """Generate the inputs for a `Wannier90Calculation` with remote input folder."""
 
     def _generate_common_inputs_gaas():
-        inputs = dict(
-            code=fixture_code(ENTRY_POINT_NAME),
-            metadata={
+        inputs = {
+            "code": fixture_code(ENTRY_POINT_NAME),
+            "metadata": {
                 "options": {
                     "resources": {"num_machines": 1},
                     "max_wallclock_seconds": 3600,
                     "withmpi": False,
                 }
             },
-            remote_input_folder=fixture_remotedata,
+            "remote_input_folder": fixture_remotedata,
             **generate_win_params_gaas(),
-        )
+        }
 
         return inputs
 

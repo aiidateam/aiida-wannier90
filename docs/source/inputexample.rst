@@ -254,11 +254,3 @@ Here is the complete list of suffixes of the files to retrieve:
 To exclude or include specific files from the retrieved list, one can
 respectively use the ``exclude_retrieve_list`` and
 ``additional_retrieve_list`` settings described above.
-
-
-
-
-
-
-
-

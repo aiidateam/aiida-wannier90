@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ################################################################################
 # Copyright (c), AiiDA team and individual contributors.                       #
 #  All rights reserved.                                                        #
@@ -9,9 +8,10 @@
 ################################################################################
 """Test that the example provided in the top-level `examples` folder works."""
 import os
+
 import pytest
 
-ENTRY_POINT_NAME = 'wannier90.wannier90'
+ENTRY_POINT_NAME = "wannier90.wannier90"
 
 
 @pytest.fixture
@@ -35,7 +35,9 @@ def prepare_for_submission_from_builder():  # pylint: disable=missing-function-d
 
 
 def load_module(module_name, full_path):
+    """Load a module from a file path."""
     import importlib.util
+
     spec = importlib.util.spec_from_file_location(module_name, full_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -46,21 +48,24 @@ def load_module(module_name, full_path):
 def test_example_gaas(
     fixture_code,
     fixture_sandbox,
-    prepare_for_submission_from_builder  # pylint: disable=redefined-outer-name
+    prepare_for_submission_from_builder,  # pylint: disable=redefined-outer-name
 ):
     """Dynamically load the example and try to submit it to see that it works."""
     example_folder = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), os.pardir, os.pardir,
-        'examples', 'example01'
+        os.path.dirname(os.path.realpath(__file__)),
+        os.pardir,
+        os.pardir,
+        "examples",
+        "example01",
     )
 
     create_local_input_folder = load_module(
-        'create_local_input_folder',
-        os.path.join(example_folder, 'create_local_input_folder.py')
+        "create_local_input_folder",
+        os.path.join(example_folder, "create_local_input_folder.py"),
     )
 
     wannier_gaas = load_module(
-        'wannier_gaas', os.path.join(example_folder, 'wannier_gaas.py')
+        "wannier_gaas", os.path.join(example_folder, "wannier_gaas.py")
     )
 
     code = fixture_code(ENTRY_POINT_NAME)
@@ -74,4 +79,4 @@ def test_example_gaas(
         calc_info = prepare_for_submission_from_builder(folder, builder)
 
     code_info = calc_info.codes_info[0]
-    assert code_info.cmdline_params == ['aiida']
+    assert code_info.cmdline_params == ["aiida"]

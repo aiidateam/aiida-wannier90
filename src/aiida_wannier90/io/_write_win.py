@@ -327,7 +327,7 @@ def _format_kpoint_path(kpoint_path):
     # fractional coordinates with respect to the primitive
     # reciprocal lattice vectors.
     res = []
-    for (point1, point2) in path:
+    for point1, point2 in path:
         coord1 = point_coords[point1]
         coord2 = point_coords[point2]
         path_line = f"{point1} {coord1[0]} {coord1[1]} {coord1[2]} "

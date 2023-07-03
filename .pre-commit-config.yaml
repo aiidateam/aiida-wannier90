@@ -9,7 +9,9 @@ repos:
           (?x)^(
               tests/.*.*out|
               tests/.*.in|
+              tests/.*_band.dat|
               examples/.*.xsf|
+              examples/.*.agr|
               docs/.*.agr|
               docs/.*.xsf
           )$

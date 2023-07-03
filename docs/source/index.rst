@@ -40,7 +40,7 @@ Tutorials
 ---------
 
 The Wannier90 plugin is provided with two example based on a GaAs crystalline sample. The first example is a simple wannierization step by step, with which we aim to show the format of the inputs expected by the plugin.
-The second case of study aims to provide the user with a practical example of a simple workflow to perform the same wannierization procedure. 
+The second case of study aims to provide the user with a practical example of a simple workflow to perform the same wannierization procedure.
 
 .. toctree::
     :maxdepth: 3

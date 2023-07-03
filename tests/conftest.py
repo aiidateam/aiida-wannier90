@@ -86,7 +86,6 @@ def fixture_folderdata():
     """
 
     def _fixture_folderdata(dir_path, replacement_mapping=types.MappingProxyType({})):
-
         from aiida.orm import FolderData
 
         folder = FolderData()

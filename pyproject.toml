@@ -37,9 +37,7 @@ classifiers = [
 ]
 keywords = ["aiida", "plugin", "wannier90"]
 requires-python = ">=3.8"
-dependencies = [
-    "aiida-core>=2.0,<3"
-]
+dependencies = ["aiida-core>=2.0,<3"]
 
 [project.urls]
 Source = "https://github.com/aiidateam/aiida-wannier90"
@@ -51,7 +49,8 @@ tests = [
     "pytest-cov",
     "pytest-regressions~=1.0.6",
     "pytest-datadir~=1.3.1",
-    "pgtest~=1.3.1"
+    "pgtest~=1.3.1",
+    "codecov"
 ]
 pre-commit = [
     "pre-commit",
@@ -60,14 +59,8 @@ pre-commit = [
     "prospector>=1.3.1",
     "ruamel.yaml"
 ]
-docs = [
-    "sphinx",
-    "sphinx-rtd-theme",
-    "sphinxcontrib-details-directive"
-]
-atomic_tools = [
-    "ase",
-]
+docs = ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-details-directive"]
+atomic_tools = ["ase"]
 
 [project.entry-points."aiida.calculations"]
 "wannier90.wannier90" = "aiida_wannier90.calculations:Wannier90Calculation"
@@ -109,6 +102,7 @@ disable = [
     'too-many-branches',
     'too-many-locals',
     # 'unspecified-encoding',
+
 ]
 
 [tool.pylint.basic]

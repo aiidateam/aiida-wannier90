@@ -91,17 +91,17 @@ def create_builder(code, input_folder=None, submit_test=False):
     # Two methods to define projections are available
     # Method 1
     projections = generate_projections(
-        dict(
-            position_cart=(1, 2, 0.5),
-            radial=2,
-            ang_mtm_l_list=2,
-            ang_mtm_mr_list=5,
-            spin=None,
-            # zona=1.1,
-            zaxis=(0, 1, 0),
-            xaxis=(0, 0, 1),
-            spin_axis=None,
-        ),
+        {
+            "position_cart": (1, 2, 0.5),
+            "radial": 2,
+            "ang_mtm_l_list": 2,
+            "ang_mtm_mr_list": 5,
+            "spin": None,
+            # "zona": 1.1,
+            "zaxis": (0, 1, 0),
+            "xaxis": (0, 0, 1),
+            "spin_axis": None,
+        },
         structure=structure,
     )
 

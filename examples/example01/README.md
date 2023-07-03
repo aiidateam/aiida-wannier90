@@ -5,4 +5,3 @@ a Quantum ESPRESSO calculation using the `aiida-quantumespresso` package).
 For detailed instructions and documentation, you can check the
 [documentation](https://aiida-wannier90.readthedocs.io/) (its source
 can be found in the folder `docs/source/tutorial_calculation.rst`).
-

@@ -29,20 +29,20 @@ def generate_common_inputs_gaas(
     """Generate inputs for a `Wannier90Calculation`."""
 
     def _generate_common_inputs_gaas(inputfolder_seedname):
-        inputs = dict(
-            code=fixture_code(ENTRY_POINT_NAME),
-            metadata={
+        inputs = {
+            "code": fixture_code(ENTRY_POINT_NAME),
+            "metadata": {
                 "options": {
                     "resources": {"num_machines": 1},
                     "max_wallclock_seconds": 3600,
                     "withmpi": False,
                 }
             },
-            local_input_folder=fixture_folderdata(
+            "local_input_folder": fixture_folderdata(
                 shared_datadir / "gaas", {"gaas": inputfolder_seedname}
             ),
             **generate_win_params_gaas(),
-        )
+        }
 
         return inputs
 
@@ -417,9 +417,12 @@ def test_duplicate_exclude_bands(
     inputs = generate_common_inputs_gaas(inputfolder_seedname="aiida")
     # Overwrite the 'parameters' input
     inputs["parameters"] = orm.Dict(
-        dict=dict(
-            num_wann=1, num_iter=12, wvfn_formatted=True, exclude_bands=[1] * 2 + [2, 3]
-        )
+        dict={
+            "num_wann": 1,
+            "num_iter": 12,
+            "wvfn_formatted": True,
+            "exclude_bands": [1] * 2 + [2, 3],
+        }
     )
 
     with pytest.raises(InputValidationError):
@@ -434,7 +437,7 @@ def test_mixed_case_settings_key(
     """Test that using mixed case keys in 'settings' raises an InputValidationError."""
     inputs = generate_common_inputs_gaas(inputfolder_seedname="aiida")
     # Add an incorrect 'settings' input.
-    inputs["settings"] = orm.Dict(dict(PostpROc_SeTup=True))
+    inputs["settings"] = orm.Dict({"PostpROc_SeTup": True})
 
     with pytest.raises(InputValidationError):
         generate_calc_job(
