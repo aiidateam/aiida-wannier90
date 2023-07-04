@@ -71,8 +71,13 @@ jobs:
         run: pytest --cov=aiida_wannier90 --cov-report=xml --cov-config=.coveragerc
         working-directory: tests
 
-      - name: Upload coverage data
-        run: codecov --file tests/coverage.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
+          working-directory: tests
 
   docs:
     runs-on: ubuntu-latest

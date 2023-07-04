@@ -47,10 +47,9 @@ Documentation = "https://aiida-wannier90.readthedocs.io"
 tests = [
     "pytest",
     "pytest-cov",
-    "pytest-regressions~=1.0.6",
-    "pytest-datadir~=1.3.1",
-    "pgtest~=1.3.1",
-    "codecov"
+    "pytest-regressions",
+    "pytest-datadir",
+    "pgtest",
 ]
 pre-commit = [
     "pre-commit",
@@ -60,7 +59,6 @@ pre-commit = [
     "ruamel.yaml"
 ]
 docs = ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-details-directive"]
-atomic_tools = ["ase"]
 
 [project.entry-points."aiida.calculations"]
 "wannier90.wannier90" = "aiida_wannier90.calculations:Wannier90Calculation"
