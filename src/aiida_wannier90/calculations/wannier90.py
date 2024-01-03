@@ -122,7 +122,7 @@ class Wannier90Calculation(CalcJob):
         ".vdw",
         "_band_proj.dat",
         "_band.labelinfo.dat",
-        ".node_00001.werr",
+        ".node_*.werr",
     )
 
     @classmethod
