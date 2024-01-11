@@ -104,7 +104,7 @@ def test_default_remote(
             ".vdw",
             "_band_proj.dat",
             "_band.labelinfo.dat",
-            ".node_00001.werr",
+            ".node_*.werr",
         )
     ]
     retrieve_temporary_list = []
@@ -201,7 +201,7 @@ def test_unk_symlink(
             ".vdw",
             "_band_proj.dat",
             "_band.labelinfo.dat",
-            ".node_00001.werr",
+            ".node_*.werr",
         )
     ]
     retrieve_temporary_list = []

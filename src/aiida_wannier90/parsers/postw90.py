@@ -120,7 +120,8 @@ class Postw90Parser(Parser):
             )
             return self.exit_codes.ERROR_WERR_FILE_PRESENT
 
-        # Some times the error files are aiida.node_00001.werr, ...
+        # Some times the error files are aiida.node_XXXXX.werr, ...
+        # The XXXXX are 5-digit index of processor
         error_file_name = re.compile(seedname + r".+?\.werr")
         for filename in out_folder.base.repository.list_object_names():
             if error_file_name.match(filename):
