@@ -330,8 +330,12 @@ def _format_kpoint_path(kpoint_path):
     for point1, point2 in path:
         coord1 = point_coords[point1]
         coord2 = point_coords[point2]
-        path_line = f"{point1} {coord1[0]} {coord1[1]} {coord1[2]} "
-        path_line += f" {point2} {coord2[0]} {coord2[1]} {coord2[2]}"
+        path_line = (
+            f"{point1} {coord1[0]:14.10f} {coord1[1]:14.10f} {coord1[2]:14.10f} "
+        )
+        path_line += (
+            f" {point2} {coord2[0]:14.10f} {coord2[1]:14.10f} {coord2[2]:14.10f}"
+        )
         res.append(path_line)
     return res
 
