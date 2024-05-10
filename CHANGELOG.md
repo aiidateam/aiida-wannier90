@@ -1,3 +1,17 @@
+# v2.2.0
+
+## What's Changed
+* Lower python version due to readthedocs by @qiaojunfeng in https://github.com/aiidateam/aiida-wannier90/pull/119
+* Fix codecov by @qiaojunfeng in https://github.com/aiidateam/aiida-wannier90/pull/120
+* Edit the retrieve_list to include more werr files by @jiang-yuha0 in https://github.com/aiidateam/aiida-wannier90/pull/121
+* Support Python 3.12, drop 3.8 by @qiaojunfeng in https://github.com/aiidateam/aiida-wannier90/pull/123
+* Use fixed number of digits for kpoint coordinates by @qiaojunfeng in https://github.com/aiidateam/aiida-wannier90/pull/122
+
+## New Contributors
+* @jiang-yuha0 made their first contribution in https://github.com/aiidateam/aiida-wannier90/pull/121
+
+**Full Changelog**: https://github.com/aiidateam/aiida-wannier90/compare/v2.1.0...v2.2.0
+
 # v2.1.0
 
 ## New features
