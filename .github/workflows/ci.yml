@@ -7,7 +7,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
 
     steps:
       - name: Checkout code
@@ -36,7 +36,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     services:
       postgres:
@@ -75,7 +75,10 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          # secrets and env are not accessible for PR from fork, therefore codecov
+          # would fail during tests. Now ignore failed codecov upload in PR, they
+          # will be uploaded during the test on main branch after PR merge.
+          fail_ci_if_error: false
           verbose: true
           working-directory: tests
 
@@ -84,7 +87,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.8"]
+        python-version: ["3.12"]
 
     steps:
       - name: Checkout code
