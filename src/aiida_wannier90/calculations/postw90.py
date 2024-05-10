@@ -1,4 +1,5 @@
 """Calculation class for the postw90.x code of Wannier90."""
+
 import fnmatch
 import os
 
