@@ -27,16 +27,16 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Natural Language :: English",
     "Topic :: Scientific/Engineering :: Physics",
     "Intended Audience :: Science/Research"
 ]
 keywords = ["aiida", "plugin", "wannier90"]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = ["aiida-core>=2.0,<3"]
 
 [project.urls]
@@ -171,12 +171,12 @@ known_aiida_quantumespresso = ['aiida_quantumespresso']
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py38
+envlist = py39
 
 [testenv]
 usedevelop=True
 
-[testenv:py{38,39,310}]
+[testenv:py{39,310,311,312}]
 description = Run the test suite against a python version
 extras = testing
 commands = pytest {posargs}

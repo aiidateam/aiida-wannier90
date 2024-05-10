@@ -25,12 +25,11 @@ import contextlib
 import os
 import time
 
-# Note: this requires AiiDA v1.1+
-from aiida.manage.configuration import load_documentation_profile
+from aiida.manage.configuration import Profile, load_profile
+
+load_profile(Profile("docs", {"process_control": {}, "storage": {}}))
 
 import aiida_wannier90
-
-load_documentation_profile()
 
 # -- General configuration ------------------------------------------------
 
