@@ -275,6 +275,11 @@ class Wannier90Calculation(CalcJob):
             "ERROR_OUTPUT_STDOUT_INCOMPLETE",
             message="The stdout output file was incomplete probably because the calculation got interrupted.",
         )
+        spec.exit_code(
+            405,
+            "ERROR_DISENTANGLEMENT_TOO_MANY_FROZEN_STATES",
+            message="More states in the frozen window than target WFs.",
+        )
 
     @property
     def _SEEDNAME(self):

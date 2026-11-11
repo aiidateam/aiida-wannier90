@@ -98,12 +98,19 @@ class Wannier90Parser(Parser):
                     in line
                 ):
                     return self.exit_codes.ERROR_BVECTORS
-                err_msg = (
-                    "Energy window contains fewer states than number of target WFs, "
-                    "consider reducing dis_proj_min/increasing dis_win_max?"
-                )
-                if err_msg in line:
+                # Match only the stable head of the message: the advice after
+                # it changed in wannier90 4 ("consider reducing dis_proj_min/
+                # increasing dis_win_max?" -> "consider decreasing ...", and
+                # the line is cut short at 120 chars).
+                if (
+                    "Energy window contains fewer states than number of target WFs"
+                    in line
+                ):
                     return self.exit_codes.ERROR_DISENTANGLEMENT_NOT_ENOUGH_STATES
+                # `dis_windows` / `dis_windows_proj`: the inner (frozen) window
+                # holds more states than num_wann at some k-point.
+                if "More states in the frozen window than target WFs" in line:
+                    return self.exit_codes.ERROR_DISENTANGLEMENT_TOO_MANY_FROZEN_STATES
                 if "Error plotting WF cube. Try one of the following:" in line:
                     return self.exit_codes.ERROR_PLOT_WF_CUBE
             if len(out_file) == 0:

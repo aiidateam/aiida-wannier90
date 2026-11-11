@@ -207,16 +207,27 @@ def test_bvectors_too_many(
     )
 
 
-def test_disentanglement_not_enough_states(
-    fixture_localhost, generate_calc_job_node, generate_parser
+@pytest.mark.parametrize(
+    "test_name, exit_code",
+    (
+        # wannier90 3.x wording: "consider reducing dis_proj_min/..."
+        ("HK", "ERROR_DISENTANGLEMENT_NOT_ENOUGH_STATES"),
+        # wannier90 4.0.3: "consider decreasing dis_proj_min/increasing dis"
+        ("HK_w90v4", "ERROR_DISENTANGLEMENT_NOT_ENOUGH_STATES"),
+        # wannier90 4.0.3 `dis_windows_proj`, inner window too high
+        ("CaI2_w90v4", "ERROR_DISENTANGLEMENT_TOO_MANY_FROZEN_STATES"),
+    ),
+)
+def test_disentanglement_windows(
+    fixture_localhost, generate_calc_job_node, generate_parser, test_name, exit_code
 ):
-    """Check that parsing works for bvector error."""
+    """Check that disentanglement window errors map to their exit codes."""
     from aiida.plugins import CalculationFactory
 
     node = generate_calc_job_node(
         entry_point_name=ENTRY_POINT_CALC_JOB,
         computer=fixture_localhost,
-        test_name="HK",
+        test_name=test_name,
     )
     parser = generate_parser(ENTRY_POINT_PARSER)
     _, calcfunction = parser.parse_from_node(node, store_provenance=False)
@@ -226,7 +237,7 @@ def test_disentanglement_not_enough_states(
     Wannier90Calculation = CalculationFactory(ENTRY_POINT_CALC_JOB)
     assert (
         calcfunction.exit_status
-        == Wannier90Calculation.exit_codes.ERROR_DISENTANGLEMENT_NOT_ENOUGH_STATES.status
+        == getattr(Wannier90Calculation.exit_codes, exit_code).status
     )
 
 
