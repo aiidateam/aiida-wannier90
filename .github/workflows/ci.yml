@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   pre-commit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -32,11 +32,11 @@ jobs:
         run: pre-commit run --all-files || ( git status --short; git diff; exit 1 )
 
   tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     services:
       postgres:
@@ -83,7 +83,7 @@ jobs:
           working-directory: tests
 
   docs:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
